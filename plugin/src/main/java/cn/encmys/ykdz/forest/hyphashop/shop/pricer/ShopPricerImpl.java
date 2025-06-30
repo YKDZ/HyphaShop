@@ -45,7 +45,7 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private double getPrice(@NotNull String productId, @NotNull Function<PricePair, Double> extractor, @NotNull String priceType) {
-        PricePair pricePair = cachedPrices.get(productId);
+        final PricePair pricePair = cachedPrices.get(productId);
         if (pricePair == null) {
             LogUtils.warn("Product " + productId + " do not have " + priceType + "-price cached. This is likely a bug.");
             return Double.NaN;
@@ -55,7 +55,7 @@ public class ShopPricerImpl implements ShopPricer {
 
     @Override
     public boolean cachePrice(@NotNull String productId) {
-        Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
+        final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null) {
             LogUtils.warn("Try to cache price for product " + productId + " which does not exist.");
             return false;
@@ -89,15 +89,15 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, @Nullable Object... args) {
-        Context context = price.getProperty(PriceProperty.CONTEXT);
-        Script formula = price.getProperty(PriceProperty.FORMULA);
+        final Context context = price.getProperty(PriceProperty.CONTEXT);
+        final Script formula = price.getProperty(PriceProperty.FORMULA);
 
         if (formula == null) {
             LogUtils.warn("Formula for " + product.getId() + " is null");
             return Double.NaN;
         }
 
-        Context ctx = new VarInjector()
+        final Context ctx = new VarInjector()
                 .withTarget(new Context(ContextUtils.linkContext(
                         context != null ? context.clone() : Context.GLOBAL_OBJECT,
                         product.getScriptContext().clone(),
@@ -112,16 +112,16 @@ public class ShopPricerImpl implements ShopPricer {
 
     private double calculateBundleAutoNewPrice(@NotNull Product product, boolean isBuy) {
         double total = 0;
-        BundleProduct bundle = (BundleProduct) product;
-        for (Map.Entry<String, Integer> entry : bundle.getBundleContents().entrySet()) {
-            String contentId = entry.getKey();
-            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+        final BundleProduct bundle = (BundleProduct) product;
+        for (final Map.Entry<String, Integer> entry : bundle.getBundleContents().entrySet()) {
+            final String contentId = entry.getKey();
+            final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
             if (content == null) {
                 if (isBuy) return Double.NaN;
                 LogUtils.warn("Bundle product " + product.getId() + " has invalid content " + contentId);
                 continue;
             }
-            Price contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
+            final Price contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
             total += contentPrice.getNewPrice() * entry.getValue();
         }
         return total;
@@ -137,7 +137,7 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private void handlePriceConflict(@NotNull String productId, double buy, double sell) {
-        String msg = String.format(
+        final String msg = String.format(
                 "Buy price (%.2f) <= sell price (%.2f) for %s. Disabling %s.",
                 buy, sell, productId, Config.priceCorrectByDisableSellOrBuy ? "sell" : "buy"
         );

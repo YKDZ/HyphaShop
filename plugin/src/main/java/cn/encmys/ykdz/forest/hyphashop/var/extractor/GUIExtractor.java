@@ -10,7 +10,7 @@ import xyz.xenondevs.invui.gui.ScrollGui;
 public class GUIExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        Gui gui = ctx.get(Gui.class);
+        final Gui gui = ctx.get(Gui.class);
         if (gui == null) return;
 
         ctx.putVar("__gui", () -> gui);

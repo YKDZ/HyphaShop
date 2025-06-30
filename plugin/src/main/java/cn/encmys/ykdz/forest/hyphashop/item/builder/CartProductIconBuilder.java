@@ -27,26 +27,26 @@ import java.util.Map;
 public class CartProductIconBuilder {
     @NotNull
     public static Item build(@NotNull Cart cart, @NotNull ProductLocation productLoc) {
-        Product product = productLoc.product();
-        Shop shop = productLoc.shop();
+        final Product product = productLoc.product();
+        final Shop shop = productLoc.shop();
 
         if (product == null || shop == null) return Item.simple(new ItemStack(Material.AIR));
 
-        BaseItemDecorator staticIconDecorator = CartGUIConfig.getCartProductIconRecord().iconDecorator();
+        final BaseItemDecorator staticIconDecorator = CartGUIConfig.getCartProductIconRecord().iconDecorator();
 
         var builder = Item.builder()
                 .setItemProvider((player) -> {
-                    int stack = cart.getOrder().getOrderedProducts().getOrDefault(productLoc, 0);
+                    final int stack = cart.getOrder().getOrderedProducts().getOrDefault(productLoc, 0);
                     if (stack <= 0) {
                         return new xyz.xenondevs.invui.item.ItemBuilder(Material.AIR);
                     }
 
-                    Map<String, Object> vars = new HashMap<>() {{
+                    final Map<String, Object> vars = new HashMap<>() {{
                         put("stack", stack);
                         put("total_price", cart.getOrder().getBilledPrice(productLoc));
                     }};
 
-                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
                             product.getScriptContext().clone(),
                             shop.getScriptContext().clone()
                     ), player, shop, product, cart.getOrder());
@@ -80,13 +80,13 @@ public class CartProductIconBuilder {
                     );
                 })
                 .addClickHandler((item, click) -> {
-                    Player player = click.player();
+                    final Player player = click.player();
 
-                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
                             product.getScriptContext().clone(),
                             shop.getScriptContext().clone()
                     ), player, shop, product, click, item, cart.getOrder());
-                    ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
+                    final ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, ContextUtils.linkContext(
                             product.getScriptContext(),
@@ -95,7 +95,7 @@ public class CartProductIconBuilder {
                 });
 
         if (Boolean.TRUE.equals(staticIconDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
-        Integer period = staticIconDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
+        final Integer period = staticIconDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
         return builder.build();
     }

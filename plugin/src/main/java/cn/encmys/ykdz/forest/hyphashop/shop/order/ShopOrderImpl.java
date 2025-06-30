@@ -64,12 +64,12 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     private @NotNull SettlementResult sellTo() {
-        Player customer = Bukkit.getPlayer(customerUUID);
+        final Player customer = Bukkit.getPlayer(customerUUID);
         if (customer == null) {
             return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
         }
 
-        SettlementResult result = new SettlementResult(canSellTo(), getTotalPrice());
+        final SettlementResult result = new SettlementResult(canSellTo(), getTotalPrice());
         if (result.type() == SettlementResultType.SUCCESS) {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 ProductLocation productLoc = entry.getKey();
@@ -102,10 +102,10 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     private @NotNull SettlementResult buyFrom() {
-        Player customer = Bukkit.getPlayer(customerUUID);
+        final Player customer = Bukkit.getPlayer(customerUUID);
         if (customer == null) return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
 
-        SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrice());
+        final SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrice());
         if (result.type() == SettlementResultType.SUCCESS) {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 ProductLocation productLoc = entry.getKey();
@@ -139,7 +139,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public @NotNull SettlementResultType canSellTo() {
-        Player customer = Bukkit.getPlayer(customerUUID);
+        final Player customer = Bukkit.getPlayer(customerUUID);
 
         // 顾客不存在
         if (customer == null) {
@@ -151,10 +151,10 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         }
 
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-            ProductLocation productLoc = entry.getKey();
-            Product product = productLoc.product();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
+            final ProductLocation productLoc = entry.getKey();
+            final Product product = productLoc.product();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
 
@@ -192,7 +192,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public @NotNull SettlementResultType canBuyFrom() {
-        Player customer = Bukkit.getPlayer(customerUUID);
+        final Player customer = Bukkit.getPlayer(customerUUID);
 
         // 顾客不存在
         if (customer == null) {
@@ -204,10 +204,10 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         }
 
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-            ProductLocation productLoc = entry.getKey();
-            Product product = productLoc.product();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
+            final ProductLocation productLoc = entry.getKey();
+            final Product product = productLoc.product();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
 
@@ -233,15 +233,15 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public boolean canHold() {
-        Player customer = Bukkit.getPlayer(customerUUID);
+        final Player customer = Bukkit.getPlayer(customerUUID);
         if (customer == null) return false;
 
 
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-            ProductLocation productLoc = entry.getKey();
-            Product product = productLoc.product();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
+            final ProductLocation productLoc = entry.getKey();
+            final Product product = productLoc.product();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
 
@@ -255,13 +255,13 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     public void bill() {
         if (isBilled()) return;
 
-        Map<ProductLocation, Double> bill = new HashMap<>();
-        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-            ProductLocation productLoc = entry.getKey();
-            String productId = productLoc.productId();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
-            double price;
+        final Map<ProductLocation, Double> bill = new HashMap<>();
+        for (final Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            final ProductLocation productLoc = entry.getKey();
+            final String productId = productLoc.productId();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
+            final double price;
 
             if (shop == null) continue;
 
@@ -279,18 +279,18 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     private void log() {
-        SettlementLog log = new SettlementLogImpl(customerUUID, type);
+        final SettlementLog log = new SettlementLogImpl(customerUUID, type);
 
         Map<ProductLocation, AmountPair> orderResult = new HashMap<>();
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-            ProductLocation productLoc = entry.getKey();
-            Product product = productLoc.product();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
+            final ProductLocation productLoc = entry.getKey();
+            final Product product = productLoc.product();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
 
-            int amount = shop.getShopCounter().getAmount(productLoc.productId());
+            final int amount = shop.getShopCounter().getAmount(productLoc.productId());
 
             orderResult.put(productLoc, new AmountPair(amount, stack));
         }
@@ -310,7 +310,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public @NotNull ShopOrder modifyStack(@NotNull ProductLocation productLoc, int amount) {
-        int newValue = orderedProducts.getOrDefault(productLoc, 0) + amount;
+        final int newValue = orderedProducts.getOrDefault(productLoc, 0) + amount;
         return setStack(productLoc, newValue);
     }
 
@@ -379,15 +379,15 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public void clean() {
-        Iterator<Map.Entry<ProductLocation, Integer>> iterator = orderedProducts.entrySet().iterator();
+        final Iterator<Map.Entry<ProductLocation, Integer>> iterator = orderedProducts.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<ProductLocation, Integer> entry = iterator.next();
+            final Map.Entry<ProductLocation, Integer> entry = iterator.next();
 
-            ProductLocation productLoc = entry.getKey();
-            String productId = productLoc.productId();
-            Product product = productLoc.product();
-            Shop shop = productLoc.shop();
-            int stack = entry.getValue();
+            final ProductLocation productLoc = entry.getKey();
+            final String productId = productLoc.productId();
+            final Product product = productLoc.product();
+            final Shop shop = productLoc.shop();
+            final int stack = entry.getValue();
 
             // 商品 / 商店不存在
             if (product == null || shop == null) {
@@ -399,7 +399,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             }
             // 商品库存不足
             else if (product.getProductStock().isStock()) {
-                ProductStock stock = product.getProductStock();
+                final ProductStock stock = product.getProductStock();
                 // 公共库存
                 if (stock.isGlobalStock() && stock.getCurrentGlobalAmount() < stack) {
                     iterator.remove();

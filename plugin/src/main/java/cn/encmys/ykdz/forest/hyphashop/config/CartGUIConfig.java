@@ -20,7 +20,7 @@ public class CartGUIConfig {
     private static CartProductIconRecord cartProductIconRecord;
 
     public static void load() {
-        File file = new File(cartGUIPath);
+        final File file = new File(cartGUIPath);
 
         if (!file.exists()) {
             HyphaShop.INSTANCE.saveResource("gui/internal/cart.yml", false);

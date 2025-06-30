@@ -130,7 +130,7 @@ public final class HyphaShopImpl extends HyphaShop {
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        final RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
             return false;
         }
@@ -140,7 +140,7 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void setupBStats() {
-        int pluginId = 21305;
+        final int pluginId = 21305;
         METRICS = new Metrics(this, pluginId);
     }
 }

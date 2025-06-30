@@ -11,9 +11,9 @@ import java.sql.*;
 public class SQLiteDBVersionDao implements DBVersionDao {
     @Override
     public @Nullable DBVersionSchema queryLatestSchema() throws SQLException {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_db_version ORDER BY latest_migration_time DESC LIMIT 1");
-            ResultSet rs = pStmt.executeQuery();
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_db_version ORDER BY latest_migration_time DESC LIMIT 1");
+            final ResultSet rs = pStmt.executeQuery();
             if (rs.next()) {
                 return new DBVersionSchema(
                         rs.getInt("version"),
@@ -27,8 +27,8 @@ public class SQLiteDBVersionDao implements DBVersionDao {
 
     @Override
     public void insertSchema(@NotNull DBVersionSchema schema) throws SQLException {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("INSERT INTO hyphashop_db_version VALUES (?, ?, ?)");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("INSERT INTO hyphashop_db_version VALUES (?, ?, ?)");
             pStmt.setInt(1, schema.version());
             pStmt.setInt(2, schema.migrationFromVersion());
             pStmt.setTimestamp(3, new Timestamp(schema.latestMigrationTime().getTime()));

@@ -20,7 +20,7 @@ import java.util.Map;
 
 public class ShopCounterImpl implements ShopCounter {
     private final @NotNull Shop shop;
-    private @NotNull Map<String, Integer> cachedAmounts = new HashMap<>();
+    private @NotNull Map<@NotNull String, @NotNull Integer> cachedAmounts = new HashMap<>();
 
     public ShopCounterImpl(@NotNull Shop shop) {
         this.shop = shop;
@@ -28,21 +28,23 @@ public class ShopCounterImpl implements ShopCounter {
 
     @Override
     public void cacheAmount(@NotNull String productId) {
-        Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
+        final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null) {
             LogUtils.warn("Try to cache amount for product " + productId + " which does not exist.");
             return;
         }
 
-        // 优先缓存 ItemDecorator 的数量，否则缓存 IconDecorator
-        BaseItemDecorator targetDecorator = product.getIconDecorator();
-        if (product.getProductItemDecorator() != null) targetDecorator = product.getProductItemDecorator();
-        Script amountConfig = targetDecorator.getProperty(ItemProperty.AMOUNT);
+        // 优先缓存 ItemDecorator 的数量
+        // 否则缓存 IconDecorator
+        final BaseItemDecorator targetDecorator = product.getProductItemDecorator() != null ?
+                product.getProductItemDecorator() :
+                product.getIconDecorator();
+        final Script amountConfig = targetDecorator.getProperty(ItemProperty.AMOUNT);
 
         if (amountConfig == null) cachedAmounts.put(productId, 1);
         else {
             // product -> shop -> global
-            Context ctx = ContextUtils.linkContext(
+            final Context ctx = ContextUtils.linkContext(
                     product.getScriptContext().clone(),
                     shop.getScriptContext().clone()
             );
@@ -70,12 +72,12 @@ public class ShopCounterImpl implements ShopCounter {
     }
 
     @Override
-    public @NotNull @Unmodifiable Map<String, Integer> getCachedAmounts() {
+    public @NotNull @Unmodifiable Map<@NotNull String, @NotNull Integer> getCachedAmounts() {
         return Collections.unmodifiableMap(cachedAmounts);
     }
 
     @Override
-    public void setCachedAmounts(@NotNull Map<String, Integer> cachedAmounts) {
+    public void setCachedAmounts(@NotNull Map<@NotNull String, @NotNull Integer> cachedAmounts) {
         this.cachedAmounts = cachedAmounts;
     }
 

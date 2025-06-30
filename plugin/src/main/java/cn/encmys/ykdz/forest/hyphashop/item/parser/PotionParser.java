@@ -14,7 +14,7 @@ public class PotionParser implements BaseItemParser {
     @Override
     public boolean canParse(@NotNull String base) {
         try {
-            Material material = materialRegistry.getOrThrow(Key.key(base));
+            final Material material = materialRegistry.getOrThrow(Key.key(base));
             return material.name().contains("POTION");
         } catch (Exception ignored) {
             return false;
@@ -24,7 +24,7 @@ public class PotionParser implements BaseItemParser {
     @Override
     public @NotNull BaseItem parse(@NotNull String base) {
         try {
-            Material material = materialRegistry.getOrThrow(Key.key(base));
+            final Material material = materialRegistry.getOrThrow(Key.key(base));
             return new PotionItem(material);
         } catch (Exception ignored) {
             return new PotionItem(Material.POTION);

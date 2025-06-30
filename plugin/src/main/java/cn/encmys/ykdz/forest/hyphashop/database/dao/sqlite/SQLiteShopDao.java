@@ -19,9 +19,9 @@ public class SQLiteShopDao implements ShopDao {
     @Override
     public @Nullable ShopSchema querySchema(@NotNull String id) {
         try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_shop WHERE id = ?");
+            final PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_shop WHERE id = ?");
             pStmt.setString(1, id);
-            ResultSet rs = pStmt.executeQuery();
+            final ResultSet rs = pStmt.executeQuery();
             if (rs.next()) {
                 return new ShopSchema(
                         id,
@@ -43,8 +43,8 @@ public class SQLiteShopDao implements ShopDao {
 
     @Override
     public void insertSchema(@NotNull ShopSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_shop (id, balance, cached_amounts, cached_prices, listed_products, last_restocking) VALUES (?, ?, ?, ?, ?, ?)");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_shop (id, balance, cached_amounts, cached_prices, listed_products, last_restocking) VALUES (?, ?, ?, ?, ?, ?)");
             pStmt.setString(1, schema.id());
             pStmt.setDouble(2, schema.balance());
             pStmt.setString(3, HyphaShop.GSON.toJson(schema.cachedAmounts(), new TypeToken<Map<String, Integer>>() {
@@ -62,8 +62,8 @@ public class SQLiteShopDao implements ShopDao {
 
     @Override
     public void updateSchema(@NotNull ShopSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_shop SET balance = ?, cached_amounts = ?, cached_prices = ?, listed_products = ?, last_restocking = ? WHERE id = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_shop SET balance = ?, cached_amounts = ?, cached_prices = ?, listed_products = ?, last_restocking = ? WHERE id = ?");
             pStmt.setString(1, schema.id());
             pStmt.setDouble(2, schema.balance());
             pStmt.setString(3, HyphaShop.GSON.toJson(schema.cachedAmounts(), new TypeToken<Map<String, Integer>>() {
@@ -81,8 +81,8 @@ public class SQLiteShopDao implements ShopDao {
 
     @Override
     public void deleteSchema(@NotNull ShopSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_shop WHERE id = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_shop WHERE id = ?");
             pStmt.setString(1, schema.id());
             pStmt.executeUpdate();
         } catch (SQLException e) {

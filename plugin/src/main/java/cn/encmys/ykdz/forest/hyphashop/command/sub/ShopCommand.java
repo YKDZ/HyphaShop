@@ -35,10 +35,10 @@ public class ShopCommand {
                         })
                         .then(Commands.argument("target", ArgumentTypes.player())
                                 .executes((ctx) -> {
-                                    CommandSender sender = ctx.getSource().getSender();
-                                    String shopId = ctx.getArgument("shop", String.class);
-                                    Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
-                                    Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+                                    final CommandSender sender = ctx.getSource().getSender();
+                                    final String shopId = ctx.getArgument("shop", String.class);
+                                    final Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
+                                    final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                                     if (target == null) {
                                         MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_open_failure_invalidPlayer, sender, shop);
                                         return Command.SINGLE_SUCCESS;
@@ -71,9 +71,9 @@ public class ShopCommand {
                             return builder.buildFuture();
                         })
                         .executes((ctx) -> {
-                            CommandSender sender = ctx.getSource().getSender();
-                            String shopId = ctx.getArgument("shop", String.class);
-                            Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+                            final CommandSender sender = ctx.getSource().getSender();
+                            final String shopId = ctx.getArgument("shop", String.class);
+                            final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                             if (shop == null) {
                                 MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_restock_failure_invalidShop, sender);
                                 return Command.SINGLE_SUCCESS;

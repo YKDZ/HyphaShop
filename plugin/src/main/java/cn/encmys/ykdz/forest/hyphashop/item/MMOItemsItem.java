@@ -31,7 +31,7 @@ public class MMOItemsItem implements BaseItem {
 
     @Override
     public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
-        MMOItem mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
+        final MMOItem mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
 
         if (mmoItem == null) {
             return Component.translatable("Name of MMOItems item " + getType().getId() + ":" + getId() + " not found").color(TextColor.color(255, 0, 0));
@@ -48,8 +48,8 @@ public class MMOItemsItem implements BaseItem {
 
     @Override
     public boolean isSimilar(@NotNull ItemStack item) {
-        Type itemType = Type.get(MMOItems.getTypeName(item));
-        String itemId = MMOItems.getID(item);
+        final Type itemType = Type.get(MMOItems.getTypeName(item));
+        final String itemId = MMOItems.getID(item);
         if (itemType != null && itemId != null) {
             return itemType.equals(getType()) && itemId.equals(getId());
         } else {
@@ -69,7 +69,7 @@ public class MMOItemsItem implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
-        MMOItem mmoItem;
+        final MMOItem mmoItem;
         if (player == null) {
             mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
         } else {

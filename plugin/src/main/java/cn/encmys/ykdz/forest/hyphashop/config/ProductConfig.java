@@ -19,18 +19,18 @@ public class ProductConfig {
     private static final HashMap<String, YamlConfiguration> packs = new HashMap<>();
 
     public static void load() {
-        File directory = new File(path);
+        final File directory = new File(path);
 
         if (!directory.exists() || !directory.isDirectory()) {
             directory.getParentFile().mkdirs();
         }
 
-        File[] files = directory.listFiles();
+        final File[] files = directory.listFiles();
 
         if (files != null) {
-            for (File file : files) {
+            for (final File file : files) {
                 if (file.isFile() && file.getName().endsWith(".yml")) {
-                    YamlConfiguration config = new YamlConfiguration();
+                    final YamlConfiguration config = new YamlConfiguration();
                     try {
                         config.load(file);
                         packs.put(file.getName().replace(".yml", ""), config);
@@ -53,11 +53,11 @@ public class ProductConfig {
 
     @Nullable
     public static List<String> getAllProductId(String packId) {
-        YamlConfiguration config = getConfig(packId);
+        final YamlConfiguration config = getConfig(packId);
         if (config == null) {
             return null;
         }
-        ConfigurationSection section = config.getConfigurationSection("products");
+        final ConfigurationSection section = config.getConfigurationSection("products");
         if (section == null) {
             return null;
         }

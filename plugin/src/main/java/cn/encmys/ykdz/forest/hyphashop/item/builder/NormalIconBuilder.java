@@ -37,74 +37,74 @@ public class NormalIconBuilder {
     }
 
     private static @NotNull Item buildNormalIcon(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
-        var builder = Item.builder()
+        final var builder = Item.builder()
                 .setItemProvider((player) -> {
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(
                             staticDecorator, parent, player
                     );
                     return itemFromDecorator(decorator, player, parent, args);
                 })
                 .addClickHandler((item, click) -> {
-                    Player player = click.player();
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, player, click, item);
-                    ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
+                    final Player player = click.player();
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, player, click, item);
+                    final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item)).toArray());
                 });
         if (Boolean.TRUE.equals(staticDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
-        Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
+        final Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
         return builder.build();
     }
 
     private static @NotNull Item buildScrollIcon(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
-        var builder = BoundItem.scrollBuilder()
+        final var builder = BoundItem.scrollBuilder()
                 .setItemProvider((player, gui) -> {
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
                     return itemFromDecorator(decorator, player, parent, Stream.concat(Arrays.stream(args), Stream.of(gui)).toArray());
                 })
                 .addClickHandler((item, gui, click) -> {
-                    Player player = click.player();
+                    final Player player = click.player();
 
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                    ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
+                    final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
                 });
         if (Boolean.TRUE.equals(staticDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
-        Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
+        final Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
         return builder.build();
     }
 
     private static @NotNull Item buildPageIcon(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
-        var builder = BoundItem.pagedBuilder()
+        final var builder = BoundItem.pagedBuilder()
                 .setItemProvider((player, gui) -> {
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
                     return itemFromDecorator(decorator, player, parent, Stream.concat(Arrays.stream(args), Stream.of(gui)).toArray());
                 })
                 .addClickHandler((item, gui, click) -> {
-                    Player player = click.player();
+                    final Player player = click.player();
 
-                    BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                    ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
+                    final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
                 });
         if (Boolean.TRUE.equals(staticDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
-        Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
+        final Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
         return builder.build();
     }
 
     private static @NotNull xyz.xenondevs.invui.item.ItemBuilder itemFromDecorator(@NotNull BaseItemDecorator decorator, @NotNull Player player, @NotNull Context parent, @Nullable Object @NotNull ... args) {
-        Script amount = decorator.getProperty(ItemProperty.AMOUNT);
+        final Script amount = decorator.getProperty(ItemProperty.AMOUNT);
 
         if (amount == null) {
             throw new IllegalArgumentException("No amount specified");
         }
 
-        List<Object> argList = new ArrayList<>(Arrays.asList(args));
+        final List<Object> argList = new ArrayList<>(Arrays.asList(args));
         argList.add(player);
 
         return new xyz.xenondevs.invui.item.ItemBuilder(

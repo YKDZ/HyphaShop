@@ -8,7 +8,7 @@ import xyz.xenondevs.invui.Click;
 public class ClickExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        Click click = ctx.get(Click.class);
+        final Click click = ctx.get(Click.class);
         if (click == null) return;
 
         ctx.putVar("__click", () -> click);

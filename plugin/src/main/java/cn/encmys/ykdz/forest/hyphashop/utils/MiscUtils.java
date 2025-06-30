@@ -75,17 +75,14 @@ public class MiscUtils {
                 .flatMap(x -> {
                     final String row = refArray[x].getReferredValue().getAsString();
                     final List<Integer> yPositions = new ArrayList<>();
-                    int currentX = 0;
 
-                    for (int i = 0; i < row.length(); i++) {
-                        char c = row.charAt(i);
-                        if (c != ' ') {
-                            if (c == targetChar) {
-                                yPositions.add(currentX);
-                            }
-                            currentX++;
+                    IntStream.range(0, row.length()).forEach(i -> {
+                        final char c = row.charAt(i);
+                        if (c != ' ' && c == targetChar) {
+                            yPositions.add(i);
                         }
-                    }
+                    });
+
                     return yPositions.stream()
                             .map(y -> new AbstractMap.SimpleEntry<>(x, y));
                 });

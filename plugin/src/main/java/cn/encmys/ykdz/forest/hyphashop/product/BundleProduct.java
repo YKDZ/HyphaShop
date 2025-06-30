@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BundleProduct extends Product {
-    private final @NotNull Map<String, Integer> bundleContents;
+    private final @NotNull Map<@NotNull String, @NotNull Integer> bundleContents;
 
     public BundleProduct(
             @NotNull String id,
@@ -62,14 +62,14 @@ public class BundleProduct extends Product {
         }}, shop, player, this);
 
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
-            String contentId = entry.getKey();
-            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+            final String contentId = entry.getKey();
+            final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
 
             if (content == null) {
                 break;
             }
 
-            int contentStack = entry.getValue() * stack;
+            final int contentStack = entry.getValue() * stack;
             content.give(shop, inv, player, contentStack);
         }
     }
@@ -86,14 +86,14 @@ public class BundleProduct extends Product {
         }}, shop, player, this);
 
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
-            String contentId = entry.getKey();
-            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+            final String contentId = entry.getKey();
+            final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
 
             if (content == null) {
                 break;
             }
 
-            int contentStack = entry.getValue() * stack;
+            final int contentStack = entry.getValue() * stack;
 
             content.take(shop, inv, player, contentStack);
         }
@@ -109,14 +109,14 @@ public class BundleProduct extends Product {
         int count = Integer.MAX_VALUE;
 
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
-            String contentId = entry.getKey();
-            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+            final String contentId = entry.getKey();
+            final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
 
             if (content == null) {
                 break;
             }
 
-            int contentStack = entry.getValue() * stack;
+            final int contentStack = entry.getValue() * stack;
 
             if (content.has(shop, inv, player, 1) < contentStack) {
                 count = 0;
@@ -131,12 +131,12 @@ public class BundleProduct extends Product {
 
     @Override
     public boolean canHold(@NotNull Shop shop, @NotNull Player player, int stack) {
-        Map<Product, AmountPair> productsToHold = new HashMap<>();
+        final Map<Product, AmountPair> productsToHold = new HashMap<>();
 
-        for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
-            String contentId = entry.getKey();
-            int contentStack = entry.getValue() * stack;
-            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+        for (final Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
+            final String contentId = entry.getKey();
+            final int contentStack = entry.getValue() * stack;
+            final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
 
             if (content == null) continue;
 

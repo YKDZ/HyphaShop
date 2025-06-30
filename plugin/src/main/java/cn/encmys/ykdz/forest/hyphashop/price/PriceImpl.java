@@ -31,8 +31,8 @@ public class PriceImpl extends Price {
             priceMode = PriceMode.BUNDLE_AUTO_REUSE;
         } else if (config.contains("formula") || config.contains("context")) {
             priceMode = PriceMode.FORMULA;
-            String formula = config.getString("formula").orElse(defaultConfig.getString("formula").orElse(null));
-            String context = config.getString("context").orElse(defaultConfig.getString("context").orElse(null));
+            final String formula = config.getString("formula").orElse(defaultConfig.getString("formula").orElse(null));
+            final String context = config.getString("context").orElse(defaultConfig.getString("context").orElse(null));
 
             if (formula == null) {
                 priceMode = PriceMode.DISABLE;

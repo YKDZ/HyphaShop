@@ -19,7 +19,7 @@ public class NormalGUIConfig {
 
     public static void load() {
         try {
-            List<File> ymlConfigs = FileUtils.loadYmlFiles(path);
+            final List<File> ymlConfigs = FileUtils.loadYmlFiles(path);
             ymlConfigs.forEach(file -> configs.add(new ConfigurationSectionAccessor(YamlConfiguration.loadConfiguration(file))));
         } catch (IOException e) {
             throw new RuntimeException(e);

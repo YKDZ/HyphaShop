@@ -16,13 +16,13 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ProfileFactoryImpl implements ProfileFactory {
-    private final static Map<UUID, Profile> profiles = new ConcurrentHashMap<>();
+    private final static @NotNull Map<@NotNull UUID, @NotNull Profile> profiles = new ConcurrentHashMap<>();
 
     @Override
     public @NotNull Profile buildProfile(@NotNull OfflinePlayer player) {
-        Profile profile = new ProfileImpl(player);
+        final Profile profile = new ProfileImpl(player);
 
-        ProfileSchema profileSchema = HyphaShop.DATABASE_FACTORY.getProfileDao().querySchema(player.getUniqueId());
+        final ProfileSchema profileSchema = HyphaShop.DATABASE_FACTORY.getProfileDao().querySchema(player.getUniqueId());
 
         if (profileSchema != null) {
             profile.setShoppingModes(profileSchema.shoppingModes());
@@ -34,7 +34,7 @@ public class ProfileFactoryImpl implements ProfileFactory {
     }
 
     public @NotNull Profile getProfile(@NotNull OfflinePlayer player) {
-        Profile profile = profiles.get(player.getUniqueId());
+        final Profile profile = profiles.get(player.getUniqueId());
         if (profile == null) {
             return buildProfile(player);
         }
@@ -42,7 +42,7 @@ public class ProfileFactoryImpl implements ProfileFactory {
     }
 
     @Override
-    public @NotNull @Unmodifiable Map<UUID, Profile> getProfiles() {
+    public @NotNull @Unmodifiable Map<@NotNull UUID, @NotNull Profile> getProfiles() {
         return Collections.unmodifiableMap(profiles);
     }
 
@@ -59,7 +59,7 @@ public class ProfileFactoryImpl implements ProfileFactory {
 
     @Override
     public void save(@NotNull UUID playerUUID) {
-        Profile profile = profiles.get(playerUUID);
+        final Profile profile = profiles.get(playerUUID);
         HyphaShop.DATABASE_FACTORY.getProfileDao().insertSchema(ProfileSchema.of(profile));
     }
 

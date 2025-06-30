@@ -15,7 +15,7 @@ public class ConnTasksImpl implements ConnTasks {
     @Override
     public void runRestockTimer() {
         Scheduler.runAsyncTaskAtFixedRate(task -> {
-            long now = System.currentTimeMillis();
+            final long now = System.currentTimeMillis();
             for (Shop shop : HyphaShop.SHOP_FACTORY.getShops().values()) {
                 if (shop.getShopStocker().isAutoRestock() && shop.getShopStocker().getLastRestocking() + shop.getShopStocker().getAutoRestockPeriod() * 50 <= now) {
                     shop.getShopStocker().stock();

@@ -51,10 +51,10 @@ public class MessageConfig {
     private static YamlConfiguration config = new YamlConfiguration();
 
     public static void load() {
-        String resourcePath = "lang/" + Config.language_message + ".yml";
-        String path = HyphaShop.INSTANCE.getDataFolder() + "/" + resourcePath;
+        final String resourcePath = "lang/" + Config.language_message + ".yml";
+        final String path = HyphaShop.INSTANCE.getDataFolder() + "/" + resourcePath;
 
-        File file = new File(path);
+        final File file = new File(path);
 
         if (!file.exists()) {
             HyphaShop.INSTANCE.saveResource(resourcePath, false);

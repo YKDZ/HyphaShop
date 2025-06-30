@@ -11,7 +11,7 @@ import org.jetbrains.annotations.NotNull;
 public class PlayerListener implements Listener {
     @EventHandler
     public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         HyphaShop.INSTANCE.getServer().getScheduler().runTaskAsynchronously(
                 HyphaShop.INSTANCE, () -> HyphaShop.PROFILE_FACTORY.buildProfile(player)
         );
@@ -19,7 +19,7 @@ public class PlayerListener implements Listener {
 
     @EventHandler
     public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
-        Player player = event.getPlayer();
+        final Player player = event.getPlayer();
         HyphaShop.INSTANCE.getServer().getScheduler().runTaskAsynchronously(
                 HyphaShop.INSTANCE, () -> {
                     HyphaShop.PROFILE_FACTORY.save(player.getUniqueId());

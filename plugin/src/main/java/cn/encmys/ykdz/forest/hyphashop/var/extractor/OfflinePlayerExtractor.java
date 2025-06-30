@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class OfflinePlayerExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        OfflinePlayer player = ctx.get(OfflinePlayer.class);
+        final OfflinePlayer player = ctx.get(OfflinePlayer.class);
         if (player == null) return;
 
         ctx.putVar("__player", () -> player);

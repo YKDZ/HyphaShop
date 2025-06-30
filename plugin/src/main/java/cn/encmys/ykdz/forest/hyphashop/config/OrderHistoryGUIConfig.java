@@ -21,7 +21,7 @@ public class OrderHistoryGUIConfig {
     private static HistoryIconRecord historyIconRecord;
 
     public static void load() {
-        File file = new File(orderHistoryGUIPath);
+        final File file = new File(orderHistoryGUIPath);
 
         if (!file.exists()) {
             HyphaShop.INSTANCE.saveResource("gui/internal/order-history.yml", false);

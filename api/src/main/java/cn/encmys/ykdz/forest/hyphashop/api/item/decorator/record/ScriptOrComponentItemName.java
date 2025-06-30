@@ -19,8 +19,7 @@ public record ScriptOrComponentItemName(@Nullable Script scriptName, @Nullable C
     }
 
     public @NotNull Script scriptName() {
-        if (!isScript())
-            return Objects.requireNonNull(StringUtils.wrapToScriptWithOmit(PlainTextComponentSerializer.plainText().serialize(componentName)));
+        if (!isScript()) throw new IllegalStateException("Name is not a script.");
         return scriptName;
     }
 
@@ -30,10 +29,10 @@ public record ScriptOrComponentItemName(@Nullable Script scriptName, @Nullable C
     }
 
     public boolean isComponent() {
-        return componentName != null;
+        return componentName != null && scriptName == null;
     }
 
     public boolean isScript() {
-        return scriptName != null;
+        return scriptName != null && componentName == null;
     }
 }

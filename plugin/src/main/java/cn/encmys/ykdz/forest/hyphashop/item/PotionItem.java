@@ -15,7 +15,7 @@ public class PotionItem extends VanillaItem {
 
     @Override
     public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
-        PotionType type = decorator.getProperty(ItemProperty.POTION_TYPE);
+        final PotionType type = decorator.getProperty(ItemProperty.POTION_TYPE);
         return Component.translatable(material.translationKey(), type == null ? "" : ".effect." + type.name().toLowerCase().replaceAll("long_|strong_", "")).decorationIfAbsent(TextDecoration.ITALIC, TextDecoration.State.FALSE);
     }
 }

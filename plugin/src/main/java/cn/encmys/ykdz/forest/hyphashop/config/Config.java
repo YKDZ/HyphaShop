@@ -27,7 +27,7 @@ public class Config {
     private static YamlConfiguration config = new YamlConfiguration();
 
     public static void load() {
-        File file = new File(path);
+        final File file = new File(path);
 
         // 当 config.yml 不存在时尝试初始化所有配置文件
         if (!file.exists()) {
@@ -46,7 +46,7 @@ public class Config {
 
         try {
             config.load(file);
-            InputStream newConfigStream = HyphaShop.INSTANCE.getResource(resourcePath);
+            final InputStream newConfigStream = HyphaShop.INSTANCE.getResource(resourcePath);
             if (newConfigStream == null) {
                 LogUtils.error("Resource " + resourcePath + " not found");
                 return;

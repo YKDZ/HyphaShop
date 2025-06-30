@@ -27,7 +27,7 @@ public class VanillaParser implements BaseItemParser {
     @Override
     public @NotNull BaseItem parse(@NotNull String base) {
         try {
-            Material material = materialRegistry.getOrThrow(Key.key(base));
+            final Material material = materialRegistry.getOrThrow(Key.key(base));
             return new VanillaItem(material);
         } catch (NoSuchElementException | InvalidKeyException e) {
             return new VanillaItem(Material.DIRT);

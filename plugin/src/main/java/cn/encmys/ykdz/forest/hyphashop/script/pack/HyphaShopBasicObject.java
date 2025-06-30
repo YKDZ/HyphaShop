@@ -26,7 +26,7 @@ public class HyphaShopBasicObject extends InternalObject {
     @Function("term")
     @FunctionParas({"enum_name"})
     public static String term(@NotNull Context ctx) {
-        Value enumId = ctx.findMember("enum_name").getReferredValue();
+        final Value enumId = ctx.findMember("enum_name").getReferredValue();
         if (!enumId.isType(Value.Type.STRING)) {
             if (MainConfig.debug) {
                 LogUtils.warn("HyphaShopBasic.term: enum_name is not a string");
@@ -35,9 +35,9 @@ public class HyphaShopBasicObject extends InternalObject {
                 return null;
             }
         }
-        String enumIdStr = (String) enumId.getValue();
+        final String enumIdStr = (String) enumId.getValue();
 
-        List<Supplier<String>> converters = Arrays.asList(
+        final List<Supplier<String>> converters = Arrays.asList(
                 () -> MessageConfig.getTerm(OrderType.valueOf(enumIdStr)),
                 () -> MessageConfig.getTerm(ShoppingMode.valueOf(enumIdStr))
         );
@@ -61,7 +61,7 @@ public class HyphaShopBasicObject extends InternalObject {
     @Function("format_decimal")
     @FunctionParas({"decimal"})
     public static String formatDecimal(@NotNull Context ctx) {
-        Value decimalValue = ctx.findMember("decimal").getReferredValue();
+        final Value decimalValue = ctx.findMember("decimal").getReferredValue();
 
         if (!decimalValue.isType(Value.Type.NUMBER)) {
             if (MainConfig.debug) {
@@ -72,7 +72,7 @@ public class HyphaShopBasicObject extends InternalObject {
             }
         }
 
-        BigDecimal decimal = decimalValue.getAsBigDecimal();
+        final BigDecimal decimal = decimalValue.getAsBigDecimal();
 
         try {
             return MessageConfig.format_decimal.format(decimal);
@@ -90,7 +90,7 @@ public class HyphaShopBasicObject extends InternalObject {
     @Function("format_date")
     @FunctionParas({"date"})
     public static String formatDate(@NotNull Context ctx) {
-        Value dateValue = ctx.findMember("date").getReferredValue();
+        final Value dateValue = ctx.findMember("date").getReferredValue();
 
         if (!dateValue.isType(Value.Type.JAVA_OBJECT)) {
             if (MainConfig.debug) {
@@ -101,7 +101,7 @@ public class HyphaShopBasicObject extends InternalObject {
             }
         }
 
-        Object dateObj = dateValue.getValue();
+        final Object dateObj = dateValue.getValue();
 
         if (!(dateObj instanceof Date)) {
             if (MainConfig.debug) {

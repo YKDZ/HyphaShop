@@ -40,6 +40,7 @@ import xyz.xenondevs.invui.gui.Gui;
 
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -51,7 +52,7 @@ public class ConfigUtils {
     public static @Nullable ArmorTrim parseArmorTrimData(@Nullable String data) {
         if (data == null) return null;
 
-        String[] parsed = data.split(":");
+        final String[] parsed = data.split(":");
         try {
             Registry<@NotNull TrimMaterial> materialRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.TRIM_MATERIAL);
             Registry<@NotNull TrimPattern> patternRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.TRIM_PATTERN);
@@ -116,7 +117,7 @@ public class ConfigUtils {
      * @return PotionEffect
      */
     private static @NotNull PotionEffect parsePotionEffectsData(@NotNull String data) {
-        String[] parsed = data.split(":");
+        final String[] parsed = data.split(":");
         try {
             Registry<@NotNull PotionEffectType> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT);
             return new PotionEffect(
@@ -154,11 +155,11 @@ public class ConfigUtils {
      * @return Enchantment and Level
      */
     private static @NotNull Map.Entry<Enchantment, Integer> parseEnchantmentData(@NotNull String data) {
-        String[] parsed = data.split(":");
+        final String[] parsed = data.split(":");
 
         try {
-            Registry<@NotNull Enchantment> enchantmentRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
-            Enchantment enchantment = enchantmentRegistry.getOrThrow(Key.key(parsed[0]));
+            final Registry<@NotNull Enchantment> enchantmentRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
+            final Enchantment enchantment = enchantmentRegistry.getOrThrow(Key.key(parsed[0]));
             int level = Integer.parseInt(parsed[1]);
 
             return Map.entry(enchantment, level);
@@ -191,12 +192,12 @@ public class ConfigUtils {
      * @return Pattern type and its color
      */
     private static @NotNull Map.Entry<PatternType, DyeColor> parseBannerPatternData(@NotNull @Subst("YELLOW:bricks") String data) {
-        String[] parsed = data.split(":");
+        final String[] parsed = data.split(":");
 
         try {
-            DyeColor color = DyeColor.valueOf(parsed[0]);
-            Registry<@NotNull PatternType> bannerPatternRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BANNER_PATTERN);
-            PatternType type = bannerPatternRegistry.getOrThrow(Key.key(parsed[1]));
+            final DyeColor color = DyeColor.valueOf(parsed[0]);
+            final Registry<@NotNull PatternType> bannerPatternRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.BANNER_PATTERN);
+            final PatternType type = bannerPatternRegistry.getOrThrow(Key.key(parsed[1]));
 
             return Map.entry(type, color);
         } catch (NoSuchElementException | InvalidKeyException e) {
@@ -227,8 +228,8 @@ public class ConfigUtils {
      */
     private static Map.@NotNull @Unmodifiable Entry<ItemFlag, Boolean> parseItemFlagData(@NotNull String data) {
         try {
-            ItemFlag flag = ItemFlag.valueOf(data.replaceAll("-", ""));
-            boolean isAdd = !data.startsWith("-");
+            final ItemFlag flag = ItemFlag.valueOf(data.replaceAll("-", ""));
+            final boolean isAdd = !data.startsWith("-");
             return Map.entry(flag, isAdd);
         } catch (IllegalArgumentException e) {
             LogUtils.warn("Banner pattern data: " + data + " is invalid. Use HIDE_ADDITIONAL_TOOLTIP as fallback");
@@ -250,15 +251,15 @@ public class ConfigUtils {
      * @return Firework effect
      */
     private static @NotNull FireworkEffect parseFireworkEffectData(@NotNull String data) {
-        Map<String, String> params = new HashMap<>();
-        Map<String, List<String>> listParams = new HashMap<>();
+        final Map<String, String> params = new HashMap<>();
+        final Map<String, List<String>> listParams = new HashMap<>();
 
-        java.util.regex.Pattern p = java.util.regex.Pattern.compile("-(\\w+):(\\[.*?]|\\w+)");
-        Matcher m = p.matcher(data);
+        final Pattern p = java.util.regex.Pattern.compile("-(\\w+):(\\[.*?]|\\w+)");
+        final Matcher m = p.matcher(data);
 
         while (m.find()) {
-            String key = m.group(1);
-            String value = m.group(2);
+            final String key = m.group(1);
+            final String value = m.group(2);
 
             if (value.startsWith("[")) {
                 String[] listValues = value.substring(1, value.length() - 1).split(",\\s*");
@@ -268,14 +269,14 @@ public class ConfigUtils {
             }
         }
 
-        List<Color> colors = new ArrayList<>();
-        List<Color> fadeColors = new ArrayList<>();
+        final List<Color> colors = new ArrayList<>();
+        final List<Color> fadeColors = new ArrayList<>();
 
-        for (String hex : listParams.get("c")) {
+        for (final String hex : listParams.get("c")) {
             colors.add(ColorUtils.getFromHex(hex));
         }
 
-        for (String hex : listParams.get("fc")) {
+        for (final String hex : listParams.get("fc")) {
             fadeColors.add(ColorUtils.getFromHex(hex));
         }
 
@@ -304,18 +305,18 @@ public class ConfigUtils {
     }
 
     public static @NotNull Map<Character, BaseItemDecorator> parseIconDecorators(@NotNull ConfigAccessor config) {
-        Map<Character, BaseItemDecorator> icons = new HashMap<>();
+        final Map<Character, BaseItemDecorator> icons = new HashMap<>();
         config.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> icons.put(key.charAt(0), parseDecorator(childConfig)));
         return icons;
     }
 
     public static @NotNull Gui parseGui(@NotNull ConfigAccessor config) {
-        String[] structure = config.getStringList("structure").orElse(new ArrayList<>()).toArray(new String[0]);
-        ConfigAccessor icons = config.getConfig("icons").orElse(null);
+        final String[] structure = config.getStringList("structure").orElse(new ArrayList<>()).toArray(new String[0]);
+        final ConfigAccessor icons = config.getConfig("icons").orElse(null);
 
         if (icons == null) return Gui.builder().build();
 
-        Gui.Builder<?, ?> builder = Gui.builder()
+        final Gui.Builder<?, ?> builder = Gui.builder()
                 .setStructure(structure);
 
         icons.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> builder.addIngredient(key.charAt(0), NormalIconBuilder.build(parseDecorator(childConfig), GUIType.NORMAL, Context.GLOBAL_OBJECT)));
@@ -324,8 +325,8 @@ public class ConfigUtils {
     }
 
     public static @NotNull BaseItemDecorator parseDecorator(@NotNull ConfigAccessor config) {
-        String base = config.getString("base").orElse("dirt");
-        BaseItem item = BaseItemBuilder.get(base);
+        final String base = config.getString("base").orElse("dirt");
+        final BaseItem item = BaseItemBuilder.get(base);
 
         return new BaseItemDecorator(item)
                 .setProperty(ItemProperty.NAME, StringUtils.wrapToScriptWithOmit(config.getString("name").orElse(null)))
@@ -355,23 +356,23 @@ public class ConfigUtils {
     }
 
     public static @NotNull List<ConditionalIconRecord> parseConditionIconRecords(@NotNull List<? extends ConfigAccessor> configList, @NotNull ConfigAccessor parent) {
-        List<ConditionalIconRecord> conditionIcons = new ArrayList<>();
+        final List<ConditionalIconRecord> conditionIcons = new ArrayList<>();
 
         IntStream.range(0, configList.size()).forEach(i -> {
-            ConfigAccessor config = configList.get(i);
+            final ConfigAccessor config = configList.get(i);
 
-            String conditionStr = config.getString("condition").orElse(null);
+            final String conditionStr = config.getString("condition").orElse(null);
             if (conditionStr == null) return;
 
-            Script condition = StringUtils.wrapToScript(conditionStr);
+            final Script condition = StringUtils.wrapToScript(conditionStr);
 
             if (condition == null) return;
 
             ConfigAccessor icon = config.getConfig("icon").orElse(null);
             if (icon == null) return;
 
-            ActionsConfig parentActions = ActionsConfig.of(parent.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
-            ActionsConfig actions = ActionsConfig.of(icon.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+            final ActionsConfig parentActions = ActionsConfig.of(parent.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+            final ActionsConfig actions = ActionsConfig.of(icon.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
 
             if (config.getBoolean("inherit").orElse(true)) {
                 // 手动继承 actions
@@ -380,10 +381,10 @@ public class ConfigUtils {
             }
 
             // 索引小的优先级高
-            int priority = config.getInt("priority").orElse(configList.size() - i);
+            final int priority = config.getInt("priority").orElse(configList.size() - i);
 
-            BaseItemDecorator iconDecorator = parseDecorator(icon);
-            iconDecorator.setProperty(ItemProperty.ACTIONS, actions);
+            final BaseItemDecorator iconDecorator = parseDecorator(icon)
+                    .setProperty(ItemProperty.ACTIONS, actions);
 
             conditionIcons.add(new ConditionalIconRecord(
                     condition,

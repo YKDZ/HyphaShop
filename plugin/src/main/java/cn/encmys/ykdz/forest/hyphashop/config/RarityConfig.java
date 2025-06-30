@@ -17,7 +17,7 @@ public class RarityConfig {
     private static final YamlConfiguration config = new YamlConfiguration();
 
     public static void load() {
-        File file = new File(path);
+        final File file = new File(path);
 
         if (!file.exists()) {
             HyphaShop.INSTANCE.saveResource("rarities.yml", false);
@@ -31,7 +31,7 @@ public class RarityConfig {
     }
 
     public static List<String> getAllId() {
-        ConfigurationSection section = config.getConfigurationSection("rarities");
+        final ConfigurationSection section = config.getConfigurationSection("rarities");
         if (section == null) {
             return new ArrayList<>();
         }

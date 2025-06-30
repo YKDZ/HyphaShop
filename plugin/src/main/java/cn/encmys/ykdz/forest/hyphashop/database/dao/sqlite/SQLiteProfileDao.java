@@ -19,10 +19,10 @@ import java.util.UUID;
 public class SQLiteProfileDao implements ProfileDao {
     @Override
     public @Nullable ProfileSchema querySchema(@NotNull UUID playerUUID) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_profile WHERE owner_uuid = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_profile WHERE owner_uuid = ?");
             pStmt.setString(1, playerUUID.toString());
-            ResultSet rs = pStmt.executeQuery();
+            final ResultSet rs = pStmt.executeQuery();
             if (rs.next()) {
                 return new ProfileSchema(
                         playerUUID,
@@ -39,8 +39,8 @@ public class SQLiteProfileDao implements ProfileDao {
 
     @Override
     public void insertSchema(@NotNull ProfileSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_profile VALUES (?, ?, ?)");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_profile VALUES (?, ?, ?)");
             pStmt.setString(1, schema.ownerUUID().toString());
             pStmt.setString(2, HyphaShop.GSON.toJson(schema.shoppingModes(), new TypeToken<Map<String, ShoppingMode>>() {
             }.getType()));
@@ -53,8 +53,8 @@ public class SQLiteProfileDao implements ProfileDao {
 
     @Override
     public void updateSchema(@NotNull ProfileSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_profile SET shopping_modes = ?, cart_order = ? WHERE owner_uuid = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_profile SET shopping_modes = ?, cart_order = ? WHERE owner_uuid = ?");
             pStmt.setString(1, HyphaShop.GSON.toJson(schema.shoppingModes(), new TypeToken<Map<String, ShoppingMode>>() {
             }.getType()));
             pStmt.setString(2, HyphaShop.GSON.toJson(schema.cartOrder(), ShopOrderImpl.class));
@@ -67,8 +67,8 @@ public class SQLiteProfileDao implements ProfileDao {
 
     @Override
     public void deleteSchema(@NotNull ProfileSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_profile WHERE owner_uuid = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_profile WHERE owner_uuid = ?");
             pStmt.setString(1, schema.ownerUUID().toString());
             pStmt.executeUpdate();
         } catch (SQLException e) {

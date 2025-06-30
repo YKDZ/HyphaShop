@@ -49,11 +49,11 @@ public class ShopStockerImpl implements ShopStocker {
         // 故需要提前全部缓存
         allProductsId.forEach(id -> shop.getShopCounter().cacheAmount(id));
 
-        List<Product> productsPreparedToBeListed = new ArrayList<>();
+        final List<Product> productsPreparedToBeListed = new ArrayList<>();
 
         listedProducts.clear();
         // 映射为 productId : product
-        Map<String, Product> allProducts = allProductsId.stream()
+        final Map<String, Product> allProducts = allProductsId.stream()
                 .map(id -> HyphaShop.PRODUCT_FACTORY.getProduct(id))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Product::getId, product -> product));

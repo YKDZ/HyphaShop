@@ -24,7 +24,7 @@ public class BaseItemBuilder {
     }
 
     public static @NotNull BaseItem get(@NotNull String base) {
-        for (BaseItemParser parser : parserRegistry) {
+        for (final BaseItemParser parser : parserRegistry) {
             if (parser.canParse(base)) return parser.parse(base);
         }
         LogUtils.warn("Can not parse base: " + base + ". Please check your config. A dirt will be used as fallback.");

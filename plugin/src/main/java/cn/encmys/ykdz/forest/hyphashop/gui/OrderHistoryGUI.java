@@ -77,7 +77,7 @@ public class OrderHistoryGUI extends NormalGUI {
     public @NotNull BiConsumer<@NotNull Integer, @NotNull Integer> getPageChangeHandler(@NotNull Player player) {
         return (from, to) -> {
             if (to < 0) return;
-            int pagesToLoad = (to + 1) - currentPage;
+            final int pagesToLoad = (to + 1) - currentPage;
             if (pagesToLoad <= 0) return;
 
             loadMore(player, pagesToLoad);
@@ -105,10 +105,10 @@ public class OrderHistoryGUI extends NormalGUI {
     private void loadMore(@NotNull Player player, int pageAmount) {
         currentPage += pageAmount;
 
-        int offset = currentPage * pageSize;
-        int limit = pageSize * pageAmount;
+        final int offset = currentPage * pageSize;
+        final int limit = pageSize * pageAmount;
 
-        List<SettlementLog> logs = HyphaShop.DATABASE_FACTORY.getSettlementLogDao()
+        final List<SettlementLog> logs = HyphaShop.DATABASE_FACTORY.getSettlementLogDao()
                 .queryLogs(
                         owner.getUniqueId(),
                         offset,

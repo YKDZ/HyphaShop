@@ -74,13 +74,13 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<ConfigAccessor> getConfig(@NotNull String path) {
-        ConfigurationSection childConfig = config.getConfigurationSection(path);
+        final ConfigurationSection childConfig = config.getConfigurationSection(path);
         return Optional.ofNullable(childConfig != null ? new ConfigurationSectionAccessor(childConfig) : null);
     }
 
     @Override
     public @NotNull Optional<List<? extends ConfigAccessor>> getConfigList(@NotNull String path) {
-        List<ConfigAccessor> childConfigs = config.getMapList(path).stream()
+        final List<ConfigAccessor> childConfigs = config.getMapList(path).stream()
                 .map(map -> {
                     ConfigurationSection childConfig = new YamlConfiguration();
                     HyphaConfigUtils.loadMapIntoConfiguration(childConfig, map, "");
@@ -92,7 +92,7 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<Map<String, ? extends ConfigAccessor>> getLocalMembers() {
-        Map<String, ConfigAccessor> members = new HashMap<>();
+        final Map<String, ConfigAccessor> members = new HashMap<>();
         config.getKeys(false).forEach(key -> {
             ConfigurationSection childConfig = config.getConfigurationSection(key);
             if (childConfig == null) return;
@@ -107,7 +107,7 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
     }
 
     @Override
-    public @NotNull Set<String> getKeys() {
+    public @NotNull Set<@NotNull String> getKeys() {
         return config.getKeys(false);
     }
 

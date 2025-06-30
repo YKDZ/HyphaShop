@@ -34,14 +34,14 @@ public class MessageUtils {
             return;
 
         Scheduler.runAsyncTask((task) -> {
-            Context context = new VarInjector()
+            final Context context = new VarInjector()
                     .withTarget(new Context(MessageConfig.scriptContext))
                     .withRequiredVars(message)
                     .withExtraVars(vars)
                     .withExtraVars(extraVars)
                     .withArgs(args)
                     .inject();
-            Component msg = ScriptUtils.evaluateComponent(context, message);
+            final Component msg = ScriptUtils.evaluateComponent(context, message);
             HyphaAdventureUtils.sendMessage(sender, msg);
         });
     }
@@ -55,14 +55,14 @@ public class MessageUtils {
             return;
 
         Scheduler.runAsyncTask((task) -> {
-            Context context = new VarInjector()
+            final Context context = new VarInjector()
                     .withTarget(new Context(MessageConfig.scriptContext))
                     .withRequiredVars(message)
                     .withExtraVars(vars)
                     .withExtraVars(extraVars)
                     .withArgs(args)
                     .inject();
-            Component msg = ScriptUtils.evaluateComponent(context, message);
+            final Component msg = ScriptUtils.evaluateComponent(context, message);
             if (message.getLexicalScope() != null
                     && message.getLexicalScope().flattenToSet().contains("no_prefix")) {
                 HyphaAdventureUtils.sendMessage(sender, msg);
@@ -74,7 +74,7 @@ public class MessageUtils {
     }
 
     public static void handleSettleCartMessage(@NotNull Player player, @NotNull SettlementResult result) {
-        Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
+        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.CART, profile.getCart().getOrder().getType(), result.type()), new HashMap<>() {{
             if (profile.getCart().getOrder().getType() == OrderType.SELL_TO) {
                 put("cost", result.price());

@@ -11,7 +11,7 @@ public class SkullParser implements BaseItemParser {
     @Override
     public boolean canParse(@NotNull String base) {
         if (!base.startsWith(PREFIX)) return false;
-        BaseItem item = new SkullItem(base.substring(PREFIX.length()));
+        final BaseItem item = new SkullItem(base.substring(PREFIX.length()));
         return item.isExist();
     }
 

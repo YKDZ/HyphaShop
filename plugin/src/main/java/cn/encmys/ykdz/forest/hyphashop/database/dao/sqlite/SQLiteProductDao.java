@@ -16,10 +16,10 @@ import java.util.Map;
 public class SQLiteProductDao implements ProductDao {
     @Override
     public @Nullable ProductSchema querySchema(@NotNull String productId) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_product WHERE id = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("SELECT * FROM hyphashop_product WHERE id = ?");
             pStmt.setString(1, productId);
-            ResultSet rs = pStmt.executeQuery();
+            final ResultSet rs = pStmt.executeQuery();
             if (rs.next()) {
                 return new ProductSchema(
                         productId,
@@ -36,8 +36,8 @@ public class SQLiteProductDao implements ProductDao {
 
     @Override
     public void insertSchema(@NotNull ProductSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_product VALUES (?, ?, ?)");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_product VALUES (?, ?, ?)");
             pStmt.setString(1, schema.productId());
             pStmt.setString(2, HyphaShop.GSON.toJson(schema.currentPlayerAmount(), new TypeToken<Map<String, Integer>>() {
             }.getType()));
@@ -64,8 +64,8 @@ public class SQLiteProductDao implements ProductDao {
 
     @Override
     public void deleteSchema(@NotNull ProductSchema schema) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_product WHERE id = ?");
+        try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            final PreparedStatement pStmt = conn.prepareStatement("DELETE FROM hyphashop_product WHERE id = ?");
             pStmt.setString(1, schema.productId());
             pStmt.executeUpdate();
         } catch (SQLException e) {

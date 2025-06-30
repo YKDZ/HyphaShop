@@ -45,10 +45,10 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("add_to_cart")
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static void addToCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        final Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        final Shop shop = ContextUtils.getShop(ctx).orElse(null);
+        final Product product = ContextUtils.getProduct(ctx).orElse(null);
+        final int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return;
 
@@ -57,18 +57,18 @@ public class HyphaShopActionObject extends InternalObject {
             return;
         }
 
-        Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
-        ShopOrder cartOrder = profile.getCart().getOrder();
+        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
+        final ShopOrder cartOrder = profile.getCart().getOrder();
         // 构建一个新订单并等待被检查与合并
         // 避免反复检测购物车中的商品
-        ShopOrder newOrder = new ShopOrderImpl(player)
+        final ShopOrder newOrder = new ShopOrderImpl(player)
                 .setType(cartOrder.getType())
                 .setStack(new ProductLocation(shop.getId(), product.getId()), amount);
         // 一个订单在能被判断成功前必须被计算订单价值
         newOrder.bill();
         // 在一个限制或情况“可以被玩家解决”的情况下
         // 才允许玩家将商品加入购物车
-        SettlementResultType result = newOrder.getType() == OrderType.SELL_TO ? newOrder.canSellTo() : newOrder.canBuyFrom();
+        final SettlementResultType result = newOrder.getType() == OrderType.SELL_TO ? newOrder.canSellTo() : newOrder.canBuyFrom();
         if (result.canBeHandleByPlayer()) cartOrder.combineOrder(newOrder);
 
         MessageUtils.sendMessage(player, MessageConfig.getActionMessage("add-to-cart." + result.getConfigKey()));

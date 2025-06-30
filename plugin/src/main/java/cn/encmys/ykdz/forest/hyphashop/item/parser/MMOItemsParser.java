@@ -15,8 +15,8 @@ public class MMOItemsParser implements BaseItemParser {
         if (!base.startsWith(PREFIX)) return false;
 
         try {
-            String[] typeId = base.substring(PREFIX.length()).split(":");
-            BaseItem item = new MMOItemsItem(typeId[0], typeId[1]);
+            final String[] typeId = base.substring(PREFIX.length()).split(":");
+            final BaseItem item = new MMOItemsItem(typeId[0], typeId[1]);
             if (!item.isExist()) {
                 return false;
             }
@@ -29,7 +29,7 @@ public class MMOItemsParser implements BaseItemParser {
 
     @Override
     public @NotNull BaseItem parse(@NotNull String base) {
-        String[] typeId = base.substring(PREFIX.length()).split(":");
+        final String[] typeId = base.substring(PREFIX.length()).split(":");
         return new MMOItemsItem(typeId[0], typeId[1]);
     }
 }

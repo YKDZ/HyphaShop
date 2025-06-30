@@ -35,8 +35,8 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class NormalGUI extends AbstractGUI {
-    private static final Map<String, Window> windows = new HashMap<>();
-    private static final Map<String, Gui> guis = new HashMap<>();
+    private static final @NotNull Map<String, Window> windows = new HashMap<>();
+    private static final @NotNull Map<String, Gui> guis = new HashMap<>();
 
     private final @NotNull ConfigAccessor config;
 
@@ -54,20 +54,20 @@ public class NormalGUI extends AbstractGUI {
         if (config.isList("title")) {
             final AtomicInteger index = new AtomicInteger(0);
             return () -> {
-                VarInjector injector = new VarInjector()
+                final VarInjector injector = new VarInjector()
                         .withTarget(new Context(getParent()))
                         .withArgs(getArgs(player));
-                List<Script> script = StringUtils.wrapToScriptWithOmit(config.getStringList("title").orElse(null));
+                final List<Script> script = StringUtils.wrapToScriptWithOmit(config.getStringList("title").orElse(null));
                 injector.withRequiredVars(script);
-                int currentIndex = index.getAndIncrement() % script.size();
+                final int currentIndex = index.getAndIncrement() % script.size();
                 return HyphaAdventureUtils.getComponentFromMiniMessage(ScriptUtils.evaluateString(injector.inject(), script.get(currentIndex)));
             };
         } else if (config.isString("title")) {
             return () -> {
-                VarInjector injector = new VarInjector()
+                final VarInjector injector = new VarInjector()
                         .withTarget(new Context(getParent()))
                         .withArgs(getArgs(player));
-                Script script = StringUtils.wrapToScriptWithOmit(config.getString("title").orElse(null));
+                final Script script = StringUtils.wrapToScriptWithOmit(config.getString("title").orElse(null));
                 assert script != null;
                 injector.withRequiredVars(script);
                 return HyphaAdventureUtils.getComponentFromMiniMessage(ScriptUtils.evaluateString(injector.inject(), script));
@@ -84,14 +84,14 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @Nullable Marker getScrollMode() {
-        String mode = config.getString("scroll-mode").orElse(null);
+        final String mode = config.getString("scroll-mode").orElse(null);
         if (mode == null) return null;
         return mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL;
     }
 
     @Override
     public @Nullable Marker getPageMode() {
-        String mode = config.getString("page-mode").orElse(null);
+        final String mode = config.getString("page-mode").orElse(null);
         if (mode == null) return null;
         return mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL;
     }

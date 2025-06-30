@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
 
 public class ScriptUtils {
     public static @NotNull Context extractContext(@NotNull String scriptStr) {
-        Script script = new Script(scriptStr);
-        EvaluateResult result = script.evaluate(new Context());
+        final Script script = new Script(scriptStr);
+        final EvaluateResult result = script.evaluate(new Context());
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when extracting context from script. Use global context as fallback value.");
@@ -32,7 +32,7 @@ public class ScriptUtils {
     }
 
     public static boolean evaluateBoolean(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use false as fallback value.");
@@ -49,7 +49,7 @@ public class ScriptUtils {
     }
 
     public static double evaluateDouble(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use NaN as fallback value.");
@@ -66,7 +66,7 @@ public class ScriptUtils {
     }
 
     public static int evaluateInt(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use Integer.MIN_VALUE as fallback value.");
@@ -83,7 +83,7 @@ public class ScriptUtils {
     }
 
     public static @Nullable String evaluateString(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
@@ -101,7 +101,7 @@ public class ScriptUtils {
     }
 
     public static @NotNull Component evaluateComponent(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
@@ -121,7 +121,7 @@ public class ScriptUtils {
     }
 
     public static @NotNull List<Component> evaluateComponentList(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
@@ -154,7 +154,7 @@ public class ScriptUtils {
     }
 
     public static @NotNull List<String> evaluateStringList(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
@@ -179,7 +179,7 @@ public class ScriptUtils {
     }
 
     public static @NotNull Value evaluate(@NotNull Context context, @NotNull Script script) {
-        EvaluateResult result = script.evaluate(context);
+        final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script.");
@@ -202,7 +202,7 @@ public class ScriptUtils {
     }
 
     public static @NotNull ScriptObject convertToScriptObject(@NotNull Map<String, Reference> map) {
-        ScriptObject result = new ScriptObject();
+        final ScriptObject result = new ScriptObject();
         map.forEach(result::declareMember);
         return result;
     }

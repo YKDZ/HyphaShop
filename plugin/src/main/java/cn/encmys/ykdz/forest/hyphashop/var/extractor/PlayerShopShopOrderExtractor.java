@@ -12,9 +12,9 @@ public class PlayerShopShopOrderExtractor implements VarExtractor {
     public void extract(@NotNull VarInjectorContext ctx) {
         if (!ctx.hasAll(ShopOrder.class, Player.class, Shop.class)) return;
 
-        Player player = ctx.get(Player.class);
-        Shop shop = ctx.get(Shop.class);
-        ShopOrder order = ctx.get(ShopOrder.class);
+        final Player player = ctx.get(Player.class);
+        final Shop shop = ctx.get(Shop.class);
+        final ShopOrder order = ctx.get(ShopOrder.class);
 
         assert player != null;
         assert shop != null;

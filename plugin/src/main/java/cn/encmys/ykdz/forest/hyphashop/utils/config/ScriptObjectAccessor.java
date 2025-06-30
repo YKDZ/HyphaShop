@@ -96,7 +96,7 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<Map<String, ? extends ConfigAccessor>> getLocalMembers() {
-        Map<String, ConfigAccessor> members = new HashMap<>();
+        final Map<String, ConfigAccessor> members = new HashMap<>();
         config.getLocalMembers().keySet().forEach(key -> members.put(key, new ScriptObjectAccessor(config.findMember(key).getReferredValue().getAsScriptObject())));
         return Optional.of(members);
     }

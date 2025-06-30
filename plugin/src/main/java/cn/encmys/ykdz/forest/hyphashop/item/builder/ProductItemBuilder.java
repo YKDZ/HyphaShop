@@ -21,15 +21,15 @@ import java.util.List;
 public class ProductItemBuilder {
     @NotNull
     public static ItemStack build(@NotNull Shop shop, @NotNull Product product, @Nullable Player player) {
-        BaseItemDecorator decorator = product.getProductItemDecorator();
+        final BaseItemDecorator decorator = product.getProductItemDecorator();
         assert decorator != null;
 
-        Context parent = ContextUtils.linkContext(
+        final Context parent = ContextUtils.linkContext(
                 product.getScriptContext().clone(),
                 shop.getScriptContext().clone()
         );
 
-        List<Object> args = Arrays.asList(player, shop, product);
+        final List<Object> args = Arrays.asList(player, shop, product);
 
         return new ItemBuilder(decorator.getBaseItem().build(player))
                 // 若没有指定 Name，则不需要为物品设置名称

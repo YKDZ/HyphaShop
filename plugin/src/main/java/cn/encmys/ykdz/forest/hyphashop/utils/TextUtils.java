@@ -37,16 +37,16 @@ public class TextUtils {
         }
 
         // 去除前后空格并检查有效性
-        String trimmedTime = time.trim();
+        final String trimmedTime = time.trim();
         if (trimmedTime.isEmpty()) {
             return 0;
         }
 
         // 分割时间表达式
-        String[] parts = SPACE_PATTERN.split(trimmedTime);
+        final String[] parts = SPACE_PATTERN.split(trimmedTime);
         int ticks = 0;
 
-        for (String part : parts) {
+        for (final String part : parts) {
             // 检查基本格式
             if (part.length() < 2) {
                 LogUtils.warn("Invalid time format: '" + part + "', should format like '5s'");
@@ -54,8 +54,8 @@ public class TextUtils {
             }
 
             // 解析单位和数值
-            char unit = Character.toLowerCase(part.charAt(part.length() - 1));
-            String valueStr = part.substring(0, part.length() - 1);
+            final char unit = Character.toLowerCase(part.charAt(part.length() - 1));
+            final String valueStr = part.substring(0, part.length() - 1);
 
             // 获取时间单位对应的 ticks
             Integer unitTicks = TIME_UNITS.get(unit);
@@ -66,7 +66,7 @@ public class TextUtils {
 
             // 解析数值
             try {
-                double value = Double.parseDouble(valueStr);
+                final double value = Double.parseDouble(valueStr);
                 ticks += (int) Math.round(value * unitTicks);
             } catch (NumberFormatException e) {
                 LogUtils.warn("Fail to parse number: '" + valueStr + "', in experssion'" + part + ". This part will use 0 as fallback.");

@@ -19,8 +19,8 @@ public class RarityFactoryImpl implements RarityFactory {
     }
 
     public void load() {
-        YamlConfiguration config = RarityConfig.getConfig();
-        for (String id : RarityConfig.getAllId()) {
+        final YamlConfiguration config = RarityConfig.getConfig();
+        for (final String id : RarityConfig.getAllId()) {
             buildRarity(
                     id,
                     config.getString("rarities." + id + ".name", "<red>Rarity name not found."),

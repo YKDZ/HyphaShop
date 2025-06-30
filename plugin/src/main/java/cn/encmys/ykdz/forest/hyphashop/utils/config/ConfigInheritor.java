@@ -117,7 +117,7 @@ public class ConfigInheritor implements ConfigAccessor {
     }
 
     @Override
-    public @NotNull Set<String> getKeys() {
+    public @NotNull Set<@NotNull String> getKeys() {
         return config.getKeys();
     }
 

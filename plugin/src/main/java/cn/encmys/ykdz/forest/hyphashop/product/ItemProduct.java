@@ -57,7 +57,7 @@ public class ItemProduct extends Product {
             put("stack", stack);
         }}, shop, player, this);
 
-        ItemStack item = shop.getCachedProductItemOrBuildOne(this, player);
+        final ItemStack item = shop.getCachedProductItemOrBuildOne(this, player);
         // 缓存中物品的 getAmount 结果永远是 1
         IntStream.range(0, stack * shop.getShopCounter().getAmount(getId())).forEach(i -> inv.addItem(item));
     }
@@ -73,10 +73,11 @@ public class ItemProduct extends Product {
             put("stack", stack);
         }}, shop, player, this);
 
-        BaseItemDecorator decorator = getProductItemDecorator();
+        final BaseItemDecorator decorator = getProductItemDecorator();
         if (decorator == null) {
             return;
         }
+
         int needed = shop.getShopCounter().getAmount(getId()) * stack;
         if (has(shop, inv, player, 1) < stack) {
             return;
@@ -84,7 +85,7 @@ public class ItemProduct extends Product {
 
         for (ItemStack check : inv) {
             if (check != null && needed > 0 && isMatch(shop, check, player)) {
-                int has = check.getAmount();
+                final int has = check.getAmount();
                 if (needed <= has) {
                     check.setAmount(has - needed);
                     needed = 0;
@@ -103,13 +104,14 @@ public class ItemProduct extends Product {
 
     @Override
     public int has(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
-        BaseItemDecorator decorator = getProductItemDecorator();
+        final BaseItemDecorator decorator = getProductItemDecorator();
         if (decorator == null) {
             return 0;
         }
+
         int total = 0;
-        int stackedAmount = shop.getShopCounter().getAmount(getId()) * stack;
-        for (ItemStack check : inv) {
+        final int stackedAmount = shop.getShopCounter().getAmount(getId()) * stack;
+        for (final ItemStack check : inv) {
             if (check != null && isMatch(shop, check, player)) {
                 total += check.getAmount();
             }
@@ -131,18 +133,18 @@ public class ItemProduct extends Product {
     public boolean isMatch(@NotNull Shop shop, @NotNull ItemStack item, @NotNull Player player) {
         // 只要 actions 中有一个结果为 false
         // 则认为不匹配并提前返回
-        List<Value> result = MiscUtils.processActionsWithResult(ActionEvent.PRODUCT_ON_MATCH, getActions(), getScriptContext(), Collections.emptyMap(), shop, player, this);
+        final List<Value> result = MiscUtils.processActionsWithResult(ActionEvent.PRODUCT_ON_MATCH, getActions(), getScriptContext(), Collections.emptyMap(), shop, player, this);
         if (result.stream().anyMatch(value -> !value.getAsBoolean())) return false;
 
-        BaseItemDecorator decorator = getProductItemDecorator();
+        final BaseItemDecorator decorator = getProductItemDecorator();
         if (decorator == null) return false;
 
-        BaseItem baseItem = decorator.getBaseItem();
+        final BaseItem baseItem = decorator.getBaseItem();
 
         if (baseItem.getItemType() != BaseItemType.VANILLA) {
             return baseItem.isSimilar(item);
         } else {
-            ItemStack target = shop.getCachedProductItemOrBuildOne(this, player);
+            final ItemStack target = shop.getCachedProductItemOrBuildOne(this, player);
             return baseItem.isSimilar(item) && target.isSimilar(item);
         }
     }

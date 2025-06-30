@@ -14,8 +14,8 @@ public class MythicMobsParser implements BaseItemParser {
         if (!MythicMobsHook.isHooked()) return false;
         if (!base.startsWith(PREFIX)) return false;
 
-        String id = base.substring(PREFIX.length());
-        BaseItem item = new MythicMobsItem(id);
+        final String id = base.substring(PREFIX.length());
+        final BaseItem item = new MythicMobsItem(id);
         return item.isExist();
     }
 

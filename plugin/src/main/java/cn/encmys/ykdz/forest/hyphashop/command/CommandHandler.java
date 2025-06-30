@@ -29,7 +29,7 @@ public class CommandHandler {
     private static CommandNode<CommandSourceStack> getReloadCommand() {
         return Commands.literal("reload")
                 .executes((ctx) -> {
-                    CommandSender sender = ctx.getSource().getSender();
+                    final CommandSender sender = ctx.getSource().getSender();
                     HyphaShop.INSTANCE.reload();
                     MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_reload_success, sender);
                     return Command.SINGLE_SUCCESS;
@@ -40,7 +40,7 @@ public class CommandHandler {
     private static CommandNode<CommandSourceStack> getSaveCommand() {
         return Commands.literal("save")
                 .executes((ctx) -> {
-                    CommandSender sender = ctx.getSource().getSender();
+                    final CommandSender sender = ctx.getSource().getSender();
                     HyphaShop.PROFILE_FACTORY.save();
                     HyphaShop.PRODUCT_FACTORY.save();
                     HyphaShop.SHOP_FACTORY.save();

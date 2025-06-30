@@ -14,15 +14,15 @@ import java.util.List;
 
 public class DecoratorUtils {
     public static @NotNull BaseItemDecorator selectDecoratorByCondition(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object... args) {
-        List<ConditionalIconRecord> conditionalIcons = staticDecorator.getProperty(ItemProperty.CONDITIONAL_ICONS);
+        final List<ConditionalIconRecord> conditionalIcons = staticDecorator.getProperty(ItemProperty.CONDITIONAL_ICONS);
         if (conditionalIcons == null) return staticDecorator;
 
-        List<ConditionalIconRecord> sortedIcons = new ArrayList<>(conditionalIcons);
+        final List<ConditionalIconRecord> sortedIcons = new ArrayList<>(conditionalIcons);
         sortedIcons.sort((a, b) -> Integer.compare(b.priority(), a.priority()));
 
         return sortedIcons.stream()
                 .filter(icon -> {
-                    Script condition = icon.condition();
+                    final Script condition = icon.condition();
                     return ScriptUtils.evaluateBoolean(new VarInjector()
                             .withArgs(args)
                             .withTarget(new Context(parent))

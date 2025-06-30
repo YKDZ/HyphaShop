@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class BundleProductExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        BundleProduct product = ctx.get(BundleProduct.class);
+        final BundleProduct product = ctx.get(BundleProduct.class);
 
         if (product == null) return;
 

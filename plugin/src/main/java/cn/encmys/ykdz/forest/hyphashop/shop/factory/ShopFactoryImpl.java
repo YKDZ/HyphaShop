@@ -12,10 +12,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class ShopFactoryImpl implements ShopFactory {
     @NotNull
-    private static final HashMap<String, Shop> shops = new HashMap<>();
+    private static final Map<String, Shop> shops = new HashMap<>();
 
     public ShopFactoryImpl() {
         load();
@@ -34,26 +35,20 @@ public class ShopFactoryImpl implements ShopFactory {
             throw new IllegalArgumentException("Shop ID is duplicated: " + id);
         }
 
-        List<String> products = new ArrayList<>();
-
-        for (String productId : ShopConfig.getAllProductsId(id)) {
-            // 处理 PACK:XXX 的包导入格式
-            if (productId.startsWith("PACK:")) {
-                String packId = productId.substring(5);
-                List<String> packProducts = ProductConfig.getAllProductId(packId);
-                if (packProducts == null) {
-                    LogUtils.warn("Product pack " + packId + ".yml in shop " + id + " not found.");
-                    continue;
-                }
-                products.addAll(packProducts);
-                continue;
-            }
-
-            products.add(productId);
-        }
-
-        // 检查商店导入的商品是否存在
-        products = products.stream()
+        final List<String> productIds = ShopConfig.getAllProductsId(id).stream()
+                .flatMap(productId -> {
+                    // 处理 PACK:XXX 的包导入格式
+                    if (productId.startsWith("PACK:")) {
+                        final String packId = productId.substring(5);
+                        final List<String> packProducts = ProductConfig.getAllProductId(packId);
+                        if (packProducts == null) {
+                            LogUtils.warn("Product pack " + packId + ".yml in shop " + id + " not found.");
+                            return Stream.empty();
+                        }
+                        return packProducts.stream();
+                    }
+                    return Stream.of(productId);
+                })
                 .filter(productId -> {
                     if (!HyphaShop.PRODUCT_FACTORY.containsProduct(productId)) {
                         LogUtils.warn("Product " + productId + " in shop " + id + " not exist.");
@@ -63,14 +58,14 @@ public class ShopFactoryImpl implements ShopFactory {
                 })
                 .toList();
 
-        Shop shop = new ShopImpl(
+        final Shop shop = new ShopImpl(
                 id,
                 ShopConfig.getShopSettingsRecord(id),
-                products
+                productIds
         );
 
         // 从数据库加载一系列商店数据
-        ShopSchema schema = HyphaShop.DATABASE_FACTORY.getShopDao().querySchema(shop.getId());
+        final ShopSchema schema = HyphaShop.DATABASE_FACTORY.getShopDao().querySchema(shop.getId());
         if (schema != null) {
             if (shop.getShopCashier().isInherit()) shop.getShopCashier().setBalance(schema.balance());
             shop.getShopCounter().setCachedAmounts(schema.cachedAmounts());
@@ -84,7 +79,7 @@ public class ShopFactoryImpl implements ShopFactory {
         // 加载完成
 
         shops.put(id, shop);
-        LogUtils.info("Successfully load shop " + id + " with " + products.size() + " products.");
+        LogUtils.info("Successfully load shop " + id + " with " + productIds.size() + " productIds.");
         return shop;
     }
 

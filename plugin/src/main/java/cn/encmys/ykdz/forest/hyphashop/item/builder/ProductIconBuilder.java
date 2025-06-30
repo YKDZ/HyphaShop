@@ -33,31 +33,31 @@ public class ProductIconBuilder {
     public static @NotNull Item build(@NotNull Shop shop, @NotNull Product product, int amount) {
         // 储存商品图标本身信息的 Decorator（如 base 和 desc_lore）
         // 需要与下文 staticIconDecorator 区分开
-        BaseItemDecorator productIconDecorator = product.getIconDecorator();
+        final BaseItemDecorator productIconDecorator = product.getIconDecorator();
         // 储存用于格式化商品图标的信息的 Decorator
         // 如 name，lore 和 actions 等都来自它
         // 且是静态的，用于进行条件判断以获取动态的 iconDecorator
-        BaseItemDecorator staticIconDecorator = ShopConfig.getShopProductIconRecord(shop.getId()).productIconDecorator();
-        Script bundleContentLine = ShopConfig.getShopProductIconRecord(shop.getId()).bundleContentLine();
+        final BaseItemDecorator staticIconDecorator = ShopConfig.getShopProductIconRecord(shop.getId()).productIconDecorator();
+        final Script bundleContentLine = ShopConfig.getShopProductIconRecord(shop.getId()).bundleContentLine();
 
-        Item.Builder<?> builder = Item.builder()
+        var builder = Item.builder()
                 .setItemProvider((player) -> {
-                    Context parent = ContextUtils.linkContext(
+                    final Context parent = ContextUtils.linkContext(
                             product.getScriptContext(),
                             shop.getScriptContext()
                     );
 
-                    List<Component> bundleContentsLore = new ArrayList<>();
+                    final List<Component> bundleContentsLore = new ArrayList<>();
                     if (bundleContentLine != null && product instanceof BundleProduct) {
-                        Map<String, Integer> bundleContents = ((BundleProduct) product).getBundleContents();
+                        final Map<String, Integer> bundleContents = ((BundleProduct) product).getBundleContents();
                         if (!bundleContents.isEmpty()) {
-                            for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
-                                Product content = HyphaShop.PRODUCT_FACTORY.getProduct(entry.getKey());
-                                int stack = entry.getValue();
+                            for (final Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
+                                final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(entry.getKey());
+                                final int stack = entry.getValue();
                                 if (content == null) {
                                     continue;
                                 }
-                                Map<String, Object> vars = new HashMap<>() {{
+                                final Map<String, Object> vars = new HashMap<>() {{
                                     put("stack", stack);
                                     put("total_amount", stack * amount);
                                 }};
@@ -76,9 +76,9 @@ public class ProductIconBuilder {
                     }
 
                     // 额外变量
-                    Map<String, Object> vars = Collections.unmodifiableMap(new HashMap<>() {{
+                    final Map<String, Object> vars = Collections.unmodifiableMap(new HashMap<>() {{
                         {
-                            List<Script> descLore = productIconDecorator.getProperty(ItemProperty.LORE);
+                            final List<Script> descLore = productIconDecorator.getProperty(ItemProperty.LORE);
                             if (descLore != null) {
                                 put("desc_lore", descLore.stream()
                                         .map(lore -> ScriptUtils.evaluateComponentList(new VarInjector()
@@ -95,7 +95,7 @@ public class ProductIconBuilder {
                         put("bundle_contents_lore", bundleContentsLore.toArray(new Component[0]));
                     }});
 
-                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, parent, shop, product, player);
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, parent, shop, product, player);
 
                     return new ItemBuilder(
                             new cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder(productIconDecorator.getBaseItem().build(player))

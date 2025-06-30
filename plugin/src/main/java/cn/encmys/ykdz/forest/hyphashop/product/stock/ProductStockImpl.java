@@ -160,13 +160,13 @@ public class ProductStockImpl implements ProductStock {
     public void modifyPlayer(@NotNull UUID playerUUID, int amount) {
         if (!isPlayerStock()) return;
 
-        boolean isOverflow = isPlayerOverflow() && getCurrentPlayerAmount(playerUUID) + amount >= initialPlayerAmount;
+        final boolean isOverflow = isPlayerOverflow() && getCurrentPlayerAmount(playerUUID) + amount >= initialPlayerAmount;
         setCurrentPlayerAmount(playerUUID.toString(), isOverflow ? initialPlayerAmount : getCurrentPlayerAmount(playerUUID) + amount);
     }
 
     @Override
     public void modifyPlayer(@NotNull ShopOrder order) {
-        int stack = order.getOrderedProducts().entrySet().stream()
+        final int stack = order.getOrderedProducts().entrySet().stream()
                 .filter(entry -> entry.getKey().productId().equals(productId))
                 .mapToInt(Map.Entry::getValue)
                 .sum() * (order.getType() == OrderType.SELL_TO ? -1 : 1);
@@ -175,7 +175,7 @@ public class ProductStockImpl implements ProductStock {
 
     @Override
     public void modifyGlobal(@NotNull ShopOrder order) {
-        int stack = order.getOrderedProducts().entrySet().stream()
+        final int stack = order.getOrderedProducts().entrySet().stream()
                 .filter(entry -> entry.getKey().productId().equals(productId))
                 .mapToInt(Map.Entry::getValue)
                 .sum() * (order.getType() == OrderType.SELL_TO ? -1 : 1);
@@ -185,7 +185,7 @@ public class ProductStockImpl implements ProductStock {
     @Override
     public boolean isReachPlayerLimit(@NotNull UUID playerUUID, int stack) {
         if (!isPlayerStock()) return false;
-        int current = currentPlayerAmount.getOrDefault(playerUUID.toString(), initialPlayerAmount);
+        final int current = currentPlayerAmount.getOrDefault(playerUUID.toString(), initialPlayerAmount);
         return current - stack < 0;
     }
 

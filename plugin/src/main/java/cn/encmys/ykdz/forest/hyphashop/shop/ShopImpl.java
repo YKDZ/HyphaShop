@@ -81,7 +81,7 @@ public class ShopImpl implements Shop {
 
     @Override
     public @Nullable ItemStack getCachedProductItem(@NotNull Product product) {
-        String id = product.getId();
+        final String id = product.getId();
         if (product.isProductItemCacheable() && !isProductItemCached(id)) {
             cacheProductItem(product);
         }

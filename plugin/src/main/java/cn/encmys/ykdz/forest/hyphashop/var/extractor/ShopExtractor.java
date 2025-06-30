@@ -9,14 +9,14 @@ import org.jetbrains.annotations.NotNull;
 public class ShopExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        Shop shop = ctx.get(Shop.class);
+        final Shop shop = ctx.get(Shop.class);
         if (shop == null) return;
 
         ctx.putVar("__shop", () -> shop);
         ctx.putVar("shop_name", shop::getName);
         ctx.putVar("shop_id", shop::getId);
 
-        boolean isMerchant = shop.getShopCashier().isMerchant();
+        final boolean isMerchant = shop.getShopCashier().isMerchant();
 
         ctx.putVar("is_merchant", () -> shop.getShopCashier().isMerchant());
         if (isMerchant) {

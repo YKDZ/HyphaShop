@@ -26,7 +26,7 @@ public class ShopCashierImpl implements ShopCashier {
     public void modifyBalance(double value) {
         if (!isMerchant()) return;
 
-        double newValue = balance + value;
+        final double newValue = balance + value;
         balance = (newValue > initBalance) && !overflow ? initBalance : newValue;
     }
 

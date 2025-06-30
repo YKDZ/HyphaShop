@@ -30,17 +30,17 @@ public class ShopConfig {
     private static final @NotNull Map<@NotNull String, @NotNull ShopProductIconRecord> productIconRecords = new HashMap<>();
 
     public static void load() {
-        File directory = new File(path);
+        final File directory = new File(path);
 
         if (!directory.exists() || !directory.isDirectory()) {
             directory.getParentFile().mkdirs();
         }
 
-        File[] files = directory.listFiles();
+        final File[] files = directory.listFiles();
         if (files != null) {
-            for (File file : files) {
+            for (final File file : files) {
                 if (file.isFile() && file.getName().endsWith(".yml")) {
-                    YamlConfiguration config = new YamlConfiguration();
+                    final YamlConfiguration config = new YamlConfiguration();
                     try {
                         config.load(file);
                         configs.put(file.getName().replace(".yml", ""), config);
@@ -71,7 +71,7 @@ public class ShopConfig {
 
     @Contract("_ -> new")
     public static @NotNull ShopSettingsRecord getShopSettingsRecord(@NotNull String shopId) {
-        ConfigAccessor config = getShopSettingsConfig(shopId);
+        final ConfigAccessor config = getShopSettingsConfig(shopId);
         return new ShopSettingsRecord(
                 config.getInt("size").orElse(Integer.MIN_VALUE),
                 config.getString("name").orElse("<red>Shop name not found!"),
@@ -88,7 +88,7 @@ public class ShopConfig {
     }
 
     public static @NotNull MerchantRecord getMerchantRecord(@NotNull String shopId) {
-        ConfigAccessor config = getShopSettingsConfig(shopId);
+        final ConfigAccessor config = getShopSettingsConfig(shopId);
         return new MerchantRecord(
                 config.getDouble("merchant.balance").orElse(Double.NaN),
                 config.getBoolean("merchant.replenish").orElse(false),

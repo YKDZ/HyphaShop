@@ -9,16 +9,17 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class FileUtils {
     public static @NotNull List<@NotNull File> loadYmlFiles(@NotNull String directoryPath) throws IOException {
-        Path dir = Paths.get(directoryPath);
+        final Path dir = Paths.get(directoryPath);
 
         if (!Files.isDirectory(dir)) {
             throw new IllegalArgumentException("路径不是目录: " + directoryPath);
         }
 
-        try (var stream = Files.list(dir)) {
+        try (final Stream<Path> stream = Files.list(dir)) {
             return stream
                     .filter(path -> path.toString().endsWith(".yml"))
                     .map(Path::toFile)

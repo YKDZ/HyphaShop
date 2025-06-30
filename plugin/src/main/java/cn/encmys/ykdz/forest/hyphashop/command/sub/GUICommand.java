@@ -31,9 +31,9 @@ public class GUICommand {
                         })
                         .then(Commands.argument("target", ArgumentTypes.player())
                                 .executes((ctx) -> {
-                                    CommandSender sender = ctx.getSource().getSender();
-                                    String id = ctx.getArgument("gui", String.class);
-                                    Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
+                                    final CommandSender sender = ctx.getSource().getSender();
+                                    final String id = ctx.getArgument("gui", String.class);
+                                    final Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
                                     if (target == null) {
                                         return Command.SINGLE_SUCCESS;
                                     }

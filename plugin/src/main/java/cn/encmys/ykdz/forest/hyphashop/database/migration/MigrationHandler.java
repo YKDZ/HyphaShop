@@ -37,9 +37,9 @@ public class MigrationHandler {
 
     public boolean migrate() {
         try {
-            List<MigrationFile> migrations = scanMigrationFiles();
+            final List<MigrationFile> migrations = scanMigrationFiles();
             int currentVersion = getCurrentVersion();
-            List<MigrationFile> pending = getPendingMigrations(migrations, currentVersion);
+            final List<MigrationFile> pending = getPendingMigrations(migrations, currentVersion);
 
             if (pending.isEmpty()) {
                 LogUtils.info("Database is up-to-date.");
@@ -61,20 +61,20 @@ public class MigrationHandler {
     }
 
     protected List<MigrationFile> scanMigrationFiles() throws IOException {
-        File dir = new File(migrationDir);
+        final File dir = new File(migrationDir);
         if (!dir.exists() && !dir.mkdirs()) {
             throw new IOException("Failed to create migration directory: " + dir.getAbsolutePath());
         }
 
         copyMigrationsFromJar();
 
-        List<MigrationFile> files = new ArrayList<>();
-        try (DirectoryStream<Path> stream = Files.newDirectoryStream(
+        final List<MigrationFile> files = new ArrayList<>();
+        try (final DirectoryStream<Path> stream = Files.newDirectoryStream(
                 dir.toPath(),
                 "V*__*.sql"
         )) {
-            for (Path entry : stream) {
-                File file = entry.toFile();
+            for (final Path entry : stream) {
+                final File file = entry.toFile();
                 if (file.isFile() && file.canRead()) {
                     parseMigrationFile(file.getName(), files);
                 }
@@ -89,13 +89,13 @@ public class MigrationHandler {
     }
 
     protected void copyMigrationsFromJar() throws IOException {
-        URL jarDirUrl = getClass().getResource(jarResourceDir);
+        final URL jarDirUrl = getClass().getResource(jarResourceDir);
         if (jarDirUrl == null) return;
 
-        try (JarFile jarFile = ((JarURLConnection) jarDirUrl.openConnection()).getJarFile()) {
-            Enumeration<JarEntry> entries = jarFile.entries();
+        try (final JarFile jarFile = ((JarURLConnection) jarDirUrl.openConnection()).getJarFile()) {
+            final Enumeration<JarEntry> entries = jarFile.entries();
             while (entries.hasMoreElements()) {
-                JarEntry entry = entries.nextElement();
+                final JarEntry entry = entries.nextElement();
                 if (isValidMigrationEntry(entry)) {
                     saveMigrationResource(entry);
                 }
@@ -110,13 +110,13 @@ public class MigrationHandler {
     }
 
     protected void saveMigrationResource(@NotNull JarEntry entry) {
-        String resourcePath = entry.getName();
-        String filename = extractFilename(resourcePath);
-        File targetFile = new File(migrationDir, filename);
+        final String resourcePath = entry.getName();
+        final String filename = extractFilename(resourcePath);
+        final File targetFile = new File(migrationDir, filename);
 
         if (!targetFile.exists()) {
             // 使用正确的资源路径，移除 jarResourceDir 的前导斜杠以避免路径错误
-            String resourceRelativePath = jarResourceDir.substring(1) + filename;
+            final String resourceRelativePath = jarResourceDir.substring(1) + filename;
             HyphaShop.INSTANCE.saveResource(resourceRelativePath, false);
             LogUtils.info("Copied migration file: " + filename);
         }
@@ -127,7 +127,7 @@ public class MigrationHandler {
     }
 
     protected void detectVersionConflicts(@NotNull List<MigrationFile> files) throws IOException {
-        Set<Integer> versions = new HashSet<>();
+        final Set<Integer> versions = new HashSet<>();
         for (MigrationFile f : files) {
             if (!versions.add(f.version())) {
                 throw new IOException("Duplicate migration version detected: V" + f.version());
@@ -153,7 +153,7 @@ public class MigrationHandler {
     }
 
     protected void executeMigration(MigrationFile migration, int fromVersion) {
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection()) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection()) {
             connection.setAutoCommit(false);
             executeSqlScript(connection, migration);
             connection.commit();
@@ -165,15 +165,15 @@ public class MigrationHandler {
     }
 
     protected void executeSqlScript(@NotNull Connection connection, @NotNull MigrationFile migration) throws Exception {
-        String sql = readSqlContent(migration.filename());
-        for (String command : splitSqlCommands(sql)) {
-            try (Statement stmt = connection.createStatement()) {
+        final String sql = readSqlContent(migration.filename());
+        for (final String command : splitSqlCommands(sql)) {
+            try (final Statement stmt = connection.createStatement()) {
                 stmt.execute(command);
             }
         }
     }
 
-    protected String readSqlContent(String filename) throws IOException {
+    protected String readSqlContent(@NotNull String filename) throws IOException {
         return Files.readString(Paths.get(migrationDir, filename));
     }
 
@@ -190,8 +190,8 @@ public class MigrationHandler {
     }
 
     private void parseMigrationFile(String filename, List<MigrationFile> files) {
-        Pattern pattern = Pattern.compile("V(\\d+)__.*\\.sql");
-        Matcher matcher = pattern.matcher(filename);
+        final Pattern pattern = Pattern.compile("V(\\d+)__.*\\.sql");
+        final Matcher matcher = pattern.matcher(filename);
         if (matcher.find()) {
             int version = Integer.parseInt(matcher.group(1));
             files.add(new MigrationFile(version, filename));
@@ -200,7 +200,7 @@ public class MigrationHandler {
 
     private int getCurrentVersion() {
         try {
-            DBVersionSchema schema = HyphaShop.DATABASE_FACTORY.getDBVersionDao().queryLatestSchema();
+            final DBVersionSchema schema = HyphaShop.DATABASE_FACTORY.getDBVersionDao().queryLatestSchema();
             return schema == null ? 0 : schema.version();
         } catch (SQLException ignored) {
             return 0;

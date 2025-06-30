@@ -40,9 +40,9 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
 
     @Override
     public void loadSQLite() {
-        HikariConfig config = new HikariConfig();
-        String path = HyphaShop.INSTANCE.getDataFolder() + "/data/database.db";
-        File dbFile = new File(path);
+        final HikariConfig config = new HikariConfig();
+        final String path = HyphaShop.INSTANCE.getDataFolder() + "/data/database.db";
+        final File dbFile = new File(path);
         if (!dbFile.exists()) {
             HyphaShop.INSTANCE.saveResource("data/database.db", false);
         }

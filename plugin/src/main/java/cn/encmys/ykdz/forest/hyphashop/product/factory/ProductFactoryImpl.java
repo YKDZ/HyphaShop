@@ -31,26 +31,26 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public class ProductFactoryImpl implements ProductFactory {
-    private static final Map<String, Product> products = new HashMap<>();
+    private static final @NotNull Map<@NotNull String, @NotNull Product> products = new HashMap<>();
 
     public ProductFactoryImpl() {
         load();
     }
 
     public void load() {
-        for (String configId : ProductConfig.getAllPacksId()) {
-            ConfigAccessor config = new ConfigurationSectionAccessor(ProductConfig.getConfig(configId));
+        for (final String configId : ProductConfig.getAllPacksId()) {
+            final ConfigAccessor config = new ConfigurationSectionAccessor(ProductConfig.getConfig(configId));
 
-            ConfigAccessor products = config.getConfig("products").orElse(null);
-            ConfigAccessor defaultSettings = config.getConfig("default-settings").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+            final ConfigAccessor products = config.getConfig("products").orElse(null);
+            final ConfigAccessor defaultSettings = config.getConfig("default-settings").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
 
             if (products == null) {
                 continue;
             }
 
-            List<String> bundleProducts = new ArrayList<>();
-            for (String productId : products.getKeys()) {
-                ConfigAccessor productConfig = products.getConfig(productId).orElse(null);
+            final List<String> bundleProducts = new ArrayList<>();
+            for (final String productId : products.getKeys()) {
+                final ConfigAccessor productConfig = products.getConfig(productId).orElse(null);
                 // 最后再构建捆绑包
                 if (productConfig != null && productConfig.contains("bundle-contents")) {
                     bundleProducts.add(productId);
@@ -62,8 +62,8 @@ public class ProductFactoryImpl implements ProductFactory {
             }
 
             // 最后构建捆绑包商品以便进行内容可用性检查
-            for (String bundleProductId : bundleProducts) {
-                ConfigAccessor productSection = products.getConfig(bundleProductId).orElse(null);
+            for (final String bundleProductId : bundleProducts) {
+                final ConfigAccessor productSection = products.getConfig(bundleProductId).orElse(null);
                 if (productSection == null)
                     throw new IllegalArgumentException("Bundle product " + bundleProductId + " has no config section.");
                 buildProduct(bundleProductId, productSection, defaultSettings);
@@ -78,26 +78,26 @@ public class ProductFactoryImpl implements ProductFactory {
             return;
         }
 
-        ConfigAccessor inheritedProductConfig = new ConfigInheritor(defaultSettings, productConfig);
+        final ConfigAccessor inheritedProductConfig = new ConfigInheritor(defaultSettings, productConfig);
 
-        ConfigAccessor itemConfig = new ConfigInheritor(defaultSettings.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
-        ConfigAccessor iconConfig = new ConfigInheritor(defaultSettings.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+        final ConfigAccessor itemConfig = new ConfigInheritor(defaultSettings.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+        final ConfigAccessor iconConfig = new ConfigInheritor(defaultSettings.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
 
         // Icon 继承 Item
-        ConfigAccessor inheritedIconConfig = new ConfigInheritor(itemConfig, iconConfig);
+        final ConfigAccessor inheritedIconConfig = new ConfigInheritor(itemConfig, iconConfig);
 
         // Price
-        Price buyPrice = new PriceImpl(
+        final Price buyPrice = new PriceImpl(
                 defaultSettings.getConfig("buy-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())),
                 inheritedProductConfig.getConfig("buy-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))
         );
-        Price sellPrice = new PriceImpl(
+        final Price sellPrice = new PriceImpl(
                 defaultSettings.getConfig("sell-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())),
                 inheritedProductConfig.getConfig("sell-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))
         );
 
         // Rarity
-        String rarityId = inheritedProductConfig.getString("rarity").orElse(RarityConfig.getAllId().getFirst());
+        final String rarityId = inheritedProductConfig.getString("rarity").orElse(RarityConfig.getAllId().getFirst());
         Rarity rarity = HyphaShop.RARITY_FACTORY.getRarity(rarityId);
 
         if (rarity == null) {
@@ -107,7 +107,7 @@ public class ProductFactoryImpl implements ProductFactory {
         assert rarity != null;
 
         // Cacheable
-        boolean isCacheable = inheritedProductConfig.getBoolean("cacheable").orElse(true);
+        final boolean isCacheable = inheritedProductConfig.getBoolean("cacheable").orElse(true);
 
         // Item (只有 ItemProduct 需要此配置)
         BaseItemDecorator itemDecorator = null;
@@ -117,8 +117,8 @@ public class ProductFactoryImpl implements ProductFactory {
         }
 
         // 库存（可指定默认值）
-        ProductStock stock;
-        ConfigAccessor stockConfig = inheritedProductConfig.getConfig("stock").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        final ProductStock stock;
+        final ConfigAccessor stockConfig = inheritedProductConfig.getConfig("stock").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
 
         stock = new ProductStockImpl(
                 id,
@@ -132,7 +132,7 @@ public class ProductFactoryImpl implements ProductFactory {
                 stockConfig.getBoolean("player.inherit").orElse(false)
         );
 
-        ProductSchema stockSchema = HyphaShop.DATABASE_FACTORY.getProductDao().querySchema(id);
+        final ProductSchema stockSchema = HyphaShop.DATABASE_FACTORY.getProductDao().querySchema(id);
 
         // 仅持久化 currentAmount 数据（尊重最新的 overflow, replenish, size 等配置）
         if (stockSchema != null) {
@@ -142,22 +142,22 @@ public class ProductFactoryImpl implements ProductFactory {
 
         // Actions
         // 注意此处的继承关系是手动处理的
-        ConfigAccessor actionsConfig = productConfig.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
-        ConfigAccessor defaultActionsConfig = defaultSettings.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
-        ActionsConfig actions = ActionsConfig.of(actionsConfig);
+        final ConfigAccessor actionsConfig = productConfig.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        final ConfigAccessor defaultActionsConfig = defaultSettings.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        final ActionsConfig actions = ActionsConfig.of(actionsConfig);
         actions.inherit(ActionsConfig.of(defaultActionsConfig));
 
         // IconDecorator
-        BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(inheritedIconConfig);
+        final BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(inheritedIconConfig);
 
         // 脚本用上下文
-        Context ctx = ScriptUtils.extractContext(inheritedProductConfig.getString("context").orElse(""));
+        final Context ctx = ScriptUtils.extractContext(inheritedProductConfig.getString("context").orElse(""));
 
         // 构建商品 & 储存
         if (inheritedProductConfig.contains("bundle-contents") && inheritedProductConfig.isList("bundle-contents")) {
-            Map<String, Integer> bundleContents = new HashMap<>();
+            final Map<String, Integer> bundleContents = new HashMap<>();
             for (String contentData : inheritedProductConfig.getStringList("bundle-contents").orElse(Collections.emptyList())) {
-                String[] parsedContentData = contentData.split(":");
+                final String[] parsedContentData = contentData.split(":");
                 if (parsedContentData.length == 1) {
                     bundleContents.put(parsedContentData[0], 1);
                 } else if (parsedContentData.length == 2) {
@@ -168,7 +168,7 @@ public class ProductFactoryImpl implements ProductFactory {
                 }
                 // 检查捆绑包内容商品是否存在
                 // 需确保捆绑包商品在所有商品之后加载
-                Product content = products.get(parsedContentData[0]);
+                final Product content = products.get(parsedContentData[0]);
                 if (content == null) {
                     LogUtils.warn("Bundle product \"" + id + "\" has invalid content " + contentData + ". Please check and fix it in your product config.");
                     bundleContents.remove(parsedContentData[0]);
@@ -211,7 +211,7 @@ public class ProductFactoryImpl implements ProductFactory {
     @Override
     public void save() {
         products.values().forEach(product -> {
-            ProductDao dao = HyphaShop.DATABASE_FACTORY.getProductDao();
+            final ProductDao dao = HyphaShop.DATABASE_FACTORY.getProductDao();
             dao.insertSchema(ProductSchema.of(product.getProductStock()));
         });
     }

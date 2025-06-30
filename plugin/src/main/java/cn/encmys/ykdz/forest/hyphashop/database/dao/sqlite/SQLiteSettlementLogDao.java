@@ -17,10 +17,10 @@ import java.util.Date;
 public class SQLiteSettlementLogDao implements SettlementLogDao {
     private static @NotNull List<SettlementLog> parseSettlementLog(@NotNull ResultSet rs) throws SQLException {
         // 需要保持查询出的顺序
-        Map<Integer, SettlementLog> logs = new LinkedHashMap<>();
+        final Map<Integer, SettlementLog> logs = new LinkedHashMap<>();
 
         while (rs.next()) {
-            int logId = rs.getInt("id");
+            final int logId = rs.getInt("id");
             SettlementLog log = logs.get(logId);
 
             if (log == null) {
@@ -29,15 +29,15 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                 logs.put(logId, log);
             }
 
-            Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>(log.getOrderedProducts());
-            Map<ProductLocation, Double> bill = new HashMap<>(log.getBill());
+            final Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>(log.getOrderedProducts());
+            final Map<ProductLocation, Double> bill = new HashMap<>(log.getBill());
 
             if (rs.getString("product_id") != null) {
-                ProductLocation loc = new ProductLocation(
+                final ProductLocation loc = new ProductLocation(
                         rs.getString("shop_id"),
                         rs.getString("product_id")
                 );
-                AmountPair pair = new AmountPair(
+                final AmountPair pair = new AmountPair(
                         rs.getInt("product_amount"),
                         rs.getInt("ordered_stack")
                 );
@@ -53,14 +53,14 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public @NotNull List<SettlementLog> queryLogs(@NotNull String shopId, @NotNull OrderType @NotNull ... types) {
-        String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
+        final String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
                 "lp.shop_id, lp.product_id, lp.product_amount, lp.ordered_stack, lp.price_per_stack " +
                 "FROM hyphashop_settlement_log l " +
                 "JOIN hyphashop_log_product lp ON l.id = lp.log_id " +
                 "WHERE lp.shop_id = ? AND l.type IN (" + placeholders(types.length) + ") " +
                 "ORDER BY l.transition_time DESC";
 
-        try (PreparedStatement stmt = HyphaShop.DATABASE_FACTORY.getConnection().prepareStatement(sql)) {
+        try (final PreparedStatement stmt = HyphaShop.DATABASE_FACTORY.getConnection().prepareStatement(sql)) {
             stmt.setString(1, shopId);
             for (int i = 0; i < types.length; i++) {
                 stmt.setString(i + 2, types[i].name());
@@ -75,7 +75,7 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public @NotNull List<SettlementLog> queryLogs(@NotNull UUID playerUUID, int offset, int limit, @NotNull OrderType @NotNull ... types) {
-        String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
+        final String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
                 "lp.shop_id, lp.product_id, lp.product_amount, lp.ordered_stack, lp.price_per_stack " +
                 "FROM hyphashop_settlement_log l " +
                 "LEFT JOIN hyphashop_log_product lp ON l.id = lp.log_id " +
@@ -83,8 +83,8 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                 "ORDER BY l.transition_time DESC " +
                 "LIMIT ? OFFSET ?";
 
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             final PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, playerUUID.toString());
             for (int i = 0; i < types.length; i++) {
                 stmt.setString(i + 2, types[i].name());
@@ -101,17 +101,17 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public int queryHistoryStack(@NotNull String productId, @NotNull OrderType @NotNull ... types) {
-        String sql = "SELECT SUM(history_stack) AS total FROM hyphashop_product_history " +
+        final String sql = "SELECT SUM(history_stack) AS total FROM hyphashop_product_history " +
                 "WHERE product_id = ? AND type IN (" + placeholders(types.length) + ")";
 
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             final PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, productId);
             for (int i = 0; i < types.length; i++) {
                 stmt.setString(i + 2, types[i].name());
             }
 
-            ResultSet rs = stmt.executeQuery();
+            final ResultSet rs = stmt.executeQuery();
             return rs.next() ? rs.getInt("total") : 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -121,17 +121,17 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public int queryHistoryAmount(@NotNull String productId, @NotNull OrderType @NotNull ... types) {
-        String sql = "SELECT SUM(history_amount) AS total FROM hyphashop_product_history " +
+        final String sql = "SELECT SUM(history_amount) AS total FROM hyphashop_product_history " +
                 "WHERE product_id = ? AND type IN (" + placeholders(types.length) + ")";
 
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             final PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, productId);
             for (int i = 0; i < types.length; i++) {
                 stmt.setString(i + 2, types[i].name());
             }
 
-            ResultSet rs = stmt.executeQuery();
+            final ResultSet rs = stmt.executeQuery();
             return rs.next() ? rs.getInt("total") : 0;
         } catch (SQLException e) {
             e.printStackTrace();
@@ -141,11 +141,11 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public void insertLog(@NotNull SettlementLog log) {
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection()) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection()) {
             connection.setAutoCommit(false);
 
-            String logSql = "INSERT INTO hyphashop_settlement_log (customer_uuid, type, transition_time) VALUES (?, ?, ?)";
-            int logId;
+            final String logSql = "INSERT INTO hyphashop_settlement_log (customer_uuid, type, transition_time) VALUES (?, ?, ?)";
+            final int logId;
             try (PreparedStatement stmt = connection.prepareStatement(logSql)) {
                 stmt.setString(1, log.getCustomerUUID().toString());
                 stmt.setString(2, log.getType().name());
@@ -156,12 +156,12 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                 logId = rs.next() ? rs.getInt(1) : -1;
             }
 
-            String productSql = "INSERT INTO hyphashop_log_product (log_id, shop_id, product_id, product_amount, ordered_stack, price_per_stack) " +
+            final String productSql = "INSERT INTO hyphashop_log_product (log_id, shop_id, product_id, product_amount, ordered_stack, price_per_stack) " +
                     "VALUES (?, ?, ?, ?, ?, ?)";
-            try (PreparedStatement stmt = connection.prepareStatement(productSql)) {
-                for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
-                    ProductLocation loc = entry.getKey();
-                    AmountPair pair = entry.getValue();
+            try (final PreparedStatement stmt = connection.prepareStatement(productSql)) {
+                for (final Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
+                    final ProductLocation loc = entry.getKey();
+                    final AmountPair pair = entry.getValue();
                     stmt.setInt(1, logId);
                     stmt.setString(2, loc.shopId());
                     stmt.setString(3, loc.productId());
@@ -181,11 +181,11 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public void deleteLog(@NotNull UUID customerUUID, long daysLateThan) {
-        String sql = "DELETE FROM hyphashop_settlement_log " +
+        final String sql = "DELETE FROM hyphashop_settlement_log " +
                 "WHERE customer_uuid = ? AND transition_time < datetime('now', '-' || ? || ' days')";
 
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             final PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, customerUUID.toString());
             stmt.setLong(2, daysLateThan);
             stmt.executeUpdate();
@@ -196,17 +196,17 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
     @Override
     public int countLog(@NotNull UUID customerUUID, @NotNull OrderType @NotNull ... types) {
-        String sql = "SELECT COUNT(*) AS count FROM hyphashop_settlement_log " +
+        final String sql = "SELECT COUNT(*) AS count FROM hyphashop_settlement_log " +
                 "WHERE customer_uuid = ? AND type IN (" + placeholders(types.length) + ")";
 
-        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
-             PreparedStatement stmt = connection.prepareStatement(sql)) {
+        try (final Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             final PreparedStatement stmt = connection.prepareStatement(sql)) {
             stmt.setString(1, customerUUID.toString());
             for (int i = 0; i < types.length; i++) {
                 stmt.setString(i + 2, types[i].name());
             }
 
-            ResultSet rs = stmt.executeQuery();
+            final ResultSet rs = stmt.executeQuery();
             return rs.next() ? rs.getInt("count") : 0;
         } catch (SQLException e) {
             e.printStackTrace();

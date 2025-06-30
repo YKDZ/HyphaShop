@@ -78,10 +78,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setFireworkEffects(@Nullable List<FireworkEffect> fireworkEffects) {
         if (fireworkEffects == null) return this;
 
-        Fireworks.Builder builder = Fireworks.fireworks()
+        final Fireworks.Builder builder = Fireworks.fireworks()
                 .addEffects(fireworkEffects);
 
-        Fireworks data = raw.getData(DataComponentTypes.FIREWORKS);
+        final Fireworks data = raw.getData(DataComponentTypes.FIREWORKS);
         if (data != null) {
             builder.flightDuration(data.flightDuration());
         }
@@ -94,10 +94,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setFlightDuration(@Nullable Integer flightDuration) {
         if (flightDuration == null) return this;
 
-        Fireworks.Builder builder = Fireworks.fireworks()
+        final Fireworks.Builder builder = Fireworks.fireworks()
                 .flightDuration(flightDuration);
 
-        Fireworks data = raw.getData(DataComponentTypes.FIREWORKS);
+        final Fireworks data = raw.getData(DataComponentTypes.FIREWORKS);
         if (data != null) {
             builder.addEffects(data.effects());
         }
@@ -118,10 +118,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setPotionEffects(@Nullable List<PotionEffect> effects) {
         if (effects == null) return this;
 
-        PotionContents.Builder builder = PotionContents.potionContents()
+        final PotionContents.Builder builder = PotionContents.potionContents()
                 .addCustomEffects(effects);
 
-        PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
+        final PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
         if (data != null) {
             builder.potion(data.potion())
                     .customName(data.customName())
@@ -136,10 +136,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setPotionCustomColor(@Nullable Color color) {
         if (color == null) return this;
 
-        PotionContents.Builder builder = PotionContents.potionContents()
+        final PotionContents.Builder builder = PotionContents.potionContents()
                 .customColor(color);
 
-        PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
+        final PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
         if (data != null) {
             builder.potion(data.potion())
                     .customName(data.customName())
@@ -154,10 +154,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setPotionCustomName(@Nullable String customName) {
         if (customName == null) return this;
 
-        PotionContents.Builder builder = PotionContents.potionContents()
+        final PotionContents.Builder builder = PotionContents.potionContents()
                 .customName(customName);
 
-        PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
+        final PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
         if (data != null) {
             builder.potion(data.potion())
                     .customColor(data.customColor())
@@ -172,10 +172,10 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setPotionType(@Nullable PotionType potionType) {
         if (potionType == null) return this;
 
-        PotionContents.Builder builder = PotionContents.potionContents()
+        final PotionContents.Builder builder = PotionContents.potionContents()
                 .potion(potionType);
 
-        PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
+        final PotionContents data = raw.getData(DataComponentTypes.POTION_CONTENTS);
         if (data != null) {
             builder.customName(data.customName())
                     .customColor(data.customColor())
@@ -221,7 +221,7 @@ public class ItemBuilder {
     }
 
     public @NotNull ItemBuilder setCustomModelData(@Nullable List<Boolean> flags, @Nullable List<Color> colors, @Nullable List<Float> floats, @Nullable List<String> strings) {
-        CustomModelData.Builder builder = CustomModelData.customModelData();
+        final CustomModelData.Builder builder = CustomModelData.customModelData();
 
         if (flags != null) {
             builder.addFlags(flags);

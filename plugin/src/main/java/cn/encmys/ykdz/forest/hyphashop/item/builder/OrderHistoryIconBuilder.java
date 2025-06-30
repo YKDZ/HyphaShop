@@ -32,26 +32,26 @@ import java.util.*;
 public class OrderHistoryIconBuilder {
     @NotNull
     public static Item build(@NotNull SettlementLog log, @NotNull Player player) {
-        BaseItemDecorator historyStaticIcon = OrderHistoryGUIConfig.getHistoryIconRecord().iconDecorator();
-        BaseItemDecorator historyPlaceholderIcon = OrderHistoryGUIConfig.getHistoryIconRecord().miscPlaceholderIcon();
-        Script orderContentLine = OrderHistoryGUIConfig.getHistoryIconRecord().formatOrderContentLine();
+        final BaseItemDecorator historyStaticIcon = OrderHistoryGUIConfig.getHistoryIconRecord().iconDecorator();
+        final BaseItemDecorator historyPlaceholderIcon = OrderHistoryGUIConfig.getHistoryIconRecord().miscPlaceholderIcon();
+        final Script orderContentLine = OrderHistoryGUIConfig.getHistoryIconRecord().formatOrderContentLine();
 
         assert orderContentLine != null;
 
         return Item.builder()
                 .async(ItemProvider.EMPTY, () -> {
                     // 构造内部列表变量
-                    Map<String, Object> vars = new HashMap<>() {{
-                        List<Object> orderContentsLines = new ArrayList<>();
+                    final Map<String, Object> vars = new HashMap<>() {{
+                        final List<Object> orderContentsLines = new ArrayList<>();
                         for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
-                            ProductLocation productLoc = entry.getKey();
-                            Shop shop = productLoc.shop();
+                            final ProductLocation productLoc = entry.getKey();
+                            final Shop shop = productLoc.shop();
 
                             if (shop == null) continue;
 
-                            AmountPair amountPair = entry.getValue();
-                            Product product = productLoc.product();
-                            Context parent;
+                            final AmountPair amountPair = entry.getValue();
+                            final Product product = productLoc.product();
+                            final Context parent;
                             if (product == null) {
                                 parent = ContextUtils.linkContext(
                                         shop.getScriptContext()
@@ -78,18 +78,18 @@ public class OrderHistoryIconBuilder {
 
                     // 构建显示物品
 
-                    ItemStack displayItem = log.getOrderedProducts().keySet().stream()
+                    final ItemStack displayItem = log.getOrderedProducts().keySet().stream()
                             // 其他插件的物品不保证在异步环境下能被构建
                             // 例如 MMOItems
                             .filter(productLoc -> {
-                                Product product = productLoc.product();
+                                final Product product = productLoc.product();
                                 if (product == null) return false;
                                 return product.getIconDecorator().getBaseItem().getItemType().isAsyncBuildable();
                             })
                             .findFirst()
                             .map(productLoc -> {
-                                Shop shop = productLoc.shop();
-                                Product product = productLoc.product();
+                                final Shop shop = productLoc.shop();
+                                final Product product = productLoc.product();
                                 if (product == null || shop == null) return new ItemStack(Material.AIR);
                                 return ProductIconBuilder.build(shop, product, log.getOrderedProducts().get(productLoc).amount()).getItemProvider(player).get();
                             }).orElse(null);
@@ -99,7 +99,7 @@ public class OrderHistoryIconBuilder {
                                 .getItemProvider(player);
                     }
 
-                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, log, player);
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, log, player);
 
                     return new ItemBuilder(new cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder(displayItem)
                             .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), Context.GLOBAL_OBJECT, vars, log, player))
@@ -109,8 +109,8 @@ public class OrderHistoryIconBuilder {
                     );
                 })
                 .addClickHandler((item, click) -> {
-                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, item, click, click.player());
-                    ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, item, click, click.player());
+                    final ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, Context.GLOBAL_OBJECT, Collections.emptyMap(), item, click, click.player());
                 })

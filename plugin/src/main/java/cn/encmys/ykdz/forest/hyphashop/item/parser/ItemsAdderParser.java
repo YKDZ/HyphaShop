@@ -14,7 +14,7 @@ public class ItemsAdderParser implements BaseItemParser {
         if (!ItemsAdderHook.isHooked()) return false;
         if (!base.startsWith(PREFIX)) return false;
 
-        BaseItem item = new ItemsAdderItem(base.substring(PREFIX.length()));
+        final BaseItem item = new ItemsAdderItem(base.substring(PREFIX.length()));
         return item.isExist();
     }
 

@@ -31,7 +31,7 @@ public abstract class AbstractGUI implements GUI {
     protected static final char markerIdentifier = 'x';
 
     private @NotNull IngredientPreset buildIconPreset(@NotNull Player player) {
-        IngredientPreset.Builder builder = IngredientPreset.builder();
+        final IngredientPreset.Builder builder = IngredientPreset.builder();
         Stream.ofNullable(getIconConfig())
                 .map(Map::entrySet)
                 .flatMap(Collection::stream)
@@ -45,7 +45,7 @@ public abstract class AbstractGUI implements GUI {
     }
 
     private @NotNull Gui buildGUI(@NotNull Player player) {
-        Gui gui = switch (getType()) {
+        final Gui gui = switch (getType()) {
             case PAGE -> buildPagedGUI(player);
             case SCROLL -> buildScrollGUI(player);
             case NORMAL -> buildNormalGUI(player);
@@ -58,7 +58,7 @@ public abstract class AbstractGUI implements GUI {
         if (getScrollMode() == null)
             throw new IllegalStateException("Try to build ScrollGui with a null scrollMode");
 
-        ScrollGui.Builder<Item> guiBuilder = ScrollGui.itemsBuilder()
+        final ScrollGui.Builder<Item> guiBuilder = ScrollGui.itemsBuilder()
                 .setStructure(getStructure().toArray(new String[0]))
                 .addScrollHandler(getScrollHandler())
                 .addIngredient(markerIdentifier, getScrollMode())
@@ -71,7 +71,7 @@ public abstract class AbstractGUI implements GUI {
     private @NotNull Gui buildPagedGUI(@NotNull Player player) {
         if (getPageMode() == null) throw new IllegalStateException("Try to build PagedGUI with a null pageMode");
 
-        PagedGui.Builder<Item> guiBuilder = PagedGui.itemsBuilder()
+        final PagedGui.Builder<Item> guiBuilder = PagedGui.itemsBuilder()
                 .setStructure(getStructure().toArray(new String[0]))
                 .addPageChangeHandler(getPageChangeHandler(player))
                 .addIngredient(markerIdentifier, getPageMode())
@@ -82,7 +82,7 @@ public abstract class AbstractGUI implements GUI {
     }
 
     private @NotNull Gui buildNormalGUI(@NotNull Player player) {
-        TabGui.Builder guiBuilder = TabGui.builder()
+        final TabGui.Builder guiBuilder = TabGui.builder()
                 .setStructure(getStructure().toArray(new String[0]))
                 .applyPreset(buildIconPreset(player));
 
@@ -92,7 +92,7 @@ public abstract class AbstractGUI implements GUI {
     public final void open(@NotNull Player player) {
         onBeforeWindowBuild().accept(player);
 
-        Window window = Window.builder()
+        final Window window = Window.builder()
                 .setUpperGui(buildGUI(player))
                 .setTitleSupplier(getTitleSupplier(player))
                 .addOpenHandler(() -> MiscUtils.processActions(ActionEvent.GUI_ON_OPEN, getActions(), getParent(), Collections.emptyMap(), getArgs(player)))
@@ -105,7 +105,7 @@ public abstract class AbstractGUI implements GUI {
         Scheduler.runTask((task) -> {
             window.open();
 
-            long updatePeriod = getTitleUpdatePeriod();
+            final long updatePeriod = getTitleUpdatePeriod();
             if (updatePeriod > 0) {
                 // GUI 开启的一瞬间也是一次刷新标题
                 // 故加上与间隔等长的 delay
@@ -136,7 +136,7 @@ public abstract class AbstractGUI implements GUI {
 
     @SuppressWarnings("unchecked")
     public void updateContents(@NotNull Player player) {
-        Gui gui = getGUI(player);
+        final Gui gui = getGUI(player);
         if (gui instanceof ScrollGui<?>) {
             ((ScrollGui<Item>) gui).setContent(getContents(player));
         } else if (gui instanceof PagedGui<?>) {

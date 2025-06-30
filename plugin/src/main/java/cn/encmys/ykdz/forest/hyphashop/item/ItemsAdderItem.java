@@ -22,7 +22,7 @@ public class ItemsAdderItem implements BaseItem {
 
     @Override
     public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
-        CustomStack instance = CustomStack.getInstance(namespacedId);
+        final CustomStack instance = CustomStack.getInstance(namespacedId);
         if (instance == null)
             return Component.translatable("Name of ItemsAdder item " + getNamespacedId() + " not found").color(TextColor.color(255, 0, 0));
         return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(instance.getDisplayName()));
@@ -30,7 +30,7 @@ public class ItemsAdderItem implements BaseItem {
 
     @Override
     public boolean isSimilar(@NotNull ItemStack item) {
-        CustomStack target = CustomStack.byItemStack(item);
+        final CustomStack target = CustomStack.byItemStack(item);
         if (target == null) return false;
         return target.getNamespacedID().equals(namespacedId);
     }
@@ -47,7 +47,7 @@ public class ItemsAdderItem implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
-        CustomStack stack = CustomStack.getInstance(getNamespacedId());
+        final CustomStack stack = CustomStack.getInstance(getNamespacedId());
         if (stack != null) {
             return stack.getItemStack().clone();
         } else {
