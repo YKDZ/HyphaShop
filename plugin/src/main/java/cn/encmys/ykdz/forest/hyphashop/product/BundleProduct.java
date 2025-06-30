@@ -2,6 +2,8 @@ package cn.encmys.ykdz.forest.hyphashop.product;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionEvent;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
@@ -9,6 +11,9 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.enums.ProductType;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.rarity.Rarity;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.PlayerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -16,11 +21,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 
 public class BundleProduct extends Product {
-    private final Map<String, Integer> bundleContents;
+    private final @NotNull Map<String, Integer> bundleContents;
 
     public BundleProduct(
             @NotNull String id,
@@ -29,10 +34,10 @@ public class BundleProduct extends Product {
             @NotNull Rarity rarity,
             @NotNull BaseItemDecorator iconBuilder,
             @NotNull ProductStock productStock,
-            @NotNull List<String> listConditions,
             @NotNull Context scriptContext,
+            @NotNull ActionsConfig actions,
             @NotNull Map<String, Integer> bundleContents) {
-        super(id, buyPrice, sellPrice, rarity, iconBuilder, null, productStock, listConditions, scriptContext, false);
+        super(id, buyPrice, sellPrice, rarity, iconBuilder, null, productStock, scriptContext, actions, false);
         this.bundleContents = bundleContents;
     }
 
@@ -52,6 +57,10 @@ public class BundleProduct extends Product {
 
     @Override
     public void give(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), new HashMap<>() {{
+            put("stack", stack);
+        }}, shop, player, this);
+
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
             String contentId = entry.getKey();
             Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
@@ -72,6 +81,10 @@ public class BundleProduct extends Product {
 
     @Override
     public void take(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), new HashMap<>() {{
+            put("stack", stack);
+        }}, shop, player, this);
+
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
             String contentId = entry.getKey();
             Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
@@ -118,20 +131,24 @@ public class BundleProduct extends Product {
 
     @Override
     public boolean canHold(@NotNull Shop shop, @NotNull Player player, int stack) {
-        return canHold(shop, player.getInventory(), player, stack);
-    }
+        Map<Product, AmountPair> productsToHold = new HashMap<>();
 
-    @Override
-    public boolean canHold(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
             String contentId = entry.getKey();
             int contentStack = entry.getValue() * stack;
             Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
-            if (content != null && !content.canHold(shop, inv, player, contentStack)) {
-                return false;
+
+            if (content == null) continue;
+
+            if (content.getType() == ProductType.BUNDLE
+                    || content.getType() == ProductType.VIRTUAL) {
+                if (!content.canHold(shop, player, stack)) return false;
+            } else {
+                productsToHold.put(content, new AmountPair(shop.getShopCounter().getAmount(contentId), contentStack));
             }
         }
-        return true;
+
+        return PlayerUtils.canHold(player, shop, productsToHold);
     }
 
     @Override
@@ -140,7 +157,7 @@ public class BundleProduct extends Product {
     }
 
     @Override
-    public boolean isMatch(@NotNull String shopId, @NotNull ItemStack item, @NotNull Player player) {
+    public boolean isMatch(@NotNull Shop shop, @NotNull ItemStack item, @NotNull Player player) {
         return false;
     }
 }

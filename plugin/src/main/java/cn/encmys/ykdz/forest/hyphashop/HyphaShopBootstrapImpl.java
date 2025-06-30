@@ -9,8 +9,6 @@ import org.jetbrains.annotations.NotNull;
 public class HyphaShopBootstrapImpl implements PluginBootstrap {
     @Override
     public void bootstrap(@NotNull BootstrapContext context) {
-        context.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> {
-            commands.registrar().register(CommandHandler.load());
-        });
+        context.getLifecycleManager().registerEventHandler(LifecycleEvents.COMMANDS, commands -> commands.registrar().register(CommandHandler.load()));
     }
 }

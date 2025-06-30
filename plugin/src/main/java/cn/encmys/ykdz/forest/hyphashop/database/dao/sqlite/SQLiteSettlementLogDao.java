@@ -5,421 +5,217 @@ import cn.encmys.ykdz.forest.hyphashop.api.database.dao.SettlementLogDao;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.*;
 import java.util.*;
+import java.util.Date;
 
 public class SQLiteSettlementLogDao implements SettlementLogDao {
-    private final static Gson gson = new Gson();
+    private static @NotNull List<SettlementLog> parseSettlementLog(@NotNull ResultSet rs) throws SQLException {
+        // 需要保持查询出的顺序
+        Map<Integer, SettlementLog> logs = new LinkedHashMap<>();
 
-    public SQLiteSettlementLogDao() {
-        initDB();
+        while (rs.next()) {
+            int logId = rs.getInt("id");
+            SettlementLog log = logs.get(logId);
+
+            if (log == null) {
+                log = new SettlementLogImpl(UUID.fromString(rs.getString("customer_uuid")), OrderType.valueOf(rs.getString("type")))
+                        .setTransitionTime(new Date(rs.getTimestamp("transition_time").getTime()));
+                logs.put(logId, log);
+            }
+
+            Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>(log.getOrderedProducts());
+            Map<ProductLocation, Double> bill = new HashMap<>(log.getBill());
+
+            if (rs.getString("product_id") != null) {
+                ProductLocation loc = new ProductLocation(
+                        rs.getString("shop_id"),
+                        rs.getString("product_id")
+                );
+                AmountPair pair = new AmountPair(
+                        rs.getInt("product_amount"),
+                        rs.getInt("ordered_stack")
+                );
+                orderedProducts.put(loc, pair);
+                bill.put(loc, rs.getDouble("price_per_stack") * pair.stack());
+            }
+
+            log.setOrderedProducts(orderedProducts);
+            log.setBill(bill);
+        }
+        return new ArrayList<>(logs.values());
     }
 
     @Override
-    public void initDB() {
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                Statement stmt = conn.createStatement()
-        ) {
-            stmt.execute("""
-                CREATE TABLE IF NOT EXISTS dailyshop_settlement_log (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    customer_uuid TEXT NOT NULL,
-                    type TEXT NOT NULL,
-                    transition_time TIMESTAMP NOT NULL,
-                    price DOUBLE NOT NULL,
-                    ordered_products TEXT NOT NULL,
-                    settled_shop TEXT NOT NULL
-                )
-            """);
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
-    }
+    public @NotNull List<SettlementLog> queryLogs(@NotNull String shopId, @NotNull OrderType @NotNull ... types) {
+        String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
+                "lp.shop_id, lp.product_id, lp.product_amount, lp.ordered_stack, lp.price_per_stack " +
+                "FROM hyphashop_settlement_log l " +
+                "JOIN hyphashop_log_product lp ON l.id = lp.log_id " +
+                "WHERE lp.shop_id = ? AND l.type IN (" + placeholders(types.length) + ") " +
+                "ORDER BY l.transition_time DESC";
 
-    @Override
-    public List<SettlementLog> queryLogs(UUID customerUUID, long dayLimit, long amountLimit, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String query = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE customer_uuid = ?
-        """;
-
-        List<Object> params = new ArrayList<>();
-        params.add(customerUUID.toString());
-
-        if (types.length > 0) {
-            query += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
+        try (PreparedStatement stmt = HyphaShop.DATABASE_FACTORY.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, shopId);
+            for (int i = 0; i < types.length; i++) {
+                stmt.setString(i + 2, types[i].name());
             }
-        }
 
-        if (dayLimit > 0) {
-            query += " AND transition_time >= datetime('now', ? || ' day')";
-            params.add(-dayLimit);
-        }
-
-        query += " ORDER BY transition_time DESC";
-
-        if (amountLimit > 0) {
-            query += " LIMIT ?";
-            params.add(amountLimit);
-        }
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(query)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
+            return parseSettlementLog(stmt.executeQuery());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return logs;
+        return Collections.emptyList();
     }
 
     @Override
-    public List<SettlementLog> queryLogs(String settledShop, long dayLimit, long amountLimit, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String baseQuery = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE settled_shop = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(settledShop);
+    public @NotNull List<SettlementLog> queryLogs(@NotNull UUID playerUUID, int offset, int limit, @NotNull OrderType @NotNull ... types) {
+        String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
+                "lp.shop_id, lp.product_id, lp.product_amount, lp.ordered_stack, lp.price_per_stack " +
+                "FROM hyphashop_settlement_log l " +
+                "LEFT JOIN hyphashop_log_product lp ON l.id = lp.log_id " +
+                "WHERE l.customer_uuid = ? AND l.type IN (" + placeholders(types.length) + ") " +
+                "ORDER BY l.transition_time DESC " +
+                "LIMIT ? OFFSET ?";
 
-        if (types.length > 0) {
-            baseQuery += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, playerUUID.toString());
+            for (int i = 0; i < types.length; i++) {
+                stmt.setString(i + 2, types[i].name());
             }
-        }
+            stmt.setInt(types.length + 2, limit);
+            stmt.setInt(types.length + 3, offset);
 
-        if (dayLimit > 0) {
-            baseQuery += " AND transition_time >= datetime('now', ? || ' day')";
-            params.add(-dayLimit);
-        }
-
-        baseQuery += " ORDER BY transition_time DESC";
-        if (amountLimit > 0) {
-            baseQuery += " LIMIT ?";
-            params.add(amountLimit);
-        }
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(baseQuery)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
+            return parseSettlementLog(stmt.executeQuery());
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return logs;
+        return Collections.emptyList();
     }
 
     @Override
-    public List<SettlementLog> queryLogs(String settledShop, UUID customerUUID, long dayLimit, long amountLimit, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String baseQuery = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE settled_shop = ? AND customer_uuid = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(settledShop);
-        params.add(customerUUID.toString());
+    public int queryHistoryStack(@NotNull String productId, @NotNull OrderType @NotNull ... types) {
+        String sql = "SELECT SUM(history_stack) AS total FROM hyphashop_product_history " +
+                "WHERE product_id = ? AND type IN (" + placeholders(types.length) + ")";
 
-        if (types.length > 0) {
-            baseQuery += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, productId);
+            for (int i = 0; i < types.length; i++) {
+                stmt.setString(i + 2, types[i].name());
             }
-        }
 
-        if (dayLimit > 0) {
-            baseQuery += " AND transition_time >= datetime('now', ? || ' day')";
-            params.add(-dayLimit);
-        }
-
-        baseQuery += " ORDER BY transition_time DESC";
-        if (amountLimit > 0) {
-            baseQuery += " LIMIT ?";
-            params.add(amountLimit);
-        }
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(baseQuery)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt("total") : 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return logs;
+        return 0;
     }
 
     @Override
-    public List<SettlementLog> queryLogs(UUID customerUUID, int pageIndex, int pageSize, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String baseQuery = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE customer_uuid = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(customerUUID.toString());
+    public int queryHistoryAmount(@NotNull String productId, @NotNull OrderType @NotNull ... types) {
+        String sql = "SELECT SUM(history_amount) AS total FROM hyphashop_product_history " +
+                "WHERE product_id = ? AND type IN (" + placeholders(types.length) + ")";
 
-        if (types.length > 0) {
-            baseQuery += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, productId);
+            for (int i = 0; i < types.length; i++) {
+                stmt.setString(i + 2, types[i].name());
             }
-        }
 
-        baseQuery += " ORDER BY transition_time DESC LIMIT ? OFFSET ?";
-        params.add(pageSize);
-        params.add(pageSize * pageIndex);
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(baseQuery)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt("total") : 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return logs;
-    }
-
-    @Override
-    public List<SettlementLog> queryLogs(String settledShop, int pageIndex, int pageSize, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String baseQuery = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE settled_shop = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(settledShop);
-
-        if (types.length > 0) {
-            baseQuery += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
-            }
-        }
-
-        baseQuery += " ORDER BY transition_time DESC LIMIT ? OFFSET ?";
-        params.add(pageSize);
-        params.add(pageSize * pageIndex);
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(baseQuery)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return logs;
-    }
-
-    @Override
-    public List<SettlementLog> queryLogs(String settledShop, UUID customerUUID, int pageIndex, int pageSize, OrderType... types) {
-        List<SettlementLog> logs = new ArrayList<>();
-        String baseQuery = """
-            SELECT * FROM dailyshop_settlement_log
-            WHERE settled_shop = ? AND customer_uuid = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(settledShop);
-        params.add(customerUUID.toString());
-
-        if (types.length > 0) {
-            baseQuery += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
-            }
-        }
-
-        baseQuery += " ORDER BY transition_time DESC LIMIT ? OFFSET ?";
-        params.add(pageSize);
-        params.add(pageSize * pageIndex);
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(baseQuery)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            while (rs.next()) {
-                logs.add(parseSettlementLog(rs));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return logs;
+        return 0;
     }
 
     @Override
     public void insertLog(@NotNull SettlementLog log) {
-        try (Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            PreparedStatement pStmt = conn.prepareStatement("""
-                REPLACE INTO dailyshop_settlement_log
-                (customer_uuid, type, transition_time, price, ordered_products, settled_shop)
-                VALUES (?, ?, ?, ?, ?, ?)
-            """);
-            pStmt.setString(1, log.getCustomerUUID().toString());
-            pStmt.setString(2, log.getType().toString());
-            pStmt.setTimestamp(3, new Timestamp(log.getTransitionTime().getTime()));
-            pStmt.setDouble(4, log.getTotalPrice());
-            pStmt.setString(5, gson.toJson(log.getOrderedProducts(), new TypeToken<Map<String, AmountPair>>() {}.getType()));
-            pStmt.setString(6, log.getSettledShopId());
-            pStmt.executeUpdate();
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection()) {
+            connection.setAutoCommit(false);
+
+            String logSql = "INSERT INTO hyphashop_settlement_log (customer_uuid, type, transition_time) VALUES (?, ?, ?)";
+            int logId;
+            try (PreparedStatement stmt = connection.prepareStatement(logSql)) {
+                stmt.setString(1, log.getCustomerUUID().toString());
+                stmt.setString(2, log.getType().name());
+                stmt.setTimestamp(3, new Timestamp(log.getTransitionTime().getTime()));
+                stmt.executeUpdate();
+
+                ResultSet rs = stmt.getGeneratedKeys();
+                logId = rs.next() ? rs.getInt(1) : -1;
+            }
+
+            String productSql = "INSERT INTO hyphashop_log_product (log_id, shop_id, product_id, product_amount, ordered_stack, price_per_stack) " +
+                    "VALUES (?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = connection.prepareStatement(productSql)) {
+                for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
+                    ProductLocation loc = entry.getKey();
+                    AmountPair pair = entry.getValue();
+                    stmt.setInt(1, logId);
+                    stmt.setString(2, loc.shopId());
+                    stmt.setString(3, loc.productId());
+                    stmt.setInt(4, pair.amount());
+                    stmt.setInt(5, pair.stack());
+                    stmt.setDouble(6, log.getBill().get(loc) / pair.stack());
+                    stmt.addBatch();
+                }
+                stmt.executeBatch();
+            }
+
+            connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void deleteLog(UUID customerUUID, long daysLateThan, OrderType... types) {
-        String deleteSQL = """
-            DELETE FROM dailyshop_settlement_log
-            WHERE customer_uuid = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(customerUUID.toString());
+    public void deleteLog(@NotNull UUID customerUUID, long daysLateThan) {
+        String sql = "DELETE FROM hyphashop_settlement_log " +
+                "WHERE customer_uuid = ? AND transition_time < datetime('now', '-' || ? || ' days')";
 
-        if (types.length > 0) {
-            deleteSQL += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
-            }
-        }
-
-        deleteSQL += " AND transition_time < datetime('now', ? || ' day')";
-        params.add(-daysLateThan);
-
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(deleteSQL)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            pStmt.executeUpdate();
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, customerUUID.toString());
+            stmt.setLong(2, daysLateThan);
+            stmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public int countLog(UUID customerUUID, long dayLimit, long amountLimit, OrderType... types) {
-        String countSQL = """
-            SELECT COUNT(*) FROM dailyshop_settlement_log
-            WHERE customer_uuid = ?
-        """;
-        List<Object> params = new ArrayList<>();
-        params.add(customerUUID.toString());
+    public int countLog(@NotNull UUID customerUUID, @NotNull OrderType @NotNull ... types) {
+        String sql = "SELECT COUNT(*) AS count FROM hyphashop_settlement_log " +
+                "WHERE customer_uuid = ? AND type IN (" + placeholders(types.length) + ")";
 
-        if (types.length > 0) {
-            countSQL += " AND type IN (%s)".formatted(
-                    String.join(", ", Collections.nCopies(types.length, "?"))
-            );
-            for (OrderType type : types) {
-                params.add(type.name());
+        try (Connection connection = HyphaShop.DATABASE_FACTORY.getConnection();
+             PreparedStatement stmt = connection.prepareStatement(sql)) {
+            stmt.setString(1, customerUUID.toString());
+            for (int i = 0; i < types.length; i++) {
+                stmt.setString(i + 2, types[i].name());
             }
-        }
 
-        if (dayLimit > 0) {
-            countSQL += " AND transition_time >= datetime('now', ? || ' day')";
-            params.add(-dayLimit);
-        }
-
-        int count = 0;
-        try (
-                Connection conn = HyphaShop.DATABASE_FACTORY.getConnection();
-                PreparedStatement pStmt = conn.prepareStatement(countSQL)
-        ) {
-            for (int i = 0; i < params.size(); i++) {
-                pStmt.setObject(i + 1, params.get(i));
-            }
-            ResultSet rs = pStmt.executeQuery();
-            if (rs.next()) {
-                count = rs.getInt(1);
-            }
+            ResultSet rs = stmt.executeQuery();
+            return rs.next() ? rs.getInt("count") : 0;
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return count;
+        return 0;
     }
 
-    private static SettlementLog parseSettlementLog(@NotNull ResultSet rs) {
-        try {
-            SettlementLog log;
-            UUID customerUUID = UUID.fromString(rs.getString("customer_uuid"));
-            OrderType type = OrderType.valueOf(rs.getString("type"));
-            switch (type) {
-                case SELL_TO -> log = SettlementLogImpl.sellToLog(customerUUID);
-                case BUY_FROM -> log = SettlementLogImpl.buyFromLog(customerUUID);
-                default -> log = SettlementLogImpl.buyAllFromLog(customerUUID);
-            }
-            return log
-                    .setOrderedProducts(gson.fromJson(rs.getString("ordered_products"), new TypeToken<Map<String, AmountPair>>() {}.getType()))
-                    .setTotalPrice(rs.getDouble("price"))
-                    .setTransitionTime(rs.getTimestamp("transition_time"))
-                    .setSettledShopId(rs.getString("settled_shop"));
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
+    @Contract("_ -> new")
+    private @NotNull String placeholders(int count) {
+        return String.join(",", Collections.nCopies(count, "?"));
     }
 }

@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.GUI;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.ShopCashier;
@@ -11,35 +12,38 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 
 public interface Shop {
-    String getName();
+    @NotNull String getName();
 
-    String getId();
+    @NotNull String getId();
 
-    GUI getShopGUI();
+    @NotNull GUI getShopGUI();
 
+    @NotNull
+    @Unmodifiable
     Map<String, ItemStack> getCachedProductItems();
 
-    boolean isProductItemCached(String productId);
+    boolean isProductItemCached(@NotNull String productId);
 
     void cacheProductItem(@NotNull Product product);
 
-    @Nullable
-    ItemStack getCachedProductItem(@NotNull Product product);
+    @Nullable ItemStack getCachedProductItem(@NotNull Product product);
 
-    @NotNull
-    ItemStack getCachedProductItemOrBuildOne(@NotNull Product product, Player player);
+    @NotNull ItemStack getCachedProductItemOrBuildOne(@NotNull Product product, Player player);
 
-    ShopPricer getShopPricer();
+    @NotNull ShopPricer getShopPricer();
 
-    ShopCashier getShopCashier();
+    @NotNull ShopCashier getShopCashier();
 
-    ShopStocker getShopStocker();
+    @NotNull ShopStocker getShopStocker();
 
-    ShopCounter getShopCounter();
+    @NotNull ShopCounter getShopCounter();
 
     @NotNull Context getScriptContext();
+
+    @NotNull ActionsConfig getActions();
 }

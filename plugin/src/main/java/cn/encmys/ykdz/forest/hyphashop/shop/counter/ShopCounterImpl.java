@@ -1,9 +1,11 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.counter;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
-import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.PropertyType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.counter.ShopCounter;
@@ -17,10 +19,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ShopCounterImpl implements ShopCounter {
-    @NotNull
-    private final Shop shop;
-    @NotNull
-    private Map<String, Integer> cachedAmounts = new HashMap<>();
+    private final @NotNull Shop shop;
+    private @NotNull Map<String, Integer> cachedAmounts = new HashMap<>();
 
     public ShopCounterImpl(@NotNull Shop shop) {
         this.shop = shop;
@@ -37,12 +37,12 @@ public class ShopCounterImpl implements ShopCounter {
         // 优先缓存 ItemDecorator 的数量，否则缓存 IconDecorator
         BaseItemDecorator targetDecorator = product.getIconDecorator();
         if (product.getProductItemDecorator() != null) targetDecorator = product.getProductItemDecorator();
-        String amountConfig = targetDecorator.getProperty(PropertyType.AMOUNT);
+        Script amountConfig = targetDecorator.getProperty(ItemProperty.AMOUNT);
 
         if (amountConfig == null) cachedAmounts.put(productId, 1);
         else {
             // product -> shop -> global
-            Context ctx = ScriptUtils.linkContext(
+            Context ctx = ContextUtils.linkContext(
                     product.getScriptContext().clone(),
                     shop.getScriptContext().clone()
             );
@@ -54,6 +54,11 @@ public class ShopCounterImpl implements ShopCounter {
     public int getAmount(@NotNull String productId) {
         if (!cachedAmounts.containsKey(productId)) {
             LogUtils.warn("Try to get amount for product " + productId + " which does not be cached. The amount will fallback to 1. This could be a plugin issue.");
+            try {
+                throw new RuntimeException();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             return 1;
         }
         return cachedAmounts.get(productId);
@@ -72,5 +77,10 @@ public class ShopCounterImpl implements ShopCounter {
     @Override
     public void setCachedAmounts(@NotNull Map<String, Integer> cachedAmounts) {
         this.cachedAmounts = cachedAmounts;
+    }
+
+    @Override
+    public boolean hasCachedAmount(@NotNull String productId) {
+        return cachedAmounts.containsKey(productId);
     }
 }

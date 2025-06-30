@@ -1,189 +1,123 @@
 package cn.encmys.ykdz.forest.hyphashop.gui;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.gui.GUI;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.OrderHistoryGUIRecord;
-import cn.encmys.ykdz.forest.hyphashop.item.builder.NormalIconBuilder;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.item.builder.OrderHistoryIconBuilder;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
-import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.VarUtils;
-import cn.encmys.ykdz.forest.hyphautils.HyphaAdventureUtils;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import xyz.xenondevs.invui.gui.Gui;
-import xyz.xenondevs.invui.gui.IngredientPreset;
-import xyz.xenondevs.invui.gui.PagedGui;
-import xyz.xenondevs.invui.gui.ScrollGui;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.Window;
 
-import java.util.*;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
-public class OrderHistoryGUI extends GUI {
-    @NotNull
-    protected final static Map<UUID, Window> windows = new HashMap<>();
-    @NotNull
-    private final OrderHistoryGUIRecord record;
-    @Nullable
-    private Gui gui;
-    private boolean isScrolled;
+public class OrderHistoryGUI extends NormalGUI {
+    protected final static @NotNull Map<String, Window> windows = new HashMap<>();
+    protected final static @NotNull Map<String, Gui> guis = new HashMap<>();
+
+    private final @NotNull OfflinePlayer owner;
+    private final @NotNull List<Item> contents = new ArrayList<>();
     private final int pageSize;
-    private int currentPage = 1;
+    private int currentPage = -1;
 
-    public OrderHistoryGUI(@NotNull OrderHistoryGUIRecord record) {
-        this.record = record;
-//        if (guiRecord.scrollMode() != null) {
-//            this.pageSize = ConfigUtils.getLastLineMarkerAmount(guiRecord.layout(), markerIdentifier, guiRecord.scrollMode());
-//        } else if (guiRecord.pageMode() != null) {
-//            this.pageSize = ConfigUtils.getLayoutMarkerAmount(guiRecord.layout(), markerIdentifier);
-//        } else {
-//            this.pageSize = 54;
-//        }
+    public OrderHistoryGUI(@NotNull OfflinePlayer owner, @NotNull ConfigAccessor config) {
+        super(config);
+        this.owner = owner;
         this.pageSize = 54;
     }
 
     @Override
-    public void open(@NotNull Player player) {
-//        if (guiRecord.scrollMode() != null) {
-//            currentPage = guiRecord.scrollMode().isHorizontal() ? ConfigUtils.getLayoutMarkerColumAmount(guiRecord.layout(), markerIdentifier) : ConfigUtils.getLayoutMarkerRowAmount(guiRecord.layout(), markerIdentifier);
-//        } else if (guiRecord.pageMode() != null) {
-//            currentPage = 1;
-//        }
-        currentPage = 1;
-
-        Window window = Window.single()
-                .setGui(build())
-                .setViewer(player)
-                .setTitleSupplier(() -> {
-                    Context ctx = ScriptUtils.buildContext(
-                            Context.GLOBAL_CONTEXT,
-                            VarUtils.extractVars(player, null)
-                    );
-                    return HyphaAdventureUtils.getComponentFromMiniMessage(ScriptUtils.evaluateString(ctx, record.title()));
-                })
-                .setCloseHandlers(new ArrayList<>() {{
-                    add(() -> windows.remove(player.getUniqueId()));
-                }})
-                .build();
-
-        window.open();
-
-        // GUI 开启的一瞬间也是一次刷新标题
-        // 故加上与间隔等长的 delay
-        Scheduler.runAsyncTaskAtFixedRate((task) -> {
-            if (!window.isOpen()) {
-                task.cancel();
-                return;
-            }
-            window.updateTitle();
-        }, record.timeUpdatePeriod(), record.timeUpdatePeriod());
-
-        loadContent(player);
-
-//        HyphaShop.PROFILE_FACTORY.getProfile(player).setViewingGuiType(GUIType.ORDER_HISTORY);
-
-        windows.put(player.getUniqueId(), window);
-    }
-
-    @Override
     public void closeAll() {
-        windows.forEach((uuid, window) -> window.close());
-        windows.clear();
+        Scheduler.runTask((task) -> {
+            windows.forEach((uuid, window) -> window.close());
+            windows.clear();
+        });
     }
 
     @Override
-    public void close(@NotNull Player player) {
-        Window window = windows.get(player.getUniqueId());
-        if (window != null) window.close();
-        windows.remove(player.getUniqueId());
+    public @Nullable Gui getGUI(@NotNull Player player) {
+        return guis.get(player.getUniqueId().toString());
     }
 
-    protected IngredientPreset buildIconPreset() {
-        IngredientPreset.Builder builder = IngredientPreset.builder();
-        Stream.ofNullable(record.icons())
-                .map(Map::entrySet)
-                .flatMap(Collection::stream)
-                .forEach(entry ->
-                        builder.addIngredient(
-                                entry.getKey(),
-                                NormalIconBuilder.build(entry.getValue(), null)
-                        )
+    @Override
+    public @NotNull List<Item> getContents(@NotNull Player player) {
+        if (contents.isEmpty()) {
+            loadMore(player, 1);
+        }
+        return contents;
+    }
+
+    @Override
+    public @NotNull BiConsumer<@NotNull Window, @NotNull Player> getOpenedWindowHandler() {
+        return (window, player) -> windows.put(player.getUniqueId().toString(), window);
+    }
+
+    @Override
+    public @NotNull BiConsumer<@NotNull Gui, @NotNull Player> getBuiltGuiHandler() {
+        return (gui, player) -> guis.put(player.getUniqueId().toString(), gui);
+    }
+
+    @Override
+    public @NotNull Consumer<InventoryCloseEvent.Reason> getCloseHandler(@NotNull Player player) {
+        return (reason) -> windows.remove(player.getUniqueId().toString());
+    }
+
+    @Override
+    public @NotNull BiConsumer<@NotNull Integer, @NotNull Integer> getPageChangeHandler(@NotNull Player player) {
+        return (from, to) -> {
+            if (to < 0) return;
+            int pagesToLoad = (to + 1) - currentPage;
+            if (pagesToLoad <= 0) return;
+
+            loadMore(player, pagesToLoad);
+            updateContents(player);
+        };
+    }
+
+    @Override
+    public @NotNull Consumer<Player> onBeforeWindowBuild() {
+        return (player) -> {
+            contents.clear();
+            currentPage = -1;
+        };
+    }
+
+    public @NotNull OfflinePlayer getOwner() {
+        return owner;
+    }
+
+    @Override
+    public @NotNull Object[] getArgs(@NotNull Player player) {
+        return new Object[]{owner};
+    }
+
+    private void loadMore(@NotNull Player player, int pageAmount) {
+        currentPage += pageAmount;
+
+        int offset = currentPage * pageSize;
+        int limit = pageSize * pageAmount;
+
+        List<SettlementLog> logs = HyphaShop.DATABASE_FACTORY.getSettlementLogDao()
+                .queryLogs(
+                        owner.getUniqueId(),
+                        offset,
+                        limit,
+                        OrderType.SELL_TO, OrderType.BUY_FROM, OrderType.BUY_ALL_FROM
                 );
-        return builder.build();
-    }
 
-    protected Gui build() {
-        if (record.pageMode() != null) {
-            isScrolled = false;
-            gui = buildPagedGUI();
-        }
-        else {
-            isScrolled = true;
-            gui = buildScrollGUI();
-        }
-        return gui;
-    }
-
-    protected Gui buildScrollGUI() {
-        if (record.scrollMode() == null) throw new IllegalStateException("Try to build ScrollGui with a null scrollMode");
-
-        return ScrollGui.items()
-                .setStructure(record.layout().toArray(new String[0]))
-                .addIngredient(markerIdentifier, record.scrollMode())
-                .applyPreset(buildIconPreset())
-                .build();
-    }
-
-    protected Gui buildPagedGUI() {
-        if (record.pageMode() == null) throw new IllegalStateException("Try to build PagedGUI with a null pageMode");
-
-        return PagedGui.items()
-                .setStructure(record.layout().toArray(new String[0]))
-                .addIngredient(markerIdentifier, record.pageMode())
-                .applyPreset(buildIconPreset())
-                .applyPreset(buildIconPreset())
-                .build();
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public void loadContent(@NotNull Player player) {
-        HyphaShop.INSTANCE.getServer().getScheduler().runTaskAsynchronously(
-                HyphaShop.INSTANCE,
-                () -> {
-                    // TODO 不重复加载
-//                    int count;
-//                    try {
-//                        count = HyphaShop.DATABASE.countLogs(this.player.getUniqueId(), 11111).get();
-//                    } catch (InterruptedException | ExecutionException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    if (pageSize * currentPage >= count) {
-//                        return;
-//                    }
-                    List<Item> contents = new ArrayList<>();
-                    IntStream.range(0, ++currentPage).forEach(page -> {
-                        List<SettlementLog> logs;
-                        logs = HyphaShop.DATABASE_FACTORY.getSettlementLogDao().queryLogs(player.getUniqueId(), page, pageSize, OrderType.SELL_TO, OrderType.BUY_FROM, OrderType.BUY_ALL_FROM);
-                        for (SettlementLog log : logs) {
-                            contents.add(
-                                    OrderHistoryIconBuilder.build(log, player)
-                            );
-                        }
-                    });
-                    if (!isScrolled) {
-                        ((PagedGui<Item>) gui).setContent(contents);
-                    } else {
-                        ((ScrollGui<Item>) gui).setContent(contents);
-                    }
-                }
-        );
+        contents.addAll(logs.stream()
+                .map(log -> OrderHistoryIconBuilder.build(log, player))
+                .toList());
     }
 }

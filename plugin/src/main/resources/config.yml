@@ -1,41 +1,22 @@
 language:
-  # Language file to use.
-  # Available: zh_CN, en_US
-  message: en_US
-  # Specifies the language into which the automatic translation feature
-  # will translate the name displayed in the GUI for products without
-  # a specified name (most of the time, vanilla products).
-  # Accept one of the in-game locale code in
-  # https://minecraft.wiki/w/Language
-  # You need to reload the server to apply the change in game.
-  minecraft-lang: en_us
+  # 使用哪个语言文件
+  message: zh_CN
 period:
-  # Period for saving plugin data
-  # Available format: 5h, 1m 30s, etc
+  # 保存插件数据的周期
   save-data: 5m
-  # Period for checking whether the shop need to be restocked
+  # 多久检查一次商店是否需要重载
   check-restocking: 3s
-# When calculating variables (for formula price feature),
-log-usage-limit:
-  # Up to how many of the latest log records are considered.
-  entry-amount: 500
-  # Log entries within how long are considered at most.
-  time-range: 7d
-# When query logs in order history gui
-log-query-limit:
-  time-range: 31d
 database:
-  # Using data/database.db
+  # 无需额外配置
+  # 使用 data/database.db 文件做数据库
   sqlite:
     enabled: true
-  mysql:
-    enabled: false
-    url: "jdbc:mysql://localhost:3306/your_database_name?useUnicode=true&characterEncoding=utf8mb4&serverTimezone=UTC"
-# A product may have its buy-price < sell-price (When using random price etc.).
-# The plugin will avoid this situation by automatically disabling
-# one of the sell (true) or buy (false) action.
+# 一个商品的收购价可能会小于其出售价（比如使用随机价格或不小心填错价格），
+# 这将会导致玩家可以无限制地购买商品并卖回商店获取利润。
+# 插件将会在这种时候禁用收购（设为 true）或出售（设为 false）来避免此问题。
 price-correct-by-disable-sell-or-buy: true
-# Whether printing debug log in console
+# 是否在控制台打印 Debug 消息
 debug: false
-# Do not change this
-version: 3
+# 不要手动修改以下条目
+# 它被用于配置文件自动更新
+version: 1

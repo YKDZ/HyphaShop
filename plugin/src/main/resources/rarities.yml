@@ -5,7 +5,7 @@
 # Then, you can get a total weight: 6 * 100 + 3 * 80 + 1 * 20 = 860.
 # So, the chance for this shop to list a common product is:
 # 6 * 100 / total weight * 100% = 69.7%.
-# Simply put, the more weight an base has, the more likely it is to be listed.
+# Simply put, the more weight a product has, the more likely it is to be listed.
 rarities:
   common:
     name: "<gray>Common"

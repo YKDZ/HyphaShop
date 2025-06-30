@@ -1,15 +1,15 @@
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.6-R0.1-SNAPSHOT")
 
     compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
     compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
 
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.6.3-beta-14")
+    compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("org.jetbrains:annotations:24.1.0")
-    annotationProcessor("org.jetbrains:annotations:24.1.0")
+    compileOnly("org.jetbrains:annotations:26.0.2")
+    annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    implementation("xyz.xenondevs.invui:invui:2.0.0-alpha.7")
+    implementation("xyz.xenondevs.invui:invui:2.0.0-alpha.15")
 
     implementation("org.bstats:bstats-bukkit:3.0.2")
 
@@ -17,19 +17,26 @@ dependencies {
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    compileOnly("org.xerial:sqlite-jdbc:3.45.3.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.50.1.0")
 
-    implementation("com.google.code.gson:gson:2.11.0")
+    implementation("com.google.code.gson:gson:2.13.1")
 
-    implementation("com.zaxxer:HikariCP:5.1.0")
+    implementation("com.zaxxer:HikariCP:6.3.0")
 
     compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
 
-    compileOnly("cn.encmys:HyphaRepo:0.1.0-Beta")
+    implementation("cn.encmys:HyphaUtils:0.1.0-Beta")
 
-    compileOnly("cn.encmys:HyphaUtils:0.1.0-Beta")
+    compileOnly("cn.encmys:HyphaRepo:0.1.0-Beta") {
+        exclude(group = "cn.encmys")
+    }
 
-    compileOnly("io.lumine:Mythic-Dist:5.6.1")
+    compileOnly("io.lumine:Mythic-Dist:5.9.1") {
+        exclude(group = "com.mojang")
+    }
+
+    compileOnly("net.kyori:adventure-api:4.22.0")
+    compileOnly("net.kyori:adventure-text-minimessage:4.22.0")
 
     implementation(project(":api"))
 }

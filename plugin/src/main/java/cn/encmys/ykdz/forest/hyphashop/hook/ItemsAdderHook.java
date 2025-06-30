@@ -10,10 +10,6 @@ public class ItemsAdderHook {
         }
     }
 
-    public static String getIdentifier() {
-        return "IA:";
-    }
-
     public static boolean isHooked() {
         return Bukkit.getPluginManager().getPlugin("ItemsAdder") != null;
     }

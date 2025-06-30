@@ -1,101 +1,119 @@
 package cn.encmys.ykdz.forest.hyphashop.item.builder;
 
-import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionClickType;
+import cn.encmys.ykdz.forest.hyphashop.api.gui.enums.GUIType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
-import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.config.OrderHistoryGUIConfig;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.OrderHistoryGUIRecord;
+import cn.encmys.ykdz.forest.hyphashop.utils.DecoratorUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.VarUtils;
-import net.kyori.adventure.text.Component;
+import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.item.ItemBuilder;
+import xyz.xenondevs.invui.item.ItemProvider;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OrderHistoryIconBuilder {
     @NotNull
-    private static final OrderHistoryGUIRecord record = OrderHistoryGUIConfig.getGUIRecord();
-
-    @NotNull
     public static Item build(@NotNull SettlementLog log, @NotNull Player player) {
+        BaseItemDecorator historyStaticIcon = OrderHistoryGUIConfig.getHistoryIconRecord().iconDecorator();
+        BaseItemDecorator historyPlaceholderIcon = OrderHistoryGUIConfig.getHistoryIconRecord().miscPlaceholderIcon();
+        Script orderContentLine = OrderHistoryGUIConfig.getHistoryIconRecord().formatOrderContentLine();
+
+        assert orderContentLine != null;
+
         return Item.builder()
-                .async(new ItemBuilder(Material.AIR),
-                        () -> {
-                            Shop shop = HyphaShop.SHOP_FACTORY.getShop(log.getSettledShopId());
-                            // 构造内部变量
-                            Map<String, Object> vars = new HashMap<>() {{
-                                putAll(VarUtils.extractVars(player, shop));
-                                put("date", MessageConfig.format_date.format(log.getTransitionTime()));
-                                put("type", MessageConfig.getTerm(log.getType()));
-                                put("total_price", MessageConfig.format_decimal.format(log.getTotalPrice()));
-                            }};
-                            // 构造内部列表变量
-                            Map<String, List<Object>> listVars = new HashMap<>() {{
-                                List<Object> orderContentsLines = new ArrayList<>();
-                                for (Map.Entry<String, AmountPair> entry : log.getOrderedProducts().entrySet()) {
-                                    String productId = entry.getKey();
-                                    AmountPair amountPair = entry.getValue();
-                                    Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
-                                    if (product == null) {
-                                        orderContentsLines.add(TextUtils.decorateText(record.historyIconRecord().formatInvalidOrderContentLine(), player, new HashMap<>() {{
-                                            VarUtils.extractVars(shop, null);
-                                            putAll(vars);
-                                            put("stack", amountPair.stack());
-                                            put("product_id", productId);
-                                        }}));
-                                    } else {
-                                        orderContentsLines.add(TextUtils.decorateText(record.historyIconRecord().formatOrderContentLine(), player, new HashMap<>() {{
-                                            VarUtils.extractVars(shop, product);
-                                            putAll(vars);
-                                            put("stack", amountPair.stack());
-                                        }}));
-                                    }
-                                }
-                                put("order_contents", orderContentsLines);
-                            }};
+                .async(ItemProvider.EMPTY, () -> {
+                    // 构造内部列表变量
+                    Map<String, Object> vars = new HashMap<>() {{
+                        List<Object> orderContentsLines = new ArrayList<>();
+                        for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
+                            ProductLocation productLoc = entry.getKey();
+                            Shop shop = productLoc.shop();
 
-                            // 构建显示物品
-                            ItemStack displayItem = null;
-                            for (String id : log.getOrderedProducts().keySet()) {
-                                Product product = HyphaShop.PRODUCT_FACTORY.getProduct(id);
-                                // 其他插件的物品不保证在异步环境下能被构建
-                                // 例如 MMOItems
-                                if (product != null && product.getIconDecorator().getBaseItem().getItemType().isAsyncBuildable()) {
-                                    displayItem = product.getIconDecorator().getBaseItem().build(player);
-                                    break;
-                                }
+                            if (shop == null) continue;
+
+                            AmountPair amountPair = entry.getValue();
+                            Product product = productLoc.product();
+                            Context parent;
+                            if (product == null) {
+                                parent = ContextUtils.linkContext(
+                                        shop.getScriptContext()
+                                );
+                            } else {
+                                parent = ContextUtils.linkContext(
+                                        product.getScriptContext(),
+                                        shop.getScriptContext()
+                                );
                             }
+                            orderContentsLines.add(ScriptUtils.evaluateComponent(new VarInjector()
+                                            .withRequiredVars(orderContentLine)
+                                            .withExtraVars(new HashMap<>() {{
+                                                put("stack", amountPair.stack());
+                                                put("amount", amountPair.amount());
+                                            }})
+                                            .withTarget(new Context(parent))
+                                            .withArg(product)
+                                            .inject()
+                                    , orderContentLine));
+                        }
+                        put("order_contents", orderContentsLines.toArray());
+                    }};
 
-                            if (displayItem == null) {
-                                if (record.historyIconRecord().miscPlaceholderIcon() == null) {
-                                    displayItem = new ItemStack(Material.PAPER);
-                                } else {
-                                    // 这里传递 shop 不知道是否会导致问题
-                                    return NormalIconBuilder.build(record.historyIconRecord().miscPlaceholderIcon(), shop)
-                                            .getItemProvider(player);
-                                }
-                            }
+                    // 构建显示物品
 
-                            List<Component> lore = TextUtils.decorateTextToComponent(record.historyIconRecord().formatLore(), player, vars, listVars);
-                            Component name = TextUtils.decorateTextToComponent(record.historyIconRecord().formatName(), player, vars);
+                    ItemStack displayItem = log.getOrderedProducts().keySet().stream()
+                            // 其他插件的物品不保证在异步环境下能被构建
+                            // 例如 MMOItems
+                            .filter(productLoc -> {
+                                Product product = productLoc.product();
+                                if (product == null) return false;
+                                return product.getIconDecorator().getBaseItem().getItemType().isAsyncBuildable();
+                            })
+                            .findFirst()
+                            .map(productLoc -> {
+                                Shop shop = productLoc.shop();
+                                Product product = productLoc.product();
+                                if (product == null || shop == null) return new ItemStack(Material.AIR);
+                                return ProductIconBuilder.build(shop, product, log.getOrderedProducts().get(productLoc).amount()).getItemProvider(player).get();
+                            }).orElse(null);
 
-                            return new ItemBuilder(new cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder(displayItem)
-                                    .setDisplayName(name)
-                                    .setLore(lore)
-                                    .build(1)
-                            );
-                        })
+                    if (displayItem == null || displayItem.getType() == Material.AIR) {
+                        return NormalIconBuilder.build(historyPlaceholderIcon, GUIType.NORMAL, Context.GLOBAL_OBJECT, player, log)
+                                .getItemProvider(player);
+                    }
+
+                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, log, player);
+
+                    return new ItemBuilder(new cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder(displayItem)
+                            .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), Context.GLOBAL_OBJECT, vars, log, player))
+                            .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), Context.GLOBAL_OBJECT, vars, log, player))
+                            .setItemFlags(iconDecorator.getProperty(ItemProperty.ITEM_FLAGS))
+                            .build(log.getOrderedProducts().size())
+                    );
+                })
+                .addClickHandler((item, click) -> {
+                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, item, click, click.player());
+                    ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
+
+                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, Context.GLOBAL_OBJECT, Collections.emptyMap(), item, click, click.player());
+                })
                 .build();
     }
 }

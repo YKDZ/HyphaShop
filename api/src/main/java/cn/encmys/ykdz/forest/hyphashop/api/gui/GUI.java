@@ -1,17 +1,21 @@
 package cn.encmys.ykdz.forest.hyphashop.api.gui;
 
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-public abstract class GUI {
-    protected static final char markerIdentifier = 'x';
+import java.util.List;
 
-    public abstract void open(@NotNull Player player);
+public interface GUI {
+    void closeAll();
 
-    public abstract void closeAll();
+    void open(@NotNull Player player);
 
-    public abstract void close(@NotNull Player player);
+    void updateContents(@NotNull Player player);
 
-    public void loadContent(@NotNull Player player) {
-    }
+    void updateContentsForAllViewers();
+
+    @NotNull List<String> getStructure();
+
+    @NotNull ActionsConfig getActions();
 }

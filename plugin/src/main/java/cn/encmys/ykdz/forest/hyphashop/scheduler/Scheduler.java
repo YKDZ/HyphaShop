@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.scheduler;
 
 import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import io.papermc.paper.threadedregions.scheduler.AsyncScheduler;
 import io.papermc.paper.threadedregions.scheduler.GlobalRegionScheduler;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
@@ -15,13 +14,16 @@ public class Scheduler {
     private static final GlobalRegionScheduler globalScheduler = HyphaShopImpl.INSTANCE.getServer().getGlobalRegionScheduler();
     private static final AsyncScheduler asyncScheduler = HyphaShopImpl.INSTANCE.getServer().getAsyncScheduler();
 
+    public static @NotNull ScheduledTask runTaskLater(@NotNull Consumer<ScheduledTask> task, long delay) {
+        return globalScheduler.runDelayed(HyphaShopImpl.INSTANCE, task, delay);
+    }
+
     public static @NotNull ScheduledTask runTask(@NotNull Consumer<ScheduledTask> task) {
         return globalScheduler.run(HyphaShopImpl.INSTANCE, task);
     }
 
     public static @Nullable ScheduledTask runTaskAtFixedRate(@NotNull Consumer<ScheduledTask> task, long delay, long period) {
         if (delay < 0 || period < 0) {
-            LogUtils.debug("Delay or period of task < 0. Task will not be executed: delay: " + delay + ", period: " + period + ", task: " + task);
             return null;
         }
         // delay 和 period 不能小于等于 0，故 + 1
@@ -30,7 +32,6 @@ public class Scheduler {
 
     public static @Nullable ScheduledTask runAsyncTaskAtFixedRate(@NotNull Consumer<ScheduledTask> task, long delay, long period) {
         if (delay < 0 || period < 0) {
-            LogUtils.debug("Delay or period of task < 0. Task will not be executed: delay: " + delay + ", period: " + period + ", task: " + task);
             return null;
         }
         // delay 和 period 不能小于等于 0，故 + 1

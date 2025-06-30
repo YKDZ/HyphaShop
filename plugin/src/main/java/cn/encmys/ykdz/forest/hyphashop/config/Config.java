@@ -3,7 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.config;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
-import cn.encmys.ykdz.forest.hyphautils.HyphaConfigUtils;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -14,12 +14,8 @@ import java.io.InputStream;
 public class Config {
     private static final String resourcePath = "config.yml";
     private static final String path = HyphaShop.INSTANCE.getDataFolder() + "/" + resourcePath;
-    private static YamlConfiguration config = new YamlConfiguration();
     public static String language_message;
     public static String language_minecraftLang;
-    public static int logUsageLimit_entryAmount;
-    public static long logUsageLimit_timeRange;
-    public static long logQueryLimit_timeRange;
     public static boolean database_sqlite_enabled;
     public static boolean database_mysql_enabled;
     public static boolean database_mysql_url;
@@ -28,6 +24,7 @@ public class Config {
     public static long period_checkRestocking;
     public static boolean debug;
     public static int version;
+    private static YamlConfiguration config = new YamlConfiguration();
 
     public static void load() {
         File file = new File(path);
@@ -41,10 +38,10 @@ public class Config {
             HyphaShop.INSTANCE.saveResource("product/misc.yml", false);
             HyphaShop.INSTANCE.saveResource("shop/black_market.yml", false);
             HyphaShop.INSTANCE.saveResource("shop/blocks.yml", false);
-            HyphaShop.INSTANCE.saveResource("gui/cart.yml", false);
-            HyphaShop.INSTANCE.saveResource("gui/stack-picker.yml", false);
-            HyphaShop.INSTANCE.saveResource("gui/order-history.yml", false);
-            HyphaShop.INSTANCE.saveResource("lang/en_US.yml", false);
+            HyphaShop.INSTANCE.saveResource("gui/main.yml", false);
+            HyphaShop.INSTANCE.saveResource("gui/internal/cart.yml", false);
+            HyphaShop.INSTANCE.saveResource("gui/internal/stack-picker.yml", false);
+            HyphaShop.INSTANCE.saveResource("gui/internal/order-history.yml", false);
         }
 
         try {
@@ -64,15 +61,12 @@ public class Config {
     private static void setup() {
         language_message = config.getString("language.message", "en_US");
         language_minecraftLang = config.getString("language.minecraft-lang", "en_us").toLowerCase();
-        period_saveData = TextUtils.parseTimeToTicks(config.getString("period.save-data", "5m"));
-        period_checkRestocking = TextUtils.parseTimeToTicks(config.getString("period.check-restocking", "3s"));
+        period_saveData = TextUtils.parseTimeStringToTicks(config.getString("period.save-data", "5m"));
+        period_checkRestocking = TextUtils.parseTimeStringToTicks(config.getString("period.check-restocking", "3s"));
         priceCorrectByDisableSellOrBuy = config.getBoolean("price-correct-by-disable-sell-or-buy", true);
-        logUsageLimit_entryAmount = config.getInt("log-usage-limit.entry-amount", 500);
-        logUsageLimit_timeRange = TextUtils.parseTimeToTicks(config.getString("log-usage-limit.time-range", "7d"));
         database_sqlite_enabled = config.getBoolean("database.sqlite.enabled", true);
         database_mysql_enabled = config.getBoolean("database.mysql.enabled", true);
         database_mysql_url = config.getBoolean("database.mysql.url", true);
-        logQueryLimit_timeRange = TextUtils.parseTimeToTicks(config.getString("log-query-limit.time-range", "31d"));
         debug = config.getBoolean("debug", false);
         version = config.getInt("version");
     }

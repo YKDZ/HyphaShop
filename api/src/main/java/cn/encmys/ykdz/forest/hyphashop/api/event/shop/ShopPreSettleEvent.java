@@ -9,13 +9,17 @@ import org.jetbrains.annotations.NotNull;
 
 public class ShopPreSettleEvent extends Event implements Cancellable {
     private static final HandlerList handlerList = new HandlerList();
-    private boolean isCancelled = false;
     private final Shop shop;
     private final ShopOrder order;
+    private boolean isCancelled = false;
 
     public ShopPreSettleEvent(@NotNull Shop shop, @NotNull ShopOrder order) {
         this.shop = shop;
         this.order = order;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
     }
 
     @NotNull
@@ -41,10 +45,6 @@ public class ShopPreSettleEvent extends Event implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return handlerList;
-    }
-
-    public static HandlerList getHandlerList() {
         return handlerList;
     }
 }

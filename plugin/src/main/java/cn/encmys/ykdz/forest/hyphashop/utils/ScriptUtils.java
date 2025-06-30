@@ -1,51 +1,38 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
 import cn.encmys.ykdz.forest.hyphascript.script.EvaluateResult;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ScriptUtils {
-    public static @NotNull Context linkContext(@NotNull Context... contexts) {
-        if (contexts == null || contexts.length < 2) {
-            throw new IllegalArgumentException("At least two Context is required.");
-        }
-
-        for (int i = 1; i < contexts.length; i++) {
-            contexts[i].setParent(contexts[i - 1]);
-        }
-
-        return contexts[contexts.length - 1];
-    }
-
     public static @NotNull Context extractContext(@NotNull String scriptStr) {
-        Script script = new Script(scriptStr, new Context());
-        EvaluateResult result = script.evaluate();
+        Script script = new Script(scriptStr);
+        EvaluateResult result = script.evaluate(new Context());
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when extracting context from script. Use global context as fallback value.");
             LogUtils.warn(result.toString());
-            return Context.GLOBAL_CONTEXT;
+            return Context.GLOBAL_OBJECT;
         }
 
         return script.getContext();
     }
 
-    public static @NotNull Context buildContext(@NotNull Context parent, @NotNull Map<String, Object> vars) {
-        Context context = new Context(Context.Type.NORMAL, parent);
-        for (Map.Entry<String, Object> entry : vars.entrySet()) {
-            String name = entry.getKey();
-            context.declareReference(name, new Value(entry.getValue()), true, true);
-        }
-        return context;
-    }
-
-    public static boolean evaluateBoolean(@NotNull Context context, @NotNull String scriptStr) {
-        Script script = new Script(scriptStr, context);
-        EvaluateResult result = script.evaluate();
+    public static boolean evaluateBoolean(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use false as fallback value.");
@@ -54,52 +41,49 @@ public class ScriptUtils {
         }
 
         if (!result.value().isType(Value.Type.BOOLEAN)) {
-            LogUtils.warn("Result of script: " + scriptStr + " is not boolean. Use false as fallback value.");
+            LogUtils.warn("Result of script: " + script.getScript() + " is not boolean but " + result.value().getType() + ". Use false as fallback value.");
             return false;
         }
 
         return result.value().getAsBoolean();
     }
 
-    public static double evaluateDouble(@NotNull Context context, @NotNull String scriptStr) {
-        Script script = new Script(scriptStr, context);
-        EvaluateResult result = script.evaluate();
+    public static double evaluateDouble(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use -1 as fallback value.");
+            LogUtils.warn("Error when evaluating script. Use NaN as fallback value.");
             LogUtils.warn(result.toString());
-            return -1d;
+            return Double.NaN;
         }
 
-        if (!result.value().isType(Value.Type.BIG_DECIMAL)) {
-            LogUtils.warn("Result of script: " + scriptStr + " is not boolean. Use -1 as fallback value.");
-            return -1d;
+        if (!result.value().isType(Value.Type.NUMBER)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not double but " + result.value().getType() + ". Use -1 as fallback value.");
+            return Double.NaN;
         }
 
         return result.value().getAsBigDecimal().doubleValue();
     }
 
-    public static int evaluateInt(@NotNull Context context, @NotNull String scriptStr) {
-        Script script = new Script(scriptStr, context);
-        EvaluateResult result = script.evaluate();
+    public static int evaluateInt(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use -1 as fallback value.");
+            LogUtils.warn("Error when evaluating script. Use Integer.MIN_VALUE as fallback value.");
             LogUtils.warn(result.toString());
-            return -1;
+            return Integer.MIN_VALUE;
         }
 
-        if (!result.value().isType(Value.Type.BIG_DECIMAL)) {
-            LogUtils.warn("Result of script: " + scriptStr + " is not boolean. Use -1 as fallback value.");
-            return -1;
+        if (!result.value().isType(Value.Type.NUMBER)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not int but " + result.value().getType() + ". Use -1 as fallback value.");
+            return Integer.MIN_VALUE;
         }
 
         return result.value().getAsBigDecimal().intValue();
     }
 
-    public static @NotNull String evaluateString(@NotNull Context context, @NotNull String scriptStr) {
-        Script script = new Script(scriptStr, context);
-        EvaluateResult result = script.evaluate();
+    public static @Nullable String evaluateString(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
@@ -107,11 +91,119 @@ public class ScriptUtils {
             return "";
         }
 
-        if (!result.value().isType(Value.Type.STRING)) {
-            LogUtils.warn("Result of script: " + scriptStr + " is not boolean. Use empty string as fallback value.");
+        if (!result.value().isType(Value.Type.STRING, Value.Type.NULL)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not string or null but " + result.value().getType() + ". Use empty string as fallback value.");
             return "";
         }
 
-        return result.value().getAsString();
+        if (result.value().isType(Value.Type.STRING)) return result.value().getAsString();
+        else return null;
+    }
+
+    public static @NotNull Component evaluateComponent(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
+
+        if (result.type() != EvaluateResult.Type.SUCCESS) {
+            LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
+            LogUtils.warn(result.toString());
+            return Component.empty();
+        }
+
+        if (!result.value().isType(Value.Type.ADVENTURE_COMPONENT, Value.Type.STRING, Value.Type.NULL)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not component, string or null but " + result.value().getType() + ". Use empty string as fallback value.");
+            return Component.empty();
+        }
+
+        if (result.value().isType(Value.Type.ADVENTURE_COMPONENT)) return result.value().getAsAdventureComponent();
+        else if (result.value().isType(Value.Type.STRING))
+            return HyphaAdventureUtils.getComponentFromMiniMessage(result.value().getAsString());
+        else return Component.empty();
+    }
+
+    public static @NotNull List<Component> evaluateComponentList(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
+
+        if (result.type() != EvaluateResult.Type.SUCCESS) {
+            LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
+            LogUtils.warn(result.toString());
+            return Collections.emptyList();
+        }
+
+        if (!result.value().isType(Value.Type.ADVENTURE_COMPONENT, Value.Type.STRING, Value.Type.ARRAY, Value.Type.NULL)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not string or string array but " + result.value().getType() + ". Use empty string list as fallback value.");
+            return Collections.emptyList();
+        }
+
+        if (result.value().isType(Value.Type.NULL)) {
+            return Collections.emptyList();
+        } else if (result.value().isType(Value.Type.ADVENTURE_COMPONENT)) {
+            return List.of(result.value().getAsAdventureComponent());
+        } else if (result.value().isType(Value.Type.ARRAY)) {
+            return Arrays.stream(result.value().getAsArray())
+                    .map((ref) -> {
+                        if (ref.getReferredValue().isType(Value.Type.ADVENTURE_COMPONENT)) {
+                            return ref.getReferredValue().getAsAdventureComponent();
+                        } else {
+                            return HyphaAdventureUtils.getComponentFromMiniMessage(ref.getReferredValue().getAsString());
+                        }
+                    })
+                    .collect(Collectors.toList());
+        } else {
+            return List.of(HyphaAdventureUtils.getComponentFromMiniMessage(result.value().getAsString()));
+        }
+    }
+
+    public static @NotNull List<String> evaluateStringList(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
+
+        if (result.type() != EvaluateResult.Type.SUCCESS) {
+            LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
+            LogUtils.warn(result.toString());
+            return Collections.emptyList();
+        }
+
+        if (!result.value().isType(Value.Type.STRING, Value.Type.ARRAY, Value.Type.NULL)) {
+            LogUtils.warn("Result of script: " + script.getScript() + " is not string or string array but " + result.value().getType() + ". Use empty string list as fallback value.");
+            return Collections.emptyList();
+        }
+
+        if (result.value().isType(Value.Type.STRING)) {
+            return List.of(result.value().getAsString());
+        } else if (result.value().isType(Value.Type.NULL)) {
+            return Collections.emptyList();
+        } else {
+            return Arrays.stream(result.value().getAsArray())
+                    .map((ref) -> ref.getReferredValue().getAsString())
+                    .collect(Collectors.toList());
+        }
+    }
+
+    public static @NotNull Value evaluate(@NotNull Context context, @NotNull Script script) {
+        EvaluateResult result = script.evaluate(context);
+
+        if (result.type() != EvaluateResult.Type.SUCCESS) {
+            LogUtils.warn("Error when evaluating script.");
+            LogUtils.warn(result.toString());
+        }
+
+        return result.value();
+    }
+
+    public static @NotNull Reference @NotNull [] convertArray(@NotNull Object @NotNull [] array) {
+        return Arrays.stream(array)
+                .map((obj) -> {
+                    if (obj instanceof Reference) {
+                        return (Reference) obj;
+                    } else {
+                        return new Reference(new Value(obj));
+                    }
+                })
+                .toArray(Reference[]::new);
+    }
+
+    public static @NotNull ScriptObject convertToScriptObject(@NotNull Map<String, Reference> map) {
+        ScriptObject result = new ScriptObject();
+        map.forEach(result::declareMember);
+        return result;
     }
 }

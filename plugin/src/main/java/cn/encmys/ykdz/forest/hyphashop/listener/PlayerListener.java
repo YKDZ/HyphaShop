@@ -6,10 +6,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.jetbrains.annotations.NotNull;
 
 public class PlayerListener implements Listener {
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
+    public void onPlayerJoin(@NotNull PlayerJoinEvent event) {
         Player player = event.getPlayer();
         HyphaShop.INSTANCE.getServer().getScheduler().runTaskAsynchronously(
                 HyphaShop.INSTANCE, () -> HyphaShop.PROFILE_FACTORY.buildProfile(player)
@@ -17,7 +18,7 @@ public class PlayerListener implements Listener {
     }
 
     @EventHandler
-    public void onPlayerQuit(PlayerQuitEvent event) {
+    public void onPlayerQuit(@NotNull PlayerQuitEvent event) {
         Player player = event.getPlayer();
         HyphaShop.INSTANCE.getServer().getScheduler().runTaskAsynchronously(
                 HyphaShop.INSTANCE, () -> {

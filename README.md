@@ -4,7 +4,8 @@ English | [简体中文](README_ZH_CN.md)
 
 # Intro
 
-A SpigotMC plugin inspired by [DailyShop](https://github.com/divios/DailyShop). Pursuing ultra customizability and efficiency.
+A SpigotMC plugin inspired by [DailyShop](https://github.com/divios/DailyShop). Pursuing ultra customizability and
+efficiency.
 
 ## Document
 
@@ -28,7 +29,7 @@ You can find the document [here](https://docs.encmys.cn/s/ykdz-plugin-docs).
 - [x] More gui type
 - [ ] Cart Collection & Order again
 - [x] Gui icon condition
-- [x] Folia Support 
+- [x] Folia Support
 
 ## API
 

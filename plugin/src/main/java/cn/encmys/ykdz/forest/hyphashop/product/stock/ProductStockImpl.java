@@ -3,19 +3,18 @@ package cn.encmys.ykdz.forest.hyphashop.product.stock;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.ShopOrder;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
-import com.google.gson.annotations.Expose;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class ProductStockImpl implements ProductStock {
-    private final String productId;
+    private final @NotNull String productId;
     private final int initialGlobalAmount;
-    @Expose
-    private final Map<UUID, Integer> currentPlayerAmount = new HashMap<>();
+    private final @NotNull Map<@NotNull String, @NotNull Integer> currentPlayerAmount = new ConcurrentHashMap<>();
     private final int initialPlayerAmount;
     private final boolean globalReplenish;
     private final boolean playerReplenish;
@@ -23,7 +22,7 @@ public class ProductStockImpl implements ProductStock {
     private final boolean playerOverflow;
     private final boolean globalInherit;
     private final boolean playerInherit;
-    @Expose
+    private final Object globalLock = new Object();
     private int currentGlobalAmount;
 
     public ProductStockImpl(@NotNull String productId, int initialGlobalAmount, int initialPlayerAmount, boolean globalReplenish, boolean playerReplenish, boolean globalOverflow, boolean playerOverflow, boolean globalInherit, boolean playerInherit) {
@@ -40,18 +39,31 @@ public class ProductStockImpl implements ProductStock {
     }
 
     @Override
-    public String getProductId() {
+    public @NotNull String getProductId() {
         return productId;
     }
 
     @Override
     public int getCurrentGlobalAmount() {
-        return currentGlobalAmount;
+        synchronized (globalLock) {
+            return currentGlobalAmount;
+        }
     }
 
     @Override
     public void setCurrentGlobalAmount(int currentGlobalAmount) {
-        this.currentGlobalAmount = currentGlobalAmount;
+        synchronized (globalLock) {
+            this.currentGlobalAmount = currentGlobalAmount;
+        }
+    }
+
+    @Override
+    public void modifyGlobal(int amount) {
+        if (!isGlobalStock()) return;
+        synchronized (globalLock) {
+            boolean isOverflow = isGlobalOverflow() && (currentGlobalAmount + amount) >= initialGlobalAmount;
+            currentGlobalAmount = isOverflow ? initialGlobalAmount : currentGlobalAmount + amount;
+        }
     }
 
     @Override
@@ -61,22 +73,22 @@ public class ProductStockImpl implements ProductStock {
 
     @Override
     public int getCurrentPlayerAmount(@NotNull UUID playerUUID) {
-        return currentPlayerAmount.getOrDefault(playerUUID, initialPlayerAmount);
+        return currentPlayerAmount.getOrDefault(playerUUID.toString(), initialPlayerAmount);
     }
 
     @Override
-    public Map<UUID, Integer> getCurrentPlayerAmount() {
-        return currentPlayerAmount;
+    public @NotNull @Unmodifiable Map<String, Integer> getCurrentPlayerAmount() {
+        return Collections.unmodifiableMap(currentPlayerAmount);
     }
 
     @Override
-    public void setCurrentPlayerAmount(Map<UUID, Integer> amount) {
+    public void setCurrentPlayerAmount(@NotNull Map<String, Integer> amount) {
         this.currentPlayerAmount.clear();
         this.currentPlayerAmount.putAll(amount);
     }
 
     @Override
-    public void setCurrentPlayerAmount(@NotNull UUID playerUUID, int amount) {
+    public void setCurrentPlayerAmount(@NotNull String playerUUID, int amount) {
         this.currentPlayerAmount.put(playerUUID, amount);
     }
 
@@ -107,7 +119,7 @@ public class ProductStockImpl implements ProductStock {
 
     @Override
     public boolean isPlayerStock() {
-        return initialPlayerAmount != -1;
+        return initialPlayerAmount != Integer.MIN_VALUE;
     }
 
     @Override
@@ -122,7 +134,7 @@ public class ProductStockImpl implements ProductStock {
 
     @Override
     public boolean isGlobalStock() {
-        return initialGlobalAmount != -1;
+        return initialGlobalAmount != Integer.MIN_VALUE;
     }
 
     @Override
@@ -132,63 +144,56 @@ public class ProductStockImpl implements ProductStock {
 
     @Override
     public void stock() {
-        if (!isStock()) {
-            return;
-        }
+        if (!isStock()) return;
+
         if (isPlayerStock() && !isPlayerInherit()) {
             currentPlayerAmount.clear();
         }
         if (isGlobalStock() && !isGlobalInherit()) {
-            currentGlobalAmount = initialGlobalAmount;
+            synchronized (globalLock) {
+                currentGlobalAmount = initialGlobalAmount;
+            }
         }
     }
 
     @Override
     public void modifyPlayer(@NotNull UUID playerUUID, int amount) {
-        if ((!playerReplenish && amount > 0) || !isPlayerStock()) {
-            return;
-        }
-        boolean isOverflow = getCurrentPlayerAmount(playerUUID) + amount >= initialPlayerAmount;
-        setCurrentPlayerAmount(playerUUID, isOverflow ? initialPlayerAmount : getCurrentPlayerAmount(playerUUID) + amount);
-    }
+        if (!isPlayerStock()) return;
 
-    @Override
-    public void modifyGlobal(int amount) {
-        if ((!globalReplenish && amount > 0) || !isGlobalStock()) {
-            return;
-        }
-        boolean isOverflow = getCurrentGlobalAmount() + amount >= getInitialGlobalAmount();
-        setCurrentGlobalAmount(isOverflow ? initialGlobalAmount : currentGlobalAmount + amount);
+        boolean isOverflow = isPlayerOverflow() && getCurrentPlayerAmount(playerUUID) + amount >= initialPlayerAmount;
+        setCurrentPlayerAmount(playerUUID.toString(), isOverflow ? initialPlayerAmount : getCurrentPlayerAmount(playerUUID) + amount);
     }
 
     @Override
     public void modifyPlayer(@NotNull ShopOrder order) {
-        if (!order.isSettled()) {
-            LogUtils.warn("Try to handle stock for an unsettled order.");
-            return;
-        }
-        UUID uuid = order.getCustomerUUID();
-        int amount = order.getOrderedProducts().get(productId) * (order.getOrderType() == OrderType.SELL_TO ? -1 : 1);
-        modifyPlayer(uuid, amount);
+        int stack = order.getOrderedProducts().entrySet().stream()
+                .filter(entry -> entry.getKey().productId().equals(productId))
+                .mapToInt(Map.Entry::getValue)
+                .sum() * (order.getType() == OrderType.SELL_TO ? -1 : 1);
+        modifyPlayer(order.getCustomerUUID(), stack);
     }
 
     @Override
     public void modifyGlobal(@NotNull ShopOrder order) {
-        if (!order.isSettled()) {
-            LogUtils.warn("Try to handle stock for an unsettled order.");
-            return;
+        int stack = order.getOrderedProducts().entrySet().stream()
+                .filter(entry -> entry.getKey().productId().equals(productId))
+                .mapToInt(Map.Entry::getValue)
+                .sum() * (order.getType() == OrderType.SELL_TO ? -1 : 1);
+        modifyGlobal(stack);
+    }
+
+    @Override
+    public boolean isReachPlayerLimit(@NotNull UUID playerUUID, int stack) {
+        if (!isPlayerStock()) return false;
+        int current = currentPlayerAmount.getOrDefault(playerUUID.toString(), initialPlayerAmount);
+        return current - stack < 0;
+    }
+
+    @Override
+    public boolean isReachGlobalLimit(int stack) {
+        if (!isGlobalStock()) return false;
+        synchronized (globalLock) {
+            return currentGlobalAmount - stack < 0;
         }
-        int amount = order.getOrderedProducts().get(productId) * (order.getOrderType() == OrderType.SELL_TO ? -1 : 1);
-        modifyGlobal(amount);
-    }
-
-    @Override
-    public boolean ifReachPlayerLimit(@NotNull UUID playerUUID) {
-        return getCurrentPlayerAmount(playerUUID) <= 0;
-    }
-
-    @Override
-    public boolean ifReachGlobalLimit() {
-        return getCurrentGlobalAmount() <= 0;
     }
 }

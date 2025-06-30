@@ -11,14 +11,16 @@ public interface ShopPricer {
 
     double getSellPrice(@NotNull String productId);
 
-    void cachePrice(@NotNull String productId);
+    boolean cachePrice(@NotNull String productId);
+
+    boolean hasCachedPrice(@NotNull String productId);
 
     // TODO 打折功能入口
     PricePair getModifiedPricePair(@NotNull String productId, @NotNull PricePair pricePair);
 
-    void setCachedPrices(@NotNull Map<String, PricePair> cachedPrices);
-
     Map<String, PricePair> getCachedPrices();
+
+    void setCachedPrices(@NotNull Map<String, PricePair> cachedPrices);
 
     Shop getShop();
 }

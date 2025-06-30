@@ -10,13 +10,13 @@ import java.util.Map;
 public interface ShopFactory {
     void load();
 
-    Shop buildShop(String id);
+    @Nullable Shop buildShop(@NotNull String id);
 
-    @Nullable
-    Shop getShop(String id);
+    @Nullable Shop getShop(@NotNull String id);
 
     @NotNull
-    @Unmodifiable Map<String, Shop> getShops();
+    @Unmodifiable
+    Map<String, Shop> getShops();
 
     void unload();
 

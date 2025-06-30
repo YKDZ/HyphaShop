@@ -1,7 +1,9 @@
 package cn.encmys.ykdz.forest.hyphashop.api.item.decorator;
 
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
-import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.PropertyType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record.ScriptOrComponentItemName;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,19 +12,19 @@ import java.util.Map;
 
 public class BaseItemDecorator {
     protected final @NotNull BaseItem baseItem;
-    protected final @NotNull Map<PropertyType, Object> properties = new EnumMap<>(PropertyType.class);
+    protected final @NotNull Map<ItemProperty, Object> properties = new EnumMap<>(ItemProperty.class);
 
     public BaseItemDecorator(@NotNull BaseItem baseItem) {
         this.baseItem = baseItem;
     }
 
-    public @NotNull BaseItemDecorator setProperty(@NotNull PropertyType type, @Nullable Object value) {
+    public @NotNull BaseItemDecorator setProperty(@NotNull ItemProperty type, @Nullable Object value) {
         properties.put(type, value);
         return this;
     }
 
     @SuppressWarnings("unchecked")
-    public <T> @Nullable T getProperty(@NotNull PropertyType type) {
+    public <T> @Nullable T getProperty(@NotNull ItemProperty type) {
         Object value = properties.get(type);
         if (value == null) return null;
         else if (type.getToken().getRawType().isInstance(value)) {
@@ -31,13 +33,23 @@ public class BaseItemDecorator {
         throw new IllegalArgumentException("Invalid type for config key: " + type);
     }
 
-    public @Nullable String getNameOrUseBaseItemName() {
-        String name = getProperty(PropertyType.NAME);
-        if (name == null) return baseItem.getDisplayName(this);
-        return name;
+    public @NotNull ScriptOrComponentItemName getNameOrUseBaseItemName() {
+        Script name = getProperty(ItemProperty.NAME);
+        if (name == null) {
+            return ScriptOrComponentItemName.of(baseItem.getDisplayName(this));
+        }
+        return ScriptOrComponentItemName.of(name);
     }
 
     public @NotNull BaseItem getBaseItem() {
         return baseItem;
+    }
+
+    @Override
+    public String toString() {
+        return "BaseItemDecorator{" +
+                "baseItem=" + baseItem +
+                ", properties=" + properties +
+                '}';
     }
 }

@@ -3,9 +3,11 @@ package cn.encmys.ykdz.forest.hyphashop.item;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
-import cn.encmys.ykdz.forest.hyphautils.HyphaAdventureUtils;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.core.items.MythicItem;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -20,16 +22,16 @@ public class MythicMobsItem implements BaseItem {
     }
 
     @Override
-    public @Nullable String getDisplayName(@NotNull BaseItemDecorator decorator) {
+    public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
         if (mythicBukkit == null || mythicBukkit.isClosed()) {
             this.mythicBukkit = MythicBukkit.inst();
         }
         for (MythicItem item : mythicBukkit.getItemManager().getItems()) {
             if (item.getInternalName().equals(getId())) {
-                return HyphaAdventureUtils.legacyToMiniMessage(item.getDisplayName());
+                return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(item.getDisplayName()));
             }
         }
-        return null;
+        return Component.translatable("Name of MythicMobs item " + getId() + " not found").color(TextColor.color(255, 0, 0));
     }
 
     @Override

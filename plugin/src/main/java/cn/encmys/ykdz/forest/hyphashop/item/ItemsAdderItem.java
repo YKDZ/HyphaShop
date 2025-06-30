@@ -3,8 +3,10 @@ package cn.encmys.ykdz.forest.hyphashop.item;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
-import cn.encmys.ykdz.forest.hyphautils.HyphaAdventureUtils;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import dev.lone.itemsadder.api.CustomStack;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,17 +21,18 @@ public class ItemsAdderItem implements BaseItem {
     }
 
     @Override
-    public @Nullable String getDisplayName(@NotNull BaseItemDecorator decorator) {
-        if (isExist()) {
-            return HyphaAdventureUtils.legacyToMiniMessage(CustomStack.getInstance(namespacedId).getDisplayName());
-        } else {
-            return null;
-        }
+    public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
+        CustomStack instance = CustomStack.getInstance(namespacedId);
+        if (instance == null)
+            return Component.translatable("Name of ItemsAdder item " + getNamespacedId() + " not found").color(TextColor.color(255, 0, 0));
+        return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(instance.getDisplayName()));
     }
 
     @Override
     public boolean isSimilar(@NotNull ItemStack item) {
-        return false;
+        CustomStack target = CustomStack.byItemStack(item);
+        if (target == null) return false;
+        return target.getNamespacedID().equals(namespacedId);
     }
 
     @Override

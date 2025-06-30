@@ -3,8 +3,8 @@ package cn.encmys.ykdz.forest.hyphashop.command.sub;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
+import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.VarUtils;
 import com.mojang.brigadier.Command;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.tree.CommandNode;
@@ -25,7 +25,7 @@ public class ShopCommand {
 
     private static CommandNode<CommandSourceStack> getShopOpenCommand() {
         return Commands.literal("open")
-                .requires(ctx -> ctx.getSender().hasPermission("hyphashop.shop.open"))
+                .requires(ctx -> ctx.getSender().hasPermission("hyphashop.command.shop.open"))
                 .then(Commands.argument("shop", StringArgumentType.string())
                         .suggests((ctx, builder) -> {
                             HyphaShop.SHOP_FACTORY.getShops().keySet().stream()
@@ -40,19 +40,19 @@ public class ShopCommand {
                                     Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
                                     Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                                     if (target == null) {
-                                        MessageUtils.sendMessage(sender, MessageConfig.messages_command_shop_open_failure_invalidPlayer, VarUtils.extractVars(sender, shop));
+                                        MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_open_failure_invalidPlayer, sender, shop);
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     if (!sender.hasPermission("hyphashop.shop.open." + shopId)) {
-                                        MessageUtils.sendMessage(sender, MessageConfig.messages_noPermission, VarUtils.extractVars(sender, shop));
+                                        MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_noPermission, sender, shop);
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     if (shop == null) {
-                                        MessageUtils.sendMessage(sender, MessageConfig.messages_command_shop_open_failure_invalidShop, VarUtils.extractVars(sender, shop));
+                                        MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_open_failure_invalidShop, sender);
                                         return Command.SINGLE_SUCCESS;
                                     }
-                                    MessageUtils.sendMessage(sender, MessageConfig.messages_command_shop_open_success, VarUtils.extractVars(sender, shop));
-                                    shop.getShopGUI().open(target);
+                                    MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_open_success, sender, shop);
+                                    Scheduler.runAsyncTask((task) -> shop.getShopGUI().open(target));
                                     return Command.SINGLE_SUCCESS;
                                 })
                         )
@@ -62,7 +62,7 @@ public class ShopCommand {
 
     private static CommandNode<CommandSourceStack> getShopRestockCommand() {
         return Commands.literal("restock")
-                .requires(ctx -> ctx.getSender().hasPermission("hyphashop.shop.restock"))
+                .requires(ctx -> ctx.getSender().hasPermission("hyphashop.command.shop.restock"))
                 .then(Commands.argument("shop", StringArgumentType.string())
                         .suggests((ctx, builder) -> {
                             HyphaShop.SHOP_FACTORY.getShops().keySet().stream()
@@ -75,11 +75,11 @@ public class ShopCommand {
                             String shopId = ctx.getArgument("shop", String.class);
                             Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                             if (shop == null) {
-                                MessageUtils.sendMessage(sender, MessageConfig.messages_command_shop_restock_failure_invalidShop, VarUtils.extractVars(sender, shop));
+                                MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_restock_failure_invalidShop, sender);
                                 return Command.SINGLE_SUCCESS;
                             }
                             shop.getShopStocker().stock();
-                            MessageUtils.sendMessage(sender, MessageConfig.messages_command_shop_restock_success, VarUtils.extractVars(sender, shop));
+                            MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_shop_restock_success, sender, shop);
                             return Command.SINGLE_SUCCESS;
                         })
                 )

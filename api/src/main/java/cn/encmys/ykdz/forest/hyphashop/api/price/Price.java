@@ -1,39 +1,36 @@
 package cn.encmys.ykdz.forest.hyphashop.api.price;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
-import org.bukkit.configuration.ConfigurationSection;
+import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 public abstract class Price {
-    protected static final Random random = new Random();
+    protected static final @NotNull Random random = new SecureRandom();
+    protected final @NotNull Map<@NotNull PriceProperty, @Nullable Object> properties = new HashMap<>();
+    protected @NotNull PriceMode priceMode = PriceMode.DISABLE;
 
-    protected PriceMode priceMode;
-    // Fixed Mode
-    protected double fixed;
-    // Gaussian Mode
-    protected double mean = 0d;
-    protected double dev = 0d;
-    // Min max Mode
-    protected double min = 0d;
-    protected double max = 0d;
-    // Whether round the price
-    protected boolean round = false;
-    // Formula
-    protected Context scriptContext;
-    protected String formula;
+    public @NotNull Price setProperty(@NotNull PriceProperty type, @Nullable Object value) {
+        properties.put(type, value);
+        return this;
+    }
 
-    protected abstract void buildPrice(@NotNull ConfigurationSection priceSection);
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable T getProperty(@NotNull PriceProperty type) {
+        Object value = properties.get(type);
+        if (value == null) return null;
+        else if (type.getToken().getRawType().isInstance(value)) {
+            return (T) type.getToken().getRawType().cast(value);
+        }
+        throw new IllegalArgumentException("Invalid type for config key: " + type);
+    }
 
     public abstract double getNewPrice();
 
-    public abstract PriceMode getPriceMode();
-
-    public abstract String getFormula();
-
-    public abstract boolean isRound();
-
-    public abstract Context getScriptContext();
+    public abstract @NotNull PriceMode getPriceMode();
 }

@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
-import cn.encmys.ykdz.forest.hyphashop.config.Config;
-import cn.encmys.ykdz.forest.hyphautils.HyphaLogUtils;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaLogUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class LogUtils {
@@ -15,9 +14,5 @@ public class LogUtils {
 
     public static void error(@NotNull String log) {
         HyphaLogUtils.error("[HyphaShop]", log);
-    }
-
-    public static void debug(@NotNull String log) {
-        if (Config.debug) HyphaLogUtils.warn("[HyphaShop]", log);
     }
 }

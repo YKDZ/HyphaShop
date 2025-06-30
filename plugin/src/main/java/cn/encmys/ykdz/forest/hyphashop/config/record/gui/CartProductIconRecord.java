@@ -1,13 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.config.record.gui;
 
-import org.bukkit.event.inventory.ClickType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
-public record CartProductIconRecord(@NotNull String formatName, @NotNull List<String> formatLore,
-                                    long updatePeriod, @Nullable ClickType featuresAdd1Stack,
-                                    @Nullable ClickType featuresRemove1Stack, @Nullable ClickType featuresRemoveAll,
-                                    @Nullable ClickType featuresInputInAnvil) {
+public record CartProductIconRecord(@NotNull BaseItemDecorator iconDecorator) {
 }

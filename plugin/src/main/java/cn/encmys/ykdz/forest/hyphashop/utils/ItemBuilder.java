@@ -17,14 +17,12 @@ import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ItemBuilder {
-    @NotNull
-    private final ItemStack raw;
+    private final @NotNull ItemStack raw;
 
     public ItemBuilder(@NotNull ItemStack raw) {
         this.raw = raw;
@@ -42,16 +40,9 @@ public class ItemBuilder {
         if (lore == null) return this;
 
         if (!lore.isEmpty()) {
-            lore.removeAll(Collections.singleton(null));
             raw.setData(DataComponentTypes.LORE, ItemLore.lore().addLines(lore).build());
         }
-        return this;
-    }
 
-    public @NotNull ItemBuilder setCustomModelData(@Nullable Integer data) {
-//        if (data != null) {
-//            raw.setData(DataComponentTypes.CUSTOM_MODEL_DATA, CustomModelData.customModelData().build());
-//        }
         return this;
     }
 
@@ -88,7 +79,7 @@ public class ItemBuilder {
         if (fireworkEffects == null) return this;
 
         Fireworks.Builder builder = Fireworks.fireworks()
-            .addEffects(fireworkEffects);
+                .addEffects(fireworkEffects);
 
         Fireworks data = raw.getData(DataComponentTypes.FIREWORKS);
         if (data != null) {
@@ -119,7 +110,7 @@ public class ItemBuilder {
     public @NotNull ItemBuilder setEnchantments(@Nullable Map<Enchantment, Integer> enchantments) {
         if (enchantments == null) return this;
 
-        raw.setData(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.itemEnchantments(enchantments, true));
+        raw.setData(DataComponentTypes.ENCHANTMENTS, ItemEnchantments.itemEnchantments(enchantments));
 
         return this;
     }
@@ -225,6 +216,27 @@ public class ItemBuilder {
         if (enchantGlint == null) return this;
 
         raw.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, enchantGlint);
+
+        return this;
+    }
+
+    public @NotNull ItemBuilder setCustomModelData(@Nullable List<Boolean> flags, @Nullable List<Color> colors, @Nullable List<Float> floats, @Nullable List<String> strings) {
+        CustomModelData.Builder builder = CustomModelData.customModelData();
+
+        if (flags != null) {
+            builder.addFlags(flags);
+        }
+        if (colors != null) {
+            builder.addColors(colors);
+        }
+        if (floats != null) {
+            builder.addFloats(floats);
+        }
+        if (strings != null) {
+            builder.addStrings(strings);
+        }
+
+        raw.setData(DataComponentTypes.CUSTOM_MODEL_DATA, builder.build());
 
         return this;
     }

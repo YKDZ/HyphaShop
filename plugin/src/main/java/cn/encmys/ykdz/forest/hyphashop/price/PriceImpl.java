@@ -3,86 +3,97 @@ package cn.encmys.ykdz.forest.hyphashop.price;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
+import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import org.bukkit.configuration.ConfigurationSection;
 import org.jetbrains.annotations.NotNull;
 
 public class PriceImpl extends Price {
-
-    public PriceImpl(@NotNull ConfigurationSection priceSection) {
-        buildPrice(priceSection);
-    }
-
-    @Override
-    protected void buildPrice(@NotNull ConfigurationSection priceSection) {
-        if (priceSection.contains("fixed")) {
-            this.fixed = priceSection.getDouble("fixed");
+    public PriceImpl(@NotNull ConfigAccessor defaultConfig, @NotNull ConfigAccessor config) {
+        if (config.contains("fixed")) {
             priceMode = PriceMode.FIXED;
-        } else if (priceSection.contains("mean") && priceSection.contains("dev")) {
-            this.mean = priceSection.getDouble("mean");
-            this.dev = priceSection.getDouble("dev");
-            this.round = priceSection.getBoolean("round", false);
+            this.setProperty(PriceProperty.FIXED, config.getDouble("fixed").orElse(Double.NaN));
+        } else if (config.contains("mean") || config.contains("dev")) {
             priceMode = PriceMode.GAUSSIAN;
-        } else if (priceSection.contains("min") && priceSection.contains("max")) {
-            this.min = priceSection.getDouble("min");
-            this.max = priceSection.getDouble("max");
-            this.round = priceSection.getBoolean("round", false);
+            this.setProperty(PriceProperty.MEAN, config.getDouble("mean").orElse(defaultConfig.getDouble("mean").orElse(Double.NaN)))
+                    .setProperty(PriceProperty.DEV, config.getDouble("dev").orElse(defaultConfig.getDouble("dev").orElse(Double.NaN)))
+                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(defaultConfig.getBoolean("round").orElse(false)));
+        } else if (config.contains("min") || config.contains("max")) {
             priceMode = PriceMode.MINMAX;
-        } else if (priceSection.getBoolean("bundle-auto-new")) {
+            this.setProperty(PriceProperty.MIN, config.getDouble("min").orElse(defaultConfig.getDouble("min").orElse(Double.NaN)))
+                    .setProperty(PriceProperty.MAX, config.getDouble("max").orElse(defaultConfig.getDouble("max").orElse(Double.NaN)))
+                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(defaultConfig.getBoolean("round").orElse(false)));
+        } else if (config.getBoolean("bundle-auto-new").orElse(false)) {
             priceMode = PriceMode.BUNDLE_AUTO_NEW;
-        } else if (priceSection.getBoolean("bundle-auto-reuse")) {
+        } else if (config.getBoolean("bundle-auto-reuse").orElse(false)) {
             priceMode = PriceMode.BUNDLE_AUTO_REUSE;
-        }
-        // 只有 context 没有 formula 是不合法的
-        // 默认配置中价格块的 formula 会被继承到商品的价格块里
-        // 以保证合法的配置中不会出现仅 context 无 formula 的情况
-        // 所以只要出现即不合法
-        else if (priceSection.contains("formula")) {
+        } else if (config.contains("formula") || config.contains("context")) {
             priceMode = PriceMode.FORMULA;
-            String context = priceSection.getString("context");
-            scriptContext = ScriptUtils.extractContext(context == null ? "" : context);
-            formula = priceSection.getString("formula");
-        } else if (priceSection.getBoolean("disable")) {
+            String formula = config.getString("formula").orElse(defaultConfig.getString("formula").orElse(null));
+            String context = config.getString("context").orElse(defaultConfig.getString("context").orElse(null));
+
+            if (formula == null) {
+                priceMode = PriceMode.DISABLE;
+                LogUtils.warn("Invalid price setting: " + config + ". The price will be disabled.");
+                return;
+            }
+
+            this.setProperty(PriceProperty.FORMULA, StringUtils.wrapToScript(formula))
+                    .setProperty(PriceProperty.CONTEXT, context == null ? Context.GLOBAL_OBJECT : ScriptUtils.extractContext(context));
+        } else if (config.getBoolean("disable").orElse(false)) {
             priceMode = PriceMode.DISABLE;
         } else {
-            throw new IllegalArgumentException("Invalid price setting.");
+            priceMode = PriceMode.DISABLE;
+            throw new IllegalArgumentException("Invalid price setting: " + config + ". The price will be disabled.");
         }
     }
 
     @Override
     public double getNewPrice() {
-        double price = 0;
-        switch (priceMode) {
-            case GAUSSIAN ->
-                    price = round ? Math.round(mean + dev * random.nextGaussian()) : mean + dev * random.nextGaussian();
-            case FIXED -> price = fixed;
-            case MINMAX ->
-                    price = round ? Math.round(min + (max - min) * random.nextDouble()) : min + (max - min) * random.nextDouble();
-        }
-        if (price <= 0) {
-            return -1;
-        } else {
-            return price;
-        }
+        return switch (priceMode) {
+            case GAUSSIAN -> {
+                Boolean round = getProperty(PriceProperty.ROUND);
+                Double mean = getProperty(PriceProperty.MEAN);
+                Double dev = getProperty(PriceProperty.DEV);
+                if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev))
+                    throw new RuntimeException("Invalid price property: " + properties);
+                double result = mean + dev * random.nextGaussian();
+                if (result < 0) {
+                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    yield Double.NaN;
+                }
+                yield round ? Math.floor(result) : result;
+            }
+            case FIXED -> {
+                Double fixed = getProperty(PriceProperty.FIXED);
+                if (fixed == null) throw new RuntimeException("Invalid price property: " + properties);
+                if (fixed < 0) {
+                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    yield Double.NaN;
+                }
+                yield fixed;
+            }
+            case MINMAX -> {
+                Double min = getProperty(PriceProperty.MIN);
+                Double max = getProperty(PriceProperty.MAX);
+                Boolean round = getProperty(PriceProperty.ROUND);
+                if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max))
+                    throw new RuntimeException("Invalid price property: " + properties);
+                double result = min + (max - min) * random.nextDouble();
+                if (result < 0) {
+                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    yield Double.NaN;
+                }
+                yield round ? Math.floor(result) : result;
+            }
+            default -> Double.NaN;
+        };
     }
 
     @Override
-    public PriceMode getPriceMode() {
+    public @NotNull PriceMode getPriceMode() {
         return priceMode;
-    }
-
-    @Override
-    public String getFormula() {
-        return formula;
-    }
-
-    @Override
-    public boolean isRound() {
-        return round;
-    }
-
-    @Override
-    public Context getScriptContext() {
-        return scriptContext;
     }
 }

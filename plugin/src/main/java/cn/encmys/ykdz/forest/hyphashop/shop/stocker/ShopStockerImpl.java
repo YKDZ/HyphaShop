@@ -1,146 +1,147 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.stocker;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionEvent;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.product.enums.ProductType;
-import cn.encmys.ykdz.forest.hyphashop.api.product.factory.ProductFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.stocker.ShopStocker;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
-import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ShopStockerImpl implements ShopStocker {
-    private static final Random random = new Random();
+    private static final @NotNull Random RANDOM = new Random();
 
     private final @NotNull Shop shop;
     private final int size;
     private final @NotNull List<String> allProductsId;
     private final @NotNull List<String> listedProducts = new ArrayList<>();
-    private final boolean autoRestockEnabled;
+    private final boolean autoRestock;
     private final long autoRestockPeriod;
     private long lastRestocking;
 
-    public ShopStockerImpl(@NotNull Shop shop, int size, boolean autoRestockEnabled, long autoRestockPeriod, @NotNull List<String> allProductsId) {
+    public ShopStockerImpl(@NotNull Shop shop, int size, boolean autoRestock, long autoRestockPeriod, @NotNull List<String> allProductsId) {
         this.shop = shop;
         this.size = size;
-        this.autoRestockEnabled = autoRestockEnabled;
+        this.autoRestock = autoRestock;
         this.autoRestockPeriod = autoRestockPeriod;
         this.allProductsId = allProductsId;
     }
 
     @Override
-    public boolean needAutoRestock() {
-        return autoRestockEnabled;
+    public boolean isAutoRestock() {
+        return autoRestock;
     }
 
     @Override
     public void stock() {
+        // 购物车、交易历史等菜单会用到所有商品的数量缓存
+        // 故需要提前全部缓存
+        allProductsId.forEach(id -> shop.getShopCounter().cacheAmount(id));
+
         List<Product> productsPreparedToBeListed = new ArrayList<>();
-        ProductFactory productFactory = HyphaShop.PRODUCT_FACTORY;
 
         listedProducts.clear();
         // 映射为 productId : product
-        Map<String, Product> allProducts = new HashMap<>();
-        for (String productId : allProductsId) {
-            Product product = productFactory.getProduct(productId);
-            if (product != null) {
-                allProducts.put(productId, product);
-            }
-        }
+        Map<String, Product> allProducts = allProductsId.stream()
+                .map(id -> HyphaShop.PRODUCT_FACTORY.getProduct(id))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toMap(Product::getId, product -> product));
 
-        // size == -1 代表该商店尺寸无限
-        if (size == -1 || size >= allProductsId.size()) {
+        if (isSizeInfinity() || size >= allProductsId.size()) {
             productsPreparedToBeListed.addAll(allProducts.values());
         } else {
-            // 按照权重算法上架商品
-            List<String> temp = new ArrayList<>(allProductsId);
-            int totalWeight = allProducts.values().stream()
-                    .mapToInt(p -> p.getRarity().weight()).sum();
-
-            int productsAdded = 0;
-
-            while (productsAdded < size && !temp.isEmpty()) {
-                int randomValue = random.nextInt(totalWeight) + 1; // 避免出现 0
-                int cumulativeWeight = 0;
-
-                for (String productId : temp) {
-                    Product product = allProducts.get(productId);
-                    cumulativeWeight += product.getRarity().weight();
-                    if (randomValue <= cumulativeWeight) {
-                        // 根据 list-conditions 判断是否可以被上架
-                        List<String> listConditions = product.getListConditions();
-                        boolean conditionFlag = true;
-                        if (!listConditions.isEmpty()) {
-                            Map<String, Object> vars = new HashMap<>() {{
-                                put("product-id", productId);
-                                put("shop-id", shop.getId());
-                            }};
-                            // shop -> global
-                            Context ctx = ScriptUtils.buildContext(
-                                    shop.getScriptContext(),
-                                    vars
-                            );
-                            for (String condition : listConditions) {
-                                if (!ScriptUtils.evaluateBoolean(ctx, condition)) {
-                                    conditionFlag = false;
-                                    break;
-                                }
-                            }
-                        }
-                        if (conditionFlag) {
-                            productsPreparedToBeListed.add(product);
-                            totalWeight -= product.getRarity().weight();
-                            temp.remove(productId);
-                            productsAdded++;
-                            break;
-                        }
-                    }
-                }
-            }
+            productsPreparedToBeListed.addAll(pickProductByWeight(allProducts));
         }
-
-        // Event
-//        ShopPreRestockEvent shopPreRestockEvent = new ShopPreRestockEvent(getShop(), productsPreparedToBeListed);
-//        Bukkit.getPluginManager().callEvent(shopPreRestockEvent);
-//        if (shopPreRestockEvent.isCancelled()) {
-//            return;
-//        }
-        // Event
 
         // 逐个上架
         productsPreparedToBeListed.forEach(this::listProduct);
 
         lastRestocking = System.currentTimeMillis();
 
-        // 防止玩家看到未刷新的内容
-        Scheduler.runTask((task) -> shop.getShopGUI().closeAll());
+        Scheduler.runAsyncTask((task) -> shop.getShopGUI().updateContentsForAllViewers());
 
-        // Event
-//        ShopRestockEvent shopRestockEvent = new ShopRestockEvent(getShop(), productsPreparedToBeListed);
-//        Bukkit.getPluginManager().callEvent(shopRestockEvent);
-        // Event
+        MiscUtils.processActions(ActionEvent.SHOP_ON_RESTOCK, shop.getActions(), shop.getScriptContext().clone(), Collections.emptyMap(), shop);
+    }
+
+    private @NotNull List<Product> pickProductByWeight(@NotNull Map<String, Product> allProducts) {
+        List<Product> pickedProducts = new ArrayList<>();
+        List<String> temp = new ArrayList<>(allProductsId);
+        Collections.shuffle(temp); // 打乱顺序
+
+        int productsAdded = 0;
+
+        while (productsAdded < size && !temp.isEmpty()) {
+            int totalWeight = temp.stream()
+                    .map(allProducts::get)
+                    .filter(Objects::nonNull)
+                    .mapToInt(p -> p.getRarity().weight())
+                    .sum();
+
+            if (totalWeight <= 0) break;
+
+            int randomValue = RANDOM.nextInt(totalWeight) + 1;
+            int cumulativeWeight = 0;
+            boolean foundProduct = false;
+            Iterator<String> iterator = temp.iterator();
+
+            while (iterator.hasNext()) {
+                String productId = iterator.next();
+                Product product = allProducts.get(productId);
+                if (product == null) {
+                    iterator.remove();
+                    continue;
+                }
+
+                cumulativeWeight += product.getRarity().weight();
+                if (cumulativeWeight < randomValue) continue;
+
+                // 回调
+                Context parent = ContextUtils.linkContext(
+                        shop.getScriptContext().clone(),
+                        product.getScriptContext().clone()
+                );
+                List<Value> result = MiscUtils.processActionsWithResult(
+                        ActionEvent.PRODUCT_ON_BEFORE_LIST, product.getActions(), parent, Collections.emptyMap(), shop, product
+                );
+                boolean allPass = result.stream().allMatch(Value::getAsBoolean);
+
+                if (allPass) {
+                    pickedProducts.add(product);
+                    productsAdded++;
+                    iterator.remove();
+                }
+
+                foundProduct = true;
+                break;
+            }
+
+            if (!foundProduct) break;
+        }
+
+        return pickedProducts;
     }
 
     @Override
     public void listProduct(@NotNull Product product) {
-        // Event
-//        ProductPreListEvent productPreListEvent = new ProductPreListEvent(getShop(), product);
-//        Bukkit.getPluginManager().callEvent(productPreListEvent);
-//        if (productPreListEvent.isCancelled()) {
-//            return;
-//        }
-        // Event
-
         String productId = product.getId();
 
-        shop.getShopCounter().cacheAmount(productId);
-        shop.getShopPricer().cachePrice(productId);
+        // 所有商品数量都提前被缓存过了
+        // 此处不再缓存
+        if (!shop.getShopPricer().cachePrice(productId)) {
+            LogUtils.warn("Fail to list product: " + productId + " cause the price is incorrect.");
+            return;
+        }
         if (product.isProductItemCacheable() && !shop.isProductItemCached(productId)) {
             shop.cacheProductItem(product);
         }
@@ -152,7 +153,10 @@ public class ShopStockerImpl implements ShopStocker {
                 Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
                 if (content != null) {
                     shop.getShopCounter().cacheAmount(contentId);
-                    shop.getShopPricer().cachePrice(contentId);
+                    if (!shop.getShopPricer().cachePrice(contentId)) {
+                        LogUtils.warn("Fail to list content " + contentId + " of bundle product " + productId + " cause the price is incorrect.");
+                        return;
+                    }
                     if (content.isProductItemCacheable() && !shop.isProductItemCached(contentId)) {
                         shop.cacheProductItem(content);
                     }
@@ -167,10 +171,12 @@ public class ShopStockerImpl implements ShopStocker {
 
         listedProducts.add(productId);
 
-        // Event
-//        ProductListEvent productListEvent = new ProductListEvent(getShop(), product);
-//        Bukkit.getPluginManager().callEvent(productListEvent);
-        // Event
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_AFTER_LIST, product.getActions(), shop.getScriptContext(), Collections.emptyMap(), product, shop);
+    }
+
+    @Override
+    public boolean isSizeInfinity() {
+        return size < 0;
     }
 
     @Override
@@ -191,6 +197,12 @@ public class ShopStockerImpl implements ShopStocker {
     @Override
     public @NotNull @Unmodifiable List<String> getListedProducts() {
         return Collections.unmodifiableList(listedProducts);
+    }
+
+    @Override
+    public void setListedProducts(@NotNull List<String> listedProducts) {
+        this.listedProducts.clear();
+        this.listedProducts.addAll(listedProducts);
     }
 
     @Override

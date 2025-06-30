@@ -1,10 +1,19 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.gui.enums.GUIType;
+import cn.encmys.ykdz.forest.hyphashop.api.gui.record.ConditionalIconRecord;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
-import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.PropertyType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.item.builder.BaseItemBuilder;
-import cn.encmys.ykdz.forest.hyphautils.HyphaConfigUtils;
+import cn.encmys.ykdz.forest.hyphashop.item.builder.NormalIconBuilder;
+import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigInheritor;
+import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
 import net.kyori.adventure.key.InvalidKeyException;
@@ -14,10 +23,8 @@ import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
 import org.bukkit.Registry;
 import org.bukkit.block.banner.PatternType;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
@@ -28,6 +35,8 @@ import org.bukkit.potion.PotionType;
 import org.intellij.lang.annotations.Subst;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
+import xyz.xenondevs.invui.gui.Gui;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -35,131 +44,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class ConfigUtils {
-    private static final List<String> nonInheritableKeys = new ArrayList<>() {{
-        add("icons");
-        // 单独处理
-        add("buy-price");
-        add("sell-price");
-    }};
-
-    public static void inheritConfigSection(@Nullable ConfigurationSection iconSection, @Nullable ConfigurationSection parentSection) {
-        if (iconSection == null || parentSection == null) return;
-
-        // 获取默认配置节中的键值对
-        for (String key : parentSection.getKeys(true)) {
-            // 如果目标配置节中没有此键，设置默认值
-            if (!iconSection.contains(key) && !nonInheritableKeys.contains(key)) {
-                Object value = parentSection.get(key);
-                if (value instanceof ConfigurationSection defaultSection) {
-                    // 如果是嵌套的配置节，递归调用
-                    ConfigurationSection section = iconSection.createSection(key);
-                    inheritConfigSection(section, defaultSection);
-                } else {
-                    // 直接设置值
-                    iconSection.set(key, value);
-                }
-            }
-        }
-    }
-
-    public static @NotNull ConfigurationSection inheritPriceSection(@Nullable ConfigurationSection section, @Nullable ConfigurationSection defaultSection) {
-        if (section == null) {
-            return defaultSection == null ? new YamlConfiguration() : defaultSection;
-        } else if (defaultSection == null) {
-            return section;
-        }
-
-        if (section.contains("formula") && !section.contains("context")) {
-            section.set("context", defaultSection.getStringList("context"));
-        } else if (!section.contains("formula") && section.contains("context")) {
-            section.set("formula", defaultSection.getString("formula"));
-        } else if (section.contains("min") && !section.contains("max")) {
-            section.set("max", defaultSection.getDouble("max"));
-        } else if (!section.contains("min") && section.contains("max")) {
-            section.set("min", defaultSection.getDouble("min"));
-        } else if (section.contains("mean") && !section.contains("dev")) {
-            section.set("dev", defaultSection.getDouble("dev"));
-        } else if (!section.contains("mean") && section.contains("dev")) {
-            section.set("mean", defaultSection.getDouble("mean"));
-        }
-
-        return section;
-    }
-
-    public static int getInt(ConfigurationSection mainSection, ConfigurationSection defaultSection, String key, int defaultValue) {
-        int value = defaultValue;
-        if (mainSection != null) {
-            value = mainSection.getInt(key, defaultValue);
-        }
-        if (value == defaultValue && defaultSection != null) {
-            value = defaultSection.getInt(key, defaultValue);
-        }
-        return value;
-    }
-
-    public static double getDouble(ConfigurationSection mainSection, ConfigurationSection defaultSection, String key, double defaultValue) {
-        double value = defaultValue;
-        if (mainSection != null) {
-            value = mainSection.getDouble(key, defaultValue);
-        }
-        if (value == defaultValue && defaultSection != null) {
-            value = defaultSection.getDouble(key, defaultValue);
-        }
-        return value;
-    }
-
-    public static String getString(ConfigurationSection mainSection, ConfigurationSection defaultSection, String key, String defaultValue) {
-        String value = defaultValue;
-        if (mainSection != null) {
-            value = mainSection.getString(key, defaultValue);
-        }
-        if (Objects.equals(value, defaultValue) && defaultSection != null) {
-            value = defaultSection.getString(key, defaultValue);
-        }
-        return value;
-    }
-
-    public static boolean getBoolean(ConfigurationSection mainSection, ConfigurationSection defaultSection, String key, boolean defaultValue) {
-        boolean value = defaultValue;
-        if (mainSection != null) {
-            value = mainSection.getBoolean(key, defaultValue);
-        }
-        if (Objects.equals(value, defaultValue) && defaultSection != null) {
-            value = defaultSection.getBoolean(key, defaultValue);
-        }
-        return value;
-    }
-
-    public static int getLayoutMarkerAmount(List<String> layout, char markerIdentifier) {
-        return layout.stream()
-                .flatMapToInt(String::chars)
-                .filter(c -> c == markerIdentifier)
-                .map(c -> 1)
-                .sum();
-    }
-
-    public static int getLayoutMarkerRowAmount(List<String> layout, char markerIdentifier) {
-        return (int) layout.stream()
-                .filter(line -> line.indexOf(markerIdentifier) != -1)
-                .count();
-    }
-
-    public static int getLayoutMarkerColumAmount(List<String> layout, char markerIdentifier) {
-        if (layout.isEmpty()) {
-            return 0;
-        }
-
-        int maxColumnCount = layout.stream()
-                .mapToInt(String::length)
-                .max()
-                .orElse(0);
-
-        return (int) IntStream.range(0, maxColumnCount)
-                .filter(colIndex -> layout.stream()
-                        .anyMatch(str -> str.length() > colIndex && str.charAt(colIndex) == markerIdentifier))
-                .count();
-    }
-
     /**
      * @param data Trim data format like "diamond:vex"
      * @return ArmorTrim
@@ -179,6 +63,17 @@ public class ConfigUtils {
             LogUtils.warn("Format of armor data: " + data + " is invalid. Use diamond:vex as fallback.");
             return new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.VEX);
         }
+    }
+
+    /**
+     * @param data List of potion effect data format like "night_vision:100:1:true:true:true" (PotionEffectType:duration:amplifier:ambient:particles:icon)
+     * @return Enchantment and Level
+     */
+    public static @Nullable List<Color> parseColorsData(@NotNull List<String> data) {
+        if (data.isEmpty()) return null;
+        return data.stream()
+                .map(ConfigUtils::parseColorData)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -306,7 +201,7 @@ public class ConfigUtils {
             return Map.entry(type, color);
         } catch (NoSuchElementException | InvalidKeyException e) {
             LogUtils.warn("Banner pattern data: " + data + " is invalid. Use YELLOW:bricks as fallback");
-            return Map.entry(PatternType.BRICKS,  DyeColor.YELLOW);
+            return Map.entry(PatternType.BRICKS, DyeColor.YELLOW);
         }
     }
 
@@ -330,11 +225,11 @@ public class ConfigUtils {
      * @param data Item flag data format like "HIDE_ADDITIONAL_TOOLTIP"
      * @return ItemFlag: isAdd
      */
-    private static Map.@NotNull Entry<ItemFlag, Boolean> parseItemFlagData(@NotNull String data) {
+    private static Map.@NotNull @Unmodifiable Entry<ItemFlag, Boolean> parseItemFlagData(@NotNull String data) {
         try {
             ItemFlag flag = ItemFlag.valueOf(data.replaceAll("-", ""));
             boolean isAdd = !data.startsWith("-");
-            return Map.entry(flag, !isAdd);
+            return Map.entry(flag, isAdd);
         } catch (IllegalArgumentException e) {
             LogUtils.warn("Banner pattern data: " + data + " is invalid. Use HIDE_ADDITIONAL_TOOLTIP as fallback");
             return Map.entry(ItemFlag.HIDE_ADDITIONAL_TOOLTIP, true);
@@ -408,103 +303,95 @@ public class ConfigUtils {
         return type;
     }
 
-    public static @NotNull Map<Character, BaseItemDecorator> getIconDecorators(@Nullable ConfigurationSection iconsSection) {
-        if (iconsSection == null) return new HashMap<>();
-
+    public static @NotNull Map<Character, BaseItemDecorator> parseIconDecorators(@NotNull ConfigAccessor config) {
         Map<Character, BaseItemDecorator> icons = new HashMap<>();
-        for (String key : iconsSection.getKeys(false)) {
-            ConfigurationSection section = iconsSection.getConfigurationSection(key);
-            if (section == null) continue;
-            icons.put(key.charAt(0), parseDecorator(section));
-        }
+        config.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> icons.put(key.charAt(0), parseDecorator(childConfig)));
         return icons;
     }
 
-    public static @Nullable BaseItemDecorator parseDecorator(@Nullable ConfigurationSection section) {
-        if (section == null) return null;
+    public static @NotNull Gui parseGui(@NotNull ConfigAccessor config) {
+        String[] structure = config.getStringList("structure").orElse(new ArrayList<>()).toArray(new String[0]);
+        ConfigAccessor icons = config.getConfig("icons").orElse(null);
 
-        String base = section.getString("base", "DIRT");
-        BaseItem item = BaseItemBuilder.get(base);
+        if (icons == null) return Gui.builder().build();
 
-        if (item == null) {
-            LogUtils.warn("An icon has invalid base setting: " + base + ". Config section of this icon is: " + section);
-            return null;
-        }
+        Gui.Builder<?, ?> builder = Gui.builder()
+                .setStructure(structure);
 
-        BaseItemDecorator decorator = new BaseItemDecorator(item)
-                .setProperty(PropertyType.NAME, section.getString("name"))
-                .setProperty(PropertyType.LORE, section.getStringList("lore"))
-                .setProperty(PropertyType.AMOUNT, section.getString("amount", "1"))
-                .setProperty(PropertyType.CUSTOM_MODEL_DATA, !section.contains("custom-model-data") ? null : section.getInt("custom-model-data"))
-                .setProperty(PropertyType.UPDATE_PERIOD, TextUtils.parseTimeToTicks(section.getString("update-period")))
-                .setProperty(PropertyType.UPDATE_ON_CLICK, section.getBoolean("update-on-click"))
-                .setProperty(PropertyType.ITEM_FLAGS, parseItemFlagData(section.getStringList("item-flags")))
-                .setProperty(PropertyType.BANNER_PATTERNS, parseBannerPatternData(section.getStringList("banner-patterns")))
-                .setProperty(PropertyType.ENCHANTMENTS, parseEnchantmentData(section.getStringList("enchantments")))
-                .setProperty(PropertyType.FIREWORK_EFFECTS, parseFireworkEffectData(section.getStringList("firework-effects")))
-                .setProperty(PropertyType.POTION_EFFECTS, parsePotionEffectsData(section.getStringList("potion-effects")))
-                .setProperty(PropertyType.ARMOR_TRIM, parseArmorTrimData(section.getString("armor-trim")))
-                .setProperty(PropertyType.ENCHANT_GLINT, !section.contains("enchantment-glint") ? null : section.getBoolean("enchantment-glint"))
-                .setProperty(PropertyType.ENCHANTABLE, !section.contains("enchantable") ? null : section.getInt("enchantable"))
-                .setProperty(PropertyType.GLIDER, !section.contains("glider") ? null : section.getBoolean("glider"))
-                .setProperty(PropertyType.FLIGHT_DURATION, !section.contains("flight-duration") ? null : section.getInt("flight-duration"))
-                .setProperty(PropertyType.POTION_TYPE, parsePotionTypeData(!section.contains("potion-type") ? null : section.getString("potion-type")))
-                .setProperty(PropertyType.POTION_COLOR, parseColorData(!section.contains("potion-color") ? null : section.getString("potion-color")))
-                .setProperty(PropertyType.POTION_CUSTOM_NAME, !section.contains("potion-custom-name") ? null : section.getString("potion-custom-name"))
-                .setProperty(PropertyType.CONDITIONAL_ICONS, getConditionIconRecords(section.getMapList("icons"), section));
+        icons.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> builder.addIngredient(key.charAt(0), NormalIconBuilder.build(parseDecorator(childConfig), GUIType.NORMAL, Context.GLOBAL_OBJECT)));
 
-        ConfigurationSection commands = section.getConfigurationSection("commands");
-        if (commands != null) {
-            decorator.setProperty(PropertyType.COMMANDS_DATA, new HashMap<>() {{
-                put(ClickType.LEFT, commands.getStringList("left"));
-                put(ClickType.RIGHT, commands.getStringList("right"));
-                put(ClickType.SHIFT_LEFT, commands.getStringList("shift-left"));
-                put(ClickType.SHIFT_RIGHT, commands.getStringList("shift-right"));
-                put(ClickType.DOUBLE_CLICK, commands.getStringList("double-click"));
-                put(ClickType.DROP, commands.getStringList("drop"));
-                put(ClickType.CONTROL_DROP, commands.getStringList("control-drop"));
-                put(ClickType.MIDDLE, commands.getStringList("middle"));
-                put(ClickType.SWAP_OFFHAND, commands.getStringList("swap-offhand"));
-                put(ClickType.NUMBER_KEY, commands.getStringList("number-key"));
-                put(ClickType.WINDOW_BORDER_LEFT, commands.getStringList("window-border-left"));
-                put(ClickType.WINDOW_BORDER_RIGHT, commands.getStringList("window-border-right"));
-            }});
-        }
-
-        ConfigurationSection features = section.getConfigurationSection("features");
-        if (features != null) {
-            decorator.setProperty(PropertyType.FEATURE_SCROLL, EnumUtils.getEnumFromName(ClickType.class, features.getString("scroll")))
-                    .setProperty(PropertyType.FEATURE_SCROLL_AMOUNT, features.getInt("scroll-amount", 0))
-                    .setProperty(PropertyType.FEATURE_PAGE_CHANGE, EnumUtils.getEnumFromName(ClickType.class, features.getString("page-change")))
-                    .setProperty(PropertyType.FEATURE_PAGE_CHANGE_AMOUNT, features.getInt("page-change-amount", 0))
-                    .setProperty(PropertyType.FEATURE_BACK_TO_SHOP, EnumUtils.getEnumFromName(ClickType.class, features.getString("back-to-shop")))
-                    .setProperty(PropertyType.FEATURE_SETTLE_CART, EnumUtils.getEnumFromName(ClickType.class, features.getString("settle-cart")))
-                    .setProperty(PropertyType.FEATURE_OPEN_CART, EnumUtils.getEnumFromName(ClickType.class, features.getString("open-cart")))
-                    .setProperty(PropertyType.FEATURE_SWITCH_SHOPPING_MODE, EnumUtils.getEnumFromName(ClickType.class, features.getString("switch-shopping-mode")))
-                    .setProperty(PropertyType.FEATURE_SWITCH_CART_MODE, EnumUtils.getEnumFromName(ClickType.class, features.getString("switch-cart-mode")))
-                    .setProperty(PropertyType.FEATURE_CLEAN_CART, EnumUtils.getEnumFromName(ClickType.class, features.getString("clean-cart")))
-                    .setProperty(PropertyType.FEATURE_CLEAR_CART, EnumUtils.getEnumFromName(ClickType.class, features.getString("clear-cart")))
-                    .setProperty(PropertyType.FEATURE_LOAD_MORE_LOG, EnumUtils.getEnumFromName(ClickType.class, features.getString("load-more-log")))
-                    .setProperty(PropertyType.FEATURE_OPEN_SHOP, EnumUtils.getEnumFromName(ClickType.class, features.getString("open-shop")))
-                    .setProperty(PropertyType.FEATURE_OPEN_SHOP_TARGET, features.getString("open-shop-target"))
-                    .setProperty(PropertyType.FEATURE_OPEN_ORDER_HISTORY, EnumUtils.getEnumFromName(ClickType.class, features.getString("open-order-history")));
-
-        }
-
-        return decorator;
+        return builder.build();
     }
 
-    @NotNull
-    public static Map<String, BaseItemDecorator> getConditionIconRecords(List<Map<?, ?>> conditionIconsList, ConfigurationSection parentIconSection) {
-        Map<String, BaseItemDecorator> conditionIcons = new HashMap<>();
-        for (Map<?, ?> map : conditionIconsList) {
-            YamlConfiguration conditionIconSection = new YamlConfiguration();
-            HyphaConfigUtils.loadMapIntoConfiguration(conditionIconSection, map, "");
-            if (conditionIconSection.getBoolean("inherit", true)) {
-                inheritConfigSection(conditionIconSection.getConfigurationSection("icon"), parentIconSection);
+    public static @NotNull BaseItemDecorator parseDecorator(@NotNull ConfigAccessor config) {
+        String base = config.getString("base").orElse("dirt");
+        BaseItem item = BaseItemBuilder.get(base);
+
+        return new BaseItemDecorator(item)
+                .setProperty(ItemProperty.NAME, StringUtils.wrapToScriptWithOmit(config.getString("name").orElse(null)))
+                .setProperty(ItemProperty.LORE, StringUtils.wrapToScriptWithOmit(config.getStringList("lore").orElse(null)))
+                .setProperty(ItemProperty.AMOUNT, StringUtils.wrapToScript(config.getString("amount").orElse("1")))
+                .setProperty(ItemProperty.UPDATE_PERIOD, TextUtils.parseTimeStringToTicks(config.getString("update-period").orElse(null)))
+                .setProperty(ItemProperty.UPDATE_ON_CLICK, config.getBoolean("update-on-click").orElse(false))
+                .setProperty(ItemProperty.ITEM_FLAGS, parseItemFlagData(config.getStringList("item-flags").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.BANNER_PATTERNS, parseBannerPatternData(config.getStringList("banner-patterns").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.ENCHANTMENTS, parseEnchantmentData(config.getStringList("enchantments").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.FIREWORK_EFFECTS, parseFireworkEffectData(config.getStringList("firework-effects").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.POTION_EFFECTS, parsePotionEffectsData(config.getStringList("potion-effects").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.ARMOR_TRIM, parseArmorTrimData(config.getString("armor-trim").orElse(null)))
+                .setProperty(ItemProperty.ENCHANT_GLINT, config.getBoolean("enchantment-glint").orElse(null))
+                .setProperty(ItemProperty.ENCHANTABLE, config.getBoolean("enchantable").orElse(null))
+                .setProperty(ItemProperty.GLIDER, config.getBoolean("glider").orElse(null))
+                .setProperty(ItemProperty.FLIGHT_DURATION, config.getInt("flight-duration").orElse(null))
+                .setProperty(ItemProperty.POTION_TYPE, parsePotionTypeData(config.getString("potion-type").orElse(null)))
+                .setProperty(ItemProperty.POTION_COLOR, parseColorData(config.getString("potion-color").orElse(null)))
+                .setProperty(ItemProperty.POTION_CUSTOM_NAME, config.getString("potion-custom-name").orElse(null))
+                .setProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS, config.getBooleanList("custom-model-data.flags").orElse(null))
+                .setProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS, parseColorsData(config.getStringList("custom-model-data.colors").orElse(new ArrayList<>())))
+                .setProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS, config.getFloatList("custom-model-data.floats").orElse(null))
+                .setProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS, config.getStringList("custom-model-data.strings").orElse(null))
+                .setProperty(ItemProperty.CONDITIONAL_ICONS, parseConditionIconRecords(config.getConfigList("icons").orElse(new ArrayList<>()), config))
+                .setProperty(ItemProperty.ACTIONS, ActionsConfig.of(config.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))));
+    }
+
+    public static @NotNull List<ConditionalIconRecord> parseConditionIconRecords(@NotNull List<? extends ConfigAccessor> configList, @NotNull ConfigAccessor parent) {
+        List<ConditionalIconRecord> conditionIcons = new ArrayList<>();
+
+        IntStream.range(0, configList.size()).forEach(i -> {
+            ConfigAccessor config = configList.get(i);
+
+            String conditionStr = config.getString("condition").orElse(null);
+            if (conditionStr == null) return;
+
+            Script condition = StringUtils.wrapToScript(conditionStr);
+
+            if (condition == null) return;
+
+            ConfigAccessor icon = config.getConfig("icon").orElse(null);
+            if (icon == null) return;
+
+            ActionsConfig parentActions = ActionsConfig.of(parent.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+            ActionsConfig actions = ActionsConfig.of(icon.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+
+            if (config.getBoolean("inherit").orElse(true)) {
+                // 手动继承 actions
+                actions.inherit(parentActions);
+                icon = new ConfigInheritor(parent, icon);
             }
-            conditionIcons.put(conditionIconSection.getString("condition"), parseDecorator(conditionIconSection.getConfigurationSection("icon")));
-        }
+
+            // 索引小的优先级高
+            int priority = config.getInt("priority").orElse(configList.size() - i);
+
+            BaseItemDecorator iconDecorator = parseDecorator(icon);
+            iconDecorator.setProperty(ItemProperty.ACTIONS, actions);
+
+            conditionIcons.add(new ConditionalIconRecord(
+                    condition,
+                    priority,
+                    iconDecorator
+            ));
+        });
+
         return conditionIcons;
     }
 }

@@ -14,13 +14,17 @@ import java.util.List;
  */
 public class ShopPreRestockEvent extends Event implements Cancellable {
     private static final HandlerList handlerList = new HandlerList();
-    private boolean isCancelled = false;
     private final Shop shop;
     private final List<Product> productsPreparedToBeListed;
+    private boolean isCancelled = false;
 
     public ShopPreRestockEvent(Shop shop, List<Product> productsPreparedToBeListed) {
         this.shop = shop;
         this.productsPreparedToBeListed = productsPreparedToBeListed;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
     }
 
     public Shop getShop() {
@@ -44,10 +48,6 @@ public class ShopPreRestockEvent extends Event implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return handlerList;
-    }
-
-    public static HandlerList getHandlerList() {
         return handlerList;
     }
 }

@@ -9,23 +9,19 @@ import java.sql.SQLException;
 public interface DatabaseFactory {
     void loadSQLite();
 
+    boolean migrate();
+
     Connection getConnection() throws SQLException;
 
-    CartDao getCartDao();
-
-    ProductStockDao getProductStockDao();
+    ProductDao getProductDao();
 
     ProfileDao getProfileDao();
 
     SettlementLogDao getSettlementLogDao();
 
-    ShopCashierDao getShopCashierDao();
+    ShopDao getShopDao();
 
-    ShopPricerDao getShopPricerDao();
-
-    ShopStockerDao getShopStockerDao();
-
-    ShopCounterDao getShopCounterDao();
+    DBVersionDao getDBVersionDao();
 
     DBType getDbType();
 }

@@ -47,6 +47,7 @@ allprojects {
         maven("https://repo.xenondevs.xyz/releases")
         maven("https://repo.oraxen.com/releases")
         maven("https://r.irepo.space/maven/")
+        maven("https://maven.devs.beer/")
     }
 }
 
@@ -61,7 +62,6 @@ subprojects {
     }
 
     tasks.shadowJar {
-        destinationDirectory.set(file("${rootDir}/target"))
         archiveClassifier.set("")
         archiveFileName.set(rootProject.name + "-" + project.name + "-" + project.version + ".jar")
     }

@@ -6,6 +6,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.database.factory.DatabaseFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.database.factory.enums.DBType;
 import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.database.dao.sqlite.*;
+import cn.encmys.ykdz.forest.hyphashop.database.migration.MigrationHandler;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -17,14 +18,11 @@ import java.sql.SQLException;
 public class DatabaseFactoryImpl implements DatabaseFactory {
     private DataSource dataSource;
     private DBType dbType;
-    private CartDao cartDao;
-    private ProductStockDao productStockDao;
+    private ProductDao productDao;
     private ProfileDao profileDao;
     private SettlementLogDao settlementLogDao;
-    private ShopCashierDao shopCashierDao;
-    private ShopPricerDao shopPricerDao;
-    private ShopStockerDao shopStockerDao;
-    private ShopCounterDao shopCounterDao;
+    private ShopDao shopDao;
+    private DBVersionDao dbVersionDao;
 
     public DatabaseFactoryImpl() {
         load();
@@ -53,28 +51,29 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
     }
 
     @Override
+    public boolean migrate() {
+        switch (dbType) {
+            case SQLITE:
+                return new MigrationHandler(DBType.SQLITE).migrate();
+            case MYSQL:
+                // TODO MYSQL 实现
+        }
+        return false;
+    }
+
+    @Override
     public Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
 
     @Override
-    public CartDao getCartDao() {
-        if (cartDao == null) {
+    public ProductDao getProductDao() {
+        if (productDao == null) {
             switch (dbType) {
-                case SQLITE -> cartDao = new SQLiteCartDao();
+                case SQLITE -> productDao = new SQLiteProductDao();
             }
         }
-        return cartDao;
-    }
-
-    @Override
-    public ProductStockDao getProductStockDao() {
-        if (productStockDao == null) {
-            switch (dbType) {
-                case SQLITE -> productStockDao = new SQLiteProductStockDao();
-            }
-        }
-        return productStockDao;
+        return productDao;
     }
 
     @Override
@@ -98,43 +97,23 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
     }
 
     @Override
-    public ShopCashierDao getShopCashierDao() {
-        if (shopCashierDao == null) {
+    public ShopDao getShopDao() {
+        if (shopDao == null) {
             switch (dbType) {
-                case SQLITE -> shopCashierDao = new SQLiteShopCashierDao();
+                case SQLITE -> shopDao = new SQLiteShopDao();
             }
         }
-        return shopCashierDao;
+        return shopDao;
     }
 
     @Override
-    public ShopPricerDao getShopPricerDao() {
-        if (shopPricerDao == null) {
+    public DBVersionDao getDBVersionDao() {
+        if (dbVersionDao == null) {
             switch (dbType) {
-                case SQLITE -> shopPricerDao = new SQLiteShopPricerDao();
+                case SQLITE -> dbVersionDao = new SQLiteDBVersionDao();
             }
         }
-        return shopPricerDao;
-    }
-
-    @Override
-    public ShopStockerDao getShopStockerDao() {
-        if (shopStockerDao == null) {
-            switch (dbType) {
-                case SQLITE -> shopStockerDao = new SQLiteShopStockerDao();
-            }
-        }
-        return shopStockerDao;
-    }
-
-    @Override
-    public ShopCounterDao getShopCounterDao() {
-        if (shopCounterDao == null) {
-            switch (dbType) {
-                case SQLITE -> shopCounterDao = new SQLiteShopCounterDao();
-            }
-        }
-        return shopCounterDao;
+        return dbVersionDao;
     }
 
     @Override

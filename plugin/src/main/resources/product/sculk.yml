@@ -2,12 +2,12 @@ default-settings:
   item:
     amount: 1
   # Product can be listed only when
-  # result of all the expressions
+  # type of all the expressions
   # in list-conditions is true.
   list-conditions:
     # Multi-line Rhino JavaScript expression
     # The value of the last line of the expression
-    # is considered to be the result value.
+    # is considered to be the type value.
     # The return keyword is not required and cannot be used
     # outside a function.
     - |

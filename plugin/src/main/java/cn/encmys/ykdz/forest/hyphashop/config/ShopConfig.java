@@ -1,28 +1,33 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.ProductIconRecord;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.ShopGUIRecord;
-import cn.encmys.ykdz.forest.hyphashop.config.record.misc.SoundRecord;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.config.record.gui.ShopProductIconRecord;
 import cn.encmys.ykdz.forest.hyphashop.config.record.shop.ShopSettingsRecord;
-import cn.encmys.ykdz.forest.hyphashop.utils.*;
-import org.bukkit.configuration.ConfigurationSection;
+import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.event.inventory.ClickType;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
-import xyz.xenondevs.invui.gui.Markers;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ShopConfig {
-    private static final String path = HyphaShop.INSTANCE.getDataFolder() + "/shop";
-    private static final HashMap<String, YamlConfiguration> configs = new HashMap<>();
+    private static final @NotNull String path = HyphaShop.INSTANCE.getDataFolder() + "/shop";
+    private static final @NotNull Map<@NotNull String, @NotNull YamlConfiguration> configs = new HashMap<>();
+
+    private static final @NotNull Map<@NotNull String, @NotNull ShopProductIconRecord> productIconRecords = new HashMap<>();
 
     public static void load() {
         File directory = new File(path);
@@ -45,84 +50,69 @@ public class ShopConfig {
                 }
             }
         }
+
+        setup();
     }
 
-    public static YamlConfiguration getConfig(String shopId) {
+    private static void setup() {
+        configs.keySet().forEach((id) -> productIconRecords.put(id, new ShopProductIconRecord(
+                ConfigUtils.parseDecorator(getShopGUIConfig(id).getConfig("product-icon.icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))),
+                StringUtils.wrapToScriptWithOmit(getShopGUIConfig(id).getString("product-icon.format.bundle-content-line").orElse("<red>Bundle content line not found!"))
+        )));
+    }
+
+    public static @NotNull YamlConfiguration getConfig(@NotNull String shopId) {
         return configs.get(shopId);
     }
 
-    @NotNull
-    public static List<String> getAllId() {
+    public static @NotNull List<String> getAllId() {
         return new ArrayList<>(configs.keySet());
     }
 
-    public static ShopSettingsRecord getShopSettingsRecord(String shopId) {
+    @Contract("_ -> new")
+    public static @NotNull ShopSettingsRecord getShopSettingsRecord(@NotNull String shopId) {
+        ConfigAccessor config = getShopSettingsConfig(shopId);
         return new ShopSettingsRecord(
-                getConfig(shopId).getInt("settings.size", 16),
-                getConfig(shopId).getString("settings.name", "<red>Shop name not found!"),
-                getConfig(shopId).getBoolean("settings.auto-restock.enabled"),
-                TextUtils.parseTimeToTicks(getConfig(shopId).getString("settings.auto-restock.period")),
+                config.getInt("size").orElse(Integer.MIN_VALUE),
+                config.getString("name").orElse("<red>Shop name not found!"),
+                config.getBoolean("auto-restock.enabled").orElse(false),
+                TextUtils.parseTimeStringToTicks(config.getString("auto-restock.period").orElse("0s")),
                 getMerchantRecord(shopId),
-                getConfig(shopId).getString("settings.context", "")
+                config.getString("context").orElse(""),
+                ActionsConfig.of(config.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())))
         );
     }
 
-    @NotNull
-    public static List<String> getAllProductsId(String shopId) {
+    public static @NotNull List<String> getAllProductsId(@NotNull String shopId) {
         return getConfig(shopId).getStringList("products");
     }
 
-    @NotNull
-    public static MerchantRecord getMerchantRecord(@NotNull String shopId) {
+    public static @NotNull MerchantRecord getMerchantRecord(@NotNull String shopId) {
+        ConfigAccessor config = getShopSettingsConfig(shopId);
         return new MerchantRecord(
-                getConfig(shopId).getDouble("settings.merchant.balance", -1d),
-                getConfig(shopId).getBoolean("settings.merchant.supply", false),
-                getConfig(shopId).getBoolean("settings.merchant.overflow", false),
-                getConfig(shopId).getBoolean("settings.merchant.inherit", false)
+                config.getDouble("merchant.balance").orElse(Double.NaN),
+                config.getBoolean("merchant.replenish").orElse(false),
+                config.getBoolean("merchant.overflow").orElse(false),
+                config.getBoolean("merchant.inherit").orElse(false)
         );
     }
 
-    @NotNull
-    public static ShopGUIRecord getShopGUIRecord(@NotNull String shopId) {
-        ConfigurationSection mainSection = getConfig(shopId).getConfigurationSection("shop-gui");
-        if (mainSection == null) {
-            throw new RuntimeException("Attempted to read gui information, but the configuration section is empty.");
-        }
-        ConfigurationSection productIconSection = mainSection.getConfigurationSection("product-icon");
-        if (productIconSection == null) {
-            throw new RuntimeException("Attempted to read gui information, but the configuration section is empty.");
-        }
-        return new ShopGUIRecord(
-                mainSection.getString("title", ""),
-                TextUtils.parseTimeToTicks(mainSection.getString("title-update-period", "0s")),
-                mainSection.contains("scroll-mode") ? mainSection.getString("scroll-mode", "HORIZONTAL").equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL : null,
-                mainSection.contains("page-mode") ? mainSection.getString("page-mode", "HORIZONTAL").equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL : null,
-                mainSection.getStringList("layout"),
-                ConfigUtils.getIconDecorators(mainSection.getConfigurationSection("icons")),
-                new ProductIconRecord(
-                        productIconSection.getString("format.name", "<dark_gray>Name: <reset>{name} <dark_gray>x <white>{amount}"),
-                        productIconSection.getStringList("format.lore"),
-                        productIconSection.getString("format.bundle-contents-line", " <dark_gray>- <white>{name} <gray>x <white>{amount}"),
-                        productIconSection.getString("misc.disabled-price", "<red>✘"),
-                        TextUtils.parseTimeToTicks(productIconSection.getString("update-period", "3s")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.sell-to")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.buy-from")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.buy-all-from")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.add-1-to-cart")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.remove-1-from-cart")),
-                        EnumUtils.getEnumFromName(ClickType.class, productIconSection.getString("features.remove-all-from-cart"))
-                )
-        );
+    public static @NotNull ConfigAccessor getShopSettingsConfig(@NotNull String shopId) {
+        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
+        return new ConfigurationSectionAccessor(getConfig(shopId).getConfigurationSection("settings"));
     }
 
-    /**
-     * @param shopId   Shop to get sound config from
-     * @param soundKey Format like "sell-to.success" or "buy-all-from.failure"
-     * @return SoundRecord
-     */
-    @NotNull
-    public static SoundRecord getSoundRecord(@NotNull String shopId, @NotNull String soundKey) {
-        String soundData = getConfig(shopId).getString("sounds." + soundKey);
-        return RecordUtils.fromSoundData(soundData == null ? "" : soundData);
+    public static @NotNull ConfigAccessor getShopGUIConfig(@NotNull String shopId) {
+        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
+        return new ConfigurationSectionAccessor(getConfig(shopId).getConfigurationSection("shop-gui"));
+    }
+
+    public static @NotNull ShopProductIconRecord getShopProductIconRecord(@NotNull String shopId) {
+        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
+        return productIconRecords.get(shopId);
+    }
+
+    public static boolean hasShop(@NotNull String shopId) {
+        return configs.containsKey(shopId);
     }
 }

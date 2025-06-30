@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface ProductStock {
-    String getProductId();
+    @NotNull String getProductId();
 
     int getCurrentGlobalAmount();
 
@@ -15,13 +15,13 @@ public interface ProductStock {
 
     int getInitialPlayerAmount();
 
-    int getCurrentPlayerAmount(UUID uuid);
+    int getCurrentPlayerAmount(@NotNull UUID uuid);
 
-    Map<UUID, Integer> getCurrentPlayerAmount();
+    @NotNull Map<String, Integer> getCurrentPlayerAmount();
 
-    void setCurrentPlayerAmount(UUID uuid, int amount);
+    void setCurrentPlayerAmount(@NotNull Map<String, Integer> amount);
 
-    void setCurrentPlayerAmount(Map<UUID, Integer> amount);
+    void setCurrentPlayerAmount(@NotNull String uuid, int amount);
 
     int getInitialGlobalAmount();
 
@@ -33,7 +33,7 @@ public interface ProductStock {
 
     void stock();
 
-    void modifyPlayer(UUID uuid, int amount);
+    void modifyPlayer(@NotNull UUID uuid, int amount);
 
     void modifyGlobal(int amount);
 
@@ -53,7 +53,7 @@ public interface ProductStock {
 
     void modifyGlobal(@NotNull ShopOrder order);
 
-    boolean ifReachPlayerLimit(@NotNull UUID playerUUID);
+    boolean isReachPlayerLimit(@NotNull UUID playerUUID, int stack);
 
-    boolean ifReachGlobalLimit();
+    boolean isReachGlobalLimit(int stack);
 }

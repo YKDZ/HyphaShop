@@ -1,7 +1,9 @@
 package cn.encmys.ykdz.forest.hyphashop.product;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
-import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionEvent;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
@@ -11,12 +13,16 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.enums.ProductType;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.rarity.Rarity;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.PlayerUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -29,10 +35,10 @@ public class ItemProduct extends Product {
             @NotNull BaseItemDecorator iconBuilder,
             @NotNull BaseItemDecorator productItemBuilder,
             @NotNull ProductStock productStock,
-            @NotNull List<String> listConditions,
             @NotNull Context scriptContext,
+            @NotNull ActionsConfig actions,
             boolean isCacheable) {
-        super(id, buyPrice, sellPrice, rarity, iconBuilder, productItemBuilder, productStock, listConditions, scriptContext, isCacheable);
+        super(id, buyPrice, sellPrice, rarity, iconBuilder, productItemBuilder, productStock, scriptContext, actions, isCacheable);
     }
 
     @Override
@@ -47,6 +53,10 @@ public class ItemProduct extends Product {
 
     @Override
     public void give(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), new HashMap<>() {{
+            put("stack", stack);
+        }}, shop, player, this);
+
         ItemStack item = shop.getCachedProductItemOrBuildOne(this, player);
         // 缓存中物品的 getAmount 结果永远是 1
         IntStream.range(0, stack * shop.getShopCounter().getAmount(getId())).forEach(i -> inv.addItem(item));
@@ -59,6 +69,10 @@ public class ItemProduct extends Product {
 
     @Override
     public void take(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), new HashMap<>() {{
+            put("stack", stack);
+        }}, shop, player, this);
+
         BaseItemDecorator decorator = getProductItemDecorator();
         if (decorator == null) {
             return;
@@ -69,7 +83,7 @@ public class ItemProduct extends Product {
         }
 
         for (ItemStack check : inv) {
-            if (check != null && needed > 0 && isMatch(shop.getId(), check, player)) {
+            if (check != null && needed > 0 && isMatch(shop, check, player)) {
                 int has = check.getAmount();
                 if (needed <= has) {
                     check.setAmount(has - needed);
@@ -96,7 +110,7 @@ public class ItemProduct extends Product {
         int total = 0;
         int stackedAmount = shop.getShopCounter().getAmount(getId()) * stack;
         for (ItemStack check : inv) {
-            if (check != null && isMatch(shop.getId(), check, player)) {
+            if (check != null && isMatch(shop, check, player)) {
                 total += check.getAmount();
             }
         }
@@ -105,12 +119,7 @@ public class ItemProduct extends Product {
 
     @Override
     public boolean canHold(@NotNull Shop shop, @NotNull Player player, int stack) {
-        return canHold(shop, player.getInventory(), player, stack);
-    }
-
-    @Override
-    public boolean canHold(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
-        return PlayerUtils.hasInventorySpace(inv, shop.getCachedProductItemOrBuildOne(this, player), stack);
+        return PlayerUtils.canHold(player, shop, this, new AmountPair(shop.getShopCounter().getAmount(getId()), stack));
     }
 
     @Override
@@ -119,18 +128,21 @@ public class ItemProduct extends Product {
     }
 
     @Override
-    public boolean isMatch(@NotNull String shopId, @NotNull ItemStack item, @NotNull Player player) {
+    public boolean isMatch(@NotNull Shop shop, @NotNull ItemStack item, @NotNull Player player) {
+        // 只要 actions 中有一个结果为 false
+        // 则认为不匹配并提前返回
+        List<Value> result = MiscUtils.processActionsWithResult(ActionEvent.PRODUCT_ON_MATCH, getActions(), getScriptContext(), Collections.emptyMap(), shop, player, this);
+        if (result.stream().anyMatch(value -> !value.getAsBoolean())) return false;
+
         BaseItemDecorator decorator = getProductItemDecorator();
-        Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (decorator == null || shop == null) {
-            return false;
-        }
+        if (decorator == null) return false;
+
         BaseItem baseItem = decorator.getBaseItem();
+
         if (baseItem.getItemType() != BaseItemType.VANILLA) {
             return baseItem.isSimilar(item);
         } else {
             ItemStack target = shop.getCachedProductItemOrBuildOne(this, player);
-            // TODO 自由定义是否相似的标准 可以从 decorator 的 equals 方法入手
             return baseItem.isSimilar(item) && target.isSimilar(item);
         }
     }

@@ -11,10 +11,13 @@ public interface ShopCounter {
 
     int getAmount(@NotNull String productId);
 
-    Shop getShop();
+    @NotNull Shop getShop();
 
-    @NotNull @Unmodifiable
+    @NotNull
+    @Unmodifiable
     Map<String, Integer> getCachedAmounts();
 
     void setCachedAmounts(@NotNull Map<String, Integer> cachedAmounts);
+
+    boolean hasCachedAmount(@NotNull String productId);
 }

@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.api.product;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.product.enums.ProductType;
@@ -13,29 +14,17 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class Product {
-    @NotNull
-    private final String id;
-    @NotNull
-    private final Price buyPrice;
-    @NotNull
-    private final Price sellPrice;
-    @NotNull
-    private final Rarity rarity;
-    @NotNull
-    private final BaseItemDecorator iconDecorator;
-    @Nullable
-    private final BaseItemDecorator itemDecorator;
-    @NotNull
-    private final ProductStock productStock;
-    @NotNull
-    private final List<String> listConditions = new ArrayList<>();
-    @NotNull
-    private final Context scriptContext;
     protected final boolean isCacheable;
+    private final @NotNull String id;
+    private final @NotNull Price buyPrice;
+    private final @NotNull Price sellPrice;
+    private final @NotNull Rarity rarity;
+    private final @NotNull BaseItemDecorator iconDecorator;
+    private final @Nullable BaseItemDecorator itemDecorator;
+    private final @NotNull ProductStock productStock;
+    private final @NotNull ActionsConfig actions;
+    private final @NotNull Context scriptContext;
 
     public Product(
             @NotNull String id,
@@ -45,8 +34,8 @@ public abstract class Product {
             @NotNull BaseItemDecorator iconDecorator,
             @Nullable BaseItemDecorator itemDecorator,
             @NotNull ProductStock productStock,
-            @NotNull List<String> listConditions,
             @NotNull Context scriptContext,
+            @NotNull ActionsConfig actions,
             boolean isCacheable) {
         this.id = id;
         this.buyPrice = buyPrice;
@@ -55,9 +44,9 @@ public abstract class Product {
         this.iconDecorator = iconDecorator;
         this.itemDecorator = itemDecorator;
         this.productStock = productStock;
-        this.listConditions.addAll(listConditions);
-        this.isCacheable = isCacheable;
         this.scriptContext = scriptContext;
+        this.actions = actions;
+        this.isCacheable = isCacheable;
     }
 
     public @NotNull String getId() {
@@ -88,10 +77,6 @@ public abstract class Product {
         return itemDecorator;
     }
 
-    public @NotNull List<String> getListConditions() {
-        return listConditions;
-    }
-
     public @NotNull ProductStock getProductStock() {
         return productStock;
     }
@@ -110,13 +95,15 @@ public abstract class Product {
 
     public abstract boolean canHold(@NotNull Shop shop, @NotNull Player player, int stack);
 
-    public abstract boolean canHold(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack);
-
     public abstract boolean isProductItemCacheable();
 
-    public abstract boolean isMatch(@NotNull String shopId, @NotNull ItemStack item, @NotNull Player player);
+    public abstract boolean isMatch(@NotNull Shop shop, @NotNull ItemStack item, @NotNull Player player);
 
     public @NotNull Context getScriptContext() {
         return scriptContext;
+    }
+
+    public @NotNull ActionsConfig getActions() {
+        return actions;
     }
 }

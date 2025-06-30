@@ -1,12 +1,14 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.pricer;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
+import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.pricer.ShopPricer;
 import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.price.PricePairImpl;
@@ -14,14 +16,15 @@ import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
 import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.SettlementLogUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.VarUtils;
+import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
 
 public class ShopPricerImpl implements ShopPricer {
     private final @NotNull Shop shop;
@@ -33,114 +36,117 @@ public class ShopPricerImpl implements ShopPricer {
 
     @Override
     public double getBuyPrice(@NotNull String productId) {
-        PricePair pricePair = cachedPrices.get(productId);
-        if (pricePair == null) {
-            LogUtils.warn("Product " + productId + " do not have buy-price cached. This is likely a bug.");
-            return -1d;
-        }
-        return pricePair.getBuy();
+        return getPrice(productId, PricePair::getBuy, "buy");
     }
 
     @Override
     public double getSellPrice(@NotNull String productId) {
+        return getPrice(productId, PricePair::getSell, "sell");
+    }
+
+    private double getPrice(@NotNull String productId, @NotNull Function<PricePair, Double> extractor, @NotNull String priceType) {
         PricePair pricePair = cachedPrices.get(productId);
         if (pricePair == null) {
-            LogUtils.warn("Product " + productId + " do not have sell-price cached. This is likely a bug.");
-            return -1d;
+            LogUtils.warn("Product " + productId + " do not have " + priceType + "-price cached. This is likely a bug.");
+            return Double.NaN;
         }
-        return pricePair.getSell();
+        return extractor.apply(pricePair);
     }
 
     @Override
-    public void cachePrice(@NotNull String productId) {
+    public boolean cachePrice(@NotNull String productId) {
         Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null) {
             LogUtils.warn("Try to cache price for product " + productId + " which does not exist.");
-            return;
-        }
-        Price buyPrice = product.getBuyPrice();
-        Price sellPrice = product.getSellPrice();
-        double buy = 0d;
-        double sell = 0d;
-
-        Map<String, Object> vars = VarUtils.extractVars(shop, product);
-
-        switch (buyPrice.getPriceMode()) {
-            case FORMULA -> {
-                Context ctx = ScriptUtils.buildContext(ScriptUtils.linkContext(
-                        buyPrice.getScriptContext().clone(),
-                        product.getScriptContext().clone(),
-                        shop.getScriptContext().clone()
-                ), vars);
-                buy = ScriptUtils.evaluateDouble(ctx, buyPrice.getFormula());
-            }
-            case BUNDLE_AUTO_NEW -> {
-                for (Map.Entry<String, Integer> entry : ((BundleProduct) product).getBundleContents().entrySet()) {
-                    String contentId = entry.getKey();
-                    int contentStack = entry.getValue();
-                    Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
-                    if (content == null) {
-                        return;
-                    }
-                    buy += content.getBuyPrice().getNewPrice() * contentStack;
-                }
-            }
-            case BUNDLE_AUTO_REUSE -> {
-                for (Map.Entry<String, Integer> entry : ((BundleProduct) product).getBundleContents().entrySet()) {
-                    String contentId = entry.getKey();
-                    int contentStack = entry.getValue();
-                    buy += getBuyPrice(contentId) * contentStack;
-                }
-            }
-            default -> buy = buyPrice.getNewPrice();
+            return false;
         }
 
-        switch (sellPrice.getPriceMode()) {
-            case FORMULA -> {
-                // price -> product -> shop -> global
-                Context ctx = ScriptUtils.buildContext(ScriptUtils.linkContext(
-                        sellPrice.getScriptContext().clone(),
-                        product.getScriptContext().clone(),
-                        shop.getScriptContext().clone()
-                ), vars);
-                sell = ScriptUtils.evaluateDouble(ctx, sellPrice.getFormula());
-            }
-            case BUNDLE_AUTO_NEW -> {
-                for (Map.Entry<String, Integer> entry : ((BundleProduct) product).getBundleContents().entrySet()) {
-                    String contentId = entry.getKey();
-                    int contentStack = entry.getValue();
-                    Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
-                    if (content == null) {
-                        LogUtils.warn("Bundle product " + productId + " may have an invalid content " + contentId + ".");
-                        continue;
-                    }
-                    sell += content.getSellPrice().getNewPrice() * contentStack;
-                }
-            }
-            case BUNDLE_AUTO_REUSE -> {
-                for (Map.Entry<String, Integer> entry : ((BundleProduct) product).getBundleContents().entrySet()) {
-                    String contentId = entry.getKey();
-                    int contentStack = entry.getValue();
-                    sell += getSellPrice(contentId) * contentStack;
-                }
-            }
-            default -> sell = sellPrice.getNewPrice();
+        double buy = calculatePrice(product.getBuyPrice(), product, true, productId, shop);
+        double sell = calculatePrice(product.getSellPrice(), product, false, productId, shop);
+
+        if (!Double.isNaN(buy) && buy <= sell) {
+            handlePriceConflict(productId, buy, sell);
+            if (Config.priceCorrectByDisableSellOrBuy) sell = Double.NaN;
+            else buy = Double.NaN;
         }
 
-        // 避免 buy-price <= sell-price 的刷钱漏洞
-        // 因为难以保证动态价格落入指定范围
-        if (buy != -1 && buy <= sell) {
-            // 根据配置禁用出售或收购
-            if (Config.priceCorrectByDisableSellOrBuy) {
-                LogUtils.warn("The current buy-price of product " + productId + " is " + buy + ", which is less than the sell-price of " + sell + ". Sell has been disabled.");
-                sell = -1d;
-            } else {
-                LogUtils.warn("The current buy-price of product " + productId + " is " + buy + ", which is less than the sell-price of " + sell + ". Buy has been disabled.");
-                buy = -1d;
-            }
+        if (Double.isNaN(buy) && Double.isNaN(sell)) {
+            LogUtils.warn("Price cache for " + productId + " failed cause both buy and sell are invalid.");
+            return false;
         }
 
         cachedPrices.put(productId, getModifiedPricePair(productId, new PricePairImpl(buy, sell)));
+        return true;
+    }
+
+    private double calculatePrice(@NotNull Price price, @NotNull Product product, boolean isBuy, @Nullable Object... args) {
+        return switch (price.getPriceMode()) {
+            case FORMULA -> evaluateFormulaPrice(price, product, args);
+            case BUNDLE_AUTO_NEW -> calculateBundleAutoNewPrice(product, isBuy);
+            case BUNDLE_AUTO_REUSE -> calculateBundleAutoReusePrice(product, isBuy);
+            default -> price.getNewPrice();
+        };
+    }
+
+    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, @Nullable Object... args) {
+        Context context = price.getProperty(PriceProperty.CONTEXT);
+        Script formula = price.getProperty(PriceProperty.FORMULA);
+
+        if (formula == null) {
+            LogUtils.warn("Formula for " + product.getId() + " is null");
+            return Double.NaN;
+        }
+
+        Context ctx = new VarInjector()
+                .withTarget(new Context(ContextUtils.linkContext(
+                        context != null ? context.clone() : Context.GLOBAL_OBJECT,
+                        product.getScriptContext().clone(),
+                        shop.getScriptContext().clone()
+                )))
+                .withRequiredVars(formula)
+                .withArgs(shop, product)
+                .inject();
+
+        return ScriptUtils.evaluateDouble(ctx, formula);
+    }
+
+    private double calculateBundleAutoNewPrice(@NotNull Product product, boolean isBuy) {
+        double total = 0;
+        BundleProduct bundle = (BundleProduct) product;
+        for (Map.Entry<String, Integer> entry : bundle.getBundleContents().entrySet()) {
+            String contentId = entry.getKey();
+            Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+            if (content == null) {
+                if (isBuy) return Double.NaN;
+                LogUtils.warn("Bundle product " + product.getId() + " has invalid content " + contentId);
+                continue;
+            }
+            Price contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
+            total += contentPrice.getNewPrice() * entry.getValue();
+        }
+        return total;
+    }
+
+    private double calculateBundleAutoReusePrice(@NotNull Product product, boolean isBuy) {
+        return ((BundleProduct) product).getBundleContents().entrySet().stream()
+                .mapToDouble(entry -> {
+                    double price = isBuy ? getBuyPrice(entry.getKey()) : getSellPrice(entry.getKey());
+                    return price * entry.getValue();
+                })
+                .sum();
+    }
+
+    private void handlePriceConflict(@NotNull String productId, double buy, double sell) {
+        String msg = String.format(
+                "Buy price (%.2f) <= sell price (%.2f) for %s. Disabling %s.",
+                buy, sell, productId, Config.priceCorrectByDisableSellOrBuy ? "sell" : "buy"
+        );
+        LogUtils.warn(msg);
+    }
+
+    @Override
+    public boolean hasCachedPrice(@NotNull String productId) {
+        return cachedPrices.containsKey(productId);
     }
 
     @Override
@@ -154,12 +160,12 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     @Override
-    public @NotNull Shop getShop() {
-        return shop;
+    public void setCachedPrices(@NotNull Map<String, PricePair> cachedPrices) {
+        this.cachedPrices = cachedPrices;
     }
 
     @Override
-    public void setCachedPrices(@NotNull Map<String, PricePair> cachedPrices) {
-        this.cachedPrices = cachedPrices;
+    public @NotNull Shop getShop() {
+        return shop;
     }
 }

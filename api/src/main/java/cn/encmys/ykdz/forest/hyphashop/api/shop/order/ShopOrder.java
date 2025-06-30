@@ -1,65 +1,59 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.order;
 
-import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
 import java.util.UUID;
 
-/**
- * ShopOrder stores the product and customer information involved in each transaction. The total price for each ShopOrder cannot be calculated individually (because the price information is stored independently in each Shop's ShopPricer instance) and needs to be calculated using the ShopCashier#billOrder method.
- * <p>
- * As a stipulation, ShopOrder of type OrderType.BUY_ALL_FROM needs to ensure that each key of map orderedProducts has a value of 1 in order to work properly.
- */
 public interface ShopOrder {
-    @NotNull
-    ShopOrder combineOrder(ShopOrder order);
+    void combineOrder(@NotNull ShopOrder order);
+
+    @NotNull ShopOrder modifyStack(@NotNull ProductLocation productLoc, int amount);
+
+    @NotNull ShopOrder setStack(@NotNull ProductLocation productLoc, int amount);
+
+    @NotNull OrderType getType();
+
+    @NotNull ShopOrder setType(@NotNull OrderType orderType);
+
+    void bill();
+
+    @NotNull SettlementResult settle();
+
+    @NotNull SettlementResultType canSellTo();
+
+    @NotNull SettlementResultType canBuyFrom();
+
+    boolean canHold();
+
+    @NotNull UUID getCustomerUUID();
+
+    @NotNull ShopOrder setCustomerUUID(@NotNull UUID customerUUID);
 
     @NotNull
-    ShopOrder modifyStack(Product product, int amount);
+    @Unmodifiable
+    Map<ProductLocation, Integer> getOrderedProducts();
 
-    @NotNull
-    ShopOrder modifyStack(String productId, int amount);
+    @NotNull ShopOrder setOrderedProducts(@NotNull Map<ProductLocation, Integer> orderedProducts);
 
-    @NotNull
-    ShopOrder setStack(Product product, int amount);
+    double getBilledPrice(@NotNull ProductLocation productLoc);
 
-    @NotNull
-    ShopOrder setStack(String productId, int amount);
-
-    @NotNull
-    OrderType getOrderType();
-
-    boolean isSettled();
-
-    ShopOrder setSettled(boolean settled);
-
-    @NotNull
-    ShopOrder setOrderType(@NotNull OrderType orderType);
-
-    UUID getCustomerUUID();
-
-    Map<String, Integer> getOrderedProducts();
-
-    double getBilledPrice(Product product);
-
-    @NotNull
-    ShopOrder setBill(Map<String, Double> bill);
+    @NotNull ShopOrder setBill(@NotNull @Unmodifiable Map<ProductLocation, Double> bill);
 
     double getTotalPrice();
 
     boolean isBilled();
 
-    @NotNull
-    ShopOrder setBilled(boolean billed);
+    @NotNull ShopOrder setBilled(boolean billed);
 
     void clear();
 
-    void clean(@NotNull Shop shop);
+    void clean();
 
-    ShopOrder setOrderedProducts(@NotNull Map<String, Integer> orderedProducts);
-
-    ShopOrder setCustomerUUID(UUID customerUUID);
+    @NotNull ShopOrder clone();
 }

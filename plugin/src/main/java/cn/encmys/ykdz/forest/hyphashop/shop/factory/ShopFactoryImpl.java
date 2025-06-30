@@ -1,10 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.factory;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopCashierSchema;
-import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopCounterSchema;
-import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopPricerSchema;
-import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopStockerSchema;
+import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopSchema;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.factory.ShopFactory;
 import cn.encmys.ykdz.forest.hyphashop.config.ProductConfig;
@@ -12,7 +9,6 @@ import cn.encmys.ykdz.forest.hyphashop.config.ShopConfig;
 import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
@@ -74,22 +70,13 @@ public class ShopFactoryImpl implements ShopFactory {
         );
 
         // 从数据库加载一系列商店数据
-        ShopCashierSchema cashierSchema = HyphaShop.DATABASE_FACTORY.getShopCashierDao().querySchema(shop.getId());
-        ShopPricerSchema pricerSchema = HyphaShop.DATABASE_FACTORY.getShopPricerDao().querySchema(shop.getId());
-        ShopStockerSchema stockerSchema = HyphaShop.DATABASE_FACTORY.getShopStockerDao().querySchema(shop.getId());
-        ShopCounterSchema counterSchema = HyphaShop.DATABASE_FACTORY.getShopCounterDao().querySchema(shop.getId());
-        if (pricerSchema != null && !pricerSchema.cachedPrices().isEmpty()) {
-            shop.getShopPricer().setCachedPrices(pricerSchema.cachedPrices());
-        }
-        if (cashierSchema != null && shop.getShopCashier().isInherit()) {
-            shop.getShopCashier().setBalance(cashierSchema.balance());
-        }
-        if (counterSchema != null) {
-            shop.getShopCounter().setCachedAmounts(counterSchema.cachedAmounts());
-        }
-        if (stockerSchema != null) {
-            shop.getShopStocker().setLastRestocking(stockerSchema.lastRestocking());
-            shop.getShopStocker().addListedProducts(stockerSchema.listedProducts());
+        ShopSchema schema = HyphaShop.DATABASE_FACTORY.getShopDao().querySchema(shop.getId());
+        if (schema != null) {
+            if (shop.getShopCashier().isInherit()) shop.getShopCashier().setBalance(schema.balance());
+            shop.getShopCounter().setCachedAmounts(schema.cachedAmounts());
+            shop.getShopPricer().setCachedPrices(schema.cachedPrices());
+            shop.getShopStocker().setListedProducts(schema.listedProducts());
+            shop.getShopStocker().setLastRestocking(schema.lastRestocking());
         } else {
             // 为新增商店填充初始商品
             shop.getShopStocker().stock();
@@ -102,7 +89,7 @@ public class ShopFactoryImpl implements ShopFactory {
     }
 
     @Override
-    public @Nullable Shop getShop(@NotNull String id) {
+    public @NotNull Shop getShop(@NotNull String id) {
         return shops.get(id);
     }
 
@@ -119,11 +106,6 @@ public class ShopFactoryImpl implements ShopFactory {
 
     @Override
     public void save() {
-        for (Shop shop : shops.values()) {
-            HyphaShop.DATABASE_FACTORY.getShopCashierDao().insertSchema(ShopCashierSchema.of(shop.getShopCashier()));
-            HyphaShop.DATABASE_FACTORY.getShopPricerDao().insertSchema(ShopPricerSchema.of(shop.getShopPricer()));
-            HyphaShop.DATABASE_FACTORY.getShopStockerDao().insertSchema(ShopStockerSchema.of(shop.getShopStocker()));
-            HyphaShop.DATABASE_FACTORY.getShopCounterDao().insertSchema(ShopCounterSchema.of(shop.getShopCounter()));
-        }
+        shops.values().forEach(shop -> HyphaShop.DATABASE_FACTORY.getShopDao().insertSchema(ShopSchema.of(shop)));
     }
 }

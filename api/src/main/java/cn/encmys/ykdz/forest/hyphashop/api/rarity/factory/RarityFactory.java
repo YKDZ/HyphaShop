@@ -1,9 +1,11 @@
 package cn.encmys.ykdz.forest.hyphashop.api.rarity.factory;
 
 import cn.encmys.ykdz.forest.hyphashop.api.rarity.Rarity;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public interface RarityFactory {
-    void buildRarity(String id, String name, int weight);
+    void buildRarity(@NotNull String id, @NotNull String name, int weight);
 
-    Rarity getRarity(String id);
+    @Nullable Rarity getRarity(@NotNull String id);
 }

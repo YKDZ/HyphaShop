@@ -2,13 +2,9 @@ name: HyphaShop
 version: '${version}'
 main: cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl
 bootstrapper: cn.encmys.ykdz.forest.hyphashop.HyphaShopBootstrapImpl
-api-version: '1.21.4'
+api-version: '1.21.6'
 dependencies:
   server:
-    HyphaUtils:
-      load: AFTER
-      required: true
-      join-classpath: true
     HyphaRepo:
       load: AFTER
       required: true

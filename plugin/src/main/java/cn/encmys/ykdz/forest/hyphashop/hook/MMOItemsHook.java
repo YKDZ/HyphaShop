@@ -10,10 +10,6 @@ public class MMOItemsHook {
         }
     }
 
-    public static String getIdentifier() {
-        return "MI:";
-    }
-
     public static boolean isHooked() {
         return Bukkit.getPluginManager().getPlugin("MMOItems") != null;
     }

@@ -2,29 +2,31 @@ package cn.encmys.ykdz.forest.hyphashop.product.factory;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ProductStockDao;
-import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ProductStockSchema;
-import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ProductDao;
+import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ProductSchema;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.product.factory.ProductFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.rarity.Rarity;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.config.ProductConfig;
 import cn.encmys.ykdz.forest.hyphashop.config.RarityConfig;
-import cn.encmys.ykdz.forest.hyphashop.item.builder.BaseItemBuilder;
 import cn.encmys.ykdz.forest.hyphashop.price.PriceImpl;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
-import cn.encmys.ykdz.forest.hyphashop.product.CommandProduct;
 import cn.encmys.ykdz.forest.hyphashop.product.ItemProduct;
+import cn.encmys.ykdz.forest.hyphashop.product.VirtualProduct;
 import cn.encmys.ykdz.forest.hyphashop.product.stock.ProductStockImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import org.bukkit.configuration.ConfigurationSection;
+import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigInheritor;
+import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
@@ -37,30 +39,23 @@ public class ProductFactoryImpl implements ProductFactory {
 
     public void load() {
         for (String configId : ProductConfig.getAllPacksId()) {
-            YamlConfiguration config = ProductConfig.getConfig(configId);
+            ConfigAccessor config = new ConfigurationSectionAccessor(ProductConfig.getConfig(configId));
 
-            if (config == null) {
-                continue;
-            }
-
-            ConfigurationSection products = config.getConfigurationSection("products");
-            ConfigurationSection defaultSettings = config.getConfigurationSection("default-settings");
-
-            // 防止 null
-            if (defaultSettings == null) defaultSettings = new YamlConfiguration();
+            ConfigAccessor products = config.getConfig("products").orElse(null);
+            ConfigAccessor defaultSettings = config.getConfig("default-settings").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
 
             if (products == null) {
                 continue;
             }
 
             List<String> bundleProducts = new ArrayList<>();
-            for (String productId : products.getKeys(false)) {
-                ConfigurationSection productSection = products.getConfigurationSection(productId);
+            for (String productId : products.getKeys()) {
+                ConfigAccessor productConfig = products.getConfig(productId).orElse(null);
                 // 最后再构建捆绑包
-                if (productSection != null && productSection.contains("bundle-contents")) {
+                if (productConfig != null && productConfig.contains("bundle-contents")) {
                     bundleProducts.add(productId);
-                } else if (productSection != null) {
-                    buildProduct(productId, productSection, defaultSettings);
+                } else if (productConfig != null) {
+                    buildProduct(productId, productConfig, defaultSettings);
                 } else {
                     throw new IllegalArgumentException("Product " + productId + " has no config section.");
                 }
@@ -68,154 +63,127 @@ public class ProductFactoryImpl implements ProductFactory {
 
             // 最后构建捆绑包商品以便进行内容可用性检查
             for (String bundleProductId : bundleProducts) {
-                ConfigurationSection productSection = products.getConfigurationSection(bundleProductId);
-                if (productSection == null) throw new IllegalArgumentException("Bundle product " + bundleProductId + " has no config section.");
+                ConfigAccessor productSection = products.getConfig(bundleProductId).orElse(null);
+                if (productSection == null)
+                    throw new IllegalArgumentException("Bundle product " + bundleProductId + " has no config section.");
                 buildProduct(bundleProductId, productSection, defaultSettings);
             }
         }
     }
 
     @Override
-    public void buildProduct(@NotNull String id, @NotNull ConfigurationSection productSection, @NotNull ConfigurationSection defaultSettings) {
+    public void buildProduct(@NotNull String id, @NotNull ConfigAccessor productConfig, @NotNull ConfigAccessor defaultSettings) {
         if (containsProduct(id)) {
-            LogUtils.warn("Product ID is duplicated: " + id + ". Ignore this product.");
+            LogUtils.warn("Product id \"" + id + "\" is duplicated. Ignore this product.");
             return;
         }
 
-        ConfigUtils.inheritConfigSection(productSection, defaultSettings);
+        ConfigAccessor inheritedProductConfig = new ConfigInheritor(defaultSettings, productConfig);
 
-        LogUtils.warn(productSection.getKeys(true).toString());
+        ConfigAccessor itemConfig = new ConfigInheritor(defaultSettings.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
+        ConfigAccessor iconConfig = new ConfigInheritor(defaultSettings.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())), inheritedProductConfig.getConfig("icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
 
-        ConfigurationSection itemSection = productSection.getConfigurationSection("item");
-        ConfigurationSection iconSection = productSection.getConfigurationSection("icon");
+        // Icon 继承 Item
+        ConfigAccessor inheritedIconConfig = new ConfigInheritor(itemConfig, iconConfig);
 
-        // Price (可以指定默认值)
+        // Price
         Price buyPrice = new PriceImpl(
-                ConfigUtils.inheritPriceSection(productSection.getConfigurationSection("buy-price"), defaultSettings.getConfigurationSection("buy-price"))
+                defaultSettings.getConfig("buy-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())),
+                inheritedProductConfig.getConfig("buy-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))
         );
         Price sellPrice = new PriceImpl(
-                ConfigUtils.inheritPriceSection(productSection.getConfigurationSection("sell-price"), defaultSettings.getConfigurationSection("sell-price"))
+                defaultSettings.getConfig("sell-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())),
+                inheritedProductConfig.getConfig("sell-price").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))
         );
 
-        // Rarity (可以指定默认值)
-        Rarity rarity = HyphaShop.RARITY_FACTORY.getRarity(productSection.getString("rarity", RarityConfig.getAllId().getFirst()));
+        // Rarity
+        String rarityId = inheritedProductConfig.getString("rarity").orElse(RarityConfig.getAllId().getFirst());
+        Rarity rarity = HyphaShop.RARITY_FACTORY.getRarity(rarityId);
 
-        // Cacheable (可以指定默认值)
-        boolean isCacheable = productSection.getBoolean("cacheable", true);
+        if (rarity == null) {
+            LogUtils.warn("Product " + id + " has invalid rarity config: " + rarityId + ". Use default rarity: " + RarityConfig.getAllId().getFirst());
+            rarity = HyphaShop.RARITY_FACTORY.getRarity(RarityConfig.getAllId().getFirst());
+        }
+        assert rarity != null;
+
+        // Cacheable
+        boolean isCacheable = inheritedProductConfig.getBoolean("cacheable").orElse(true);
 
         // Item (只有 ItemProduct 需要此配置)
         BaseItemDecorator itemDecorator = null;
-        if (itemSection != null && productSection.contains("item")) {
-            BaseItem base = BaseItemBuilder.get(itemSection.getString("base", "dirt"));
-
-            if (base == null) {
-                LogUtils.warn("Product " + id + " has invalid base setting. Please check it.");
-                return;
-            }
-
-            itemDecorator = ConfigUtils.parseDecorator(itemSection);
-        }
-
-        // Icon (若不指定则与 Item 相同)
-        if (iconSection == null) {
-            if (itemSection != null) {
-                iconSection = itemSection;
-            } else {
-                LogUtils.warn("Product " + id + " has invalid config.");
-                return;
-            }
-        }
-
-        // Icon 继承 Item
-        if (itemSection != null) {
-            ConfigUtils.inheritConfigSection(iconSection, itemSection);
+        // 具有 item.base 配置键的商品即被视为 ItemProduct
+        if (inheritedProductConfig.contains("item") && inheritedProductConfig.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())).contains("base")) {
+            itemDecorator = ConfigUtils.parseDecorator(itemConfig);
         }
 
         // 库存（可指定默认值）
-        ProductStock stock = new ProductStockImpl(id, 0, 0, false, false, false, false, false, false);
-        ConfigurationSection stockSection = productSection.getConfigurationSection("stock");
+        ProductStock stock;
+        ConfigAccessor stockConfig = inheritedProductConfig.getConfig("stock").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
 
-        if (stockSection != null) {
-            stock = new ProductStockImpl(
-                    id,
-                    stockSection.getInt("global.size", -1),
-                    stockSection.getInt("player.size", -1),
-                    stockSection.getBoolean("global.replenish", false),
-                    stockSection.getBoolean("player.replenish", false),
-                    stockSection.getBoolean("global.overflow", false),
-                    stockSection.getBoolean("player.overflow", false),
-                    stockSection.getBoolean("global.inherit", false),
-                    stockSection.getBoolean("player.inherit", false)
-            );
+        stock = new ProductStockImpl(
+                id,
+                stockConfig.getInt("global.size").orElse(Integer.MIN_VALUE),
+                stockConfig.getInt("player.size").orElse(Integer.MIN_VALUE),
+                stockConfig.getBoolean("global.replenish").orElse(false),
+                stockConfig.getBoolean("player.replenish").orElse(false),
+                stockConfig.getBoolean("global.overflow").orElse(false),
+                stockConfig.getBoolean("player.overflow").orElse(false),
+                stockConfig.getBoolean("global.inherit").orElse(false),
+                stockConfig.getBoolean("player.inherit").orElse(false)
+        );
+
+        ProductSchema stockSchema = HyphaShop.DATABASE_FACTORY.getProductDao().querySchema(id);
+
+        // 仅持久化 currentAmount 数据（尊重最新的 overflow, replenish, size 等配置）
+        if (stockSchema != null) {
+            stock.setCurrentGlobalAmount(stockSchema.currentGlobalAmount());
+            stock.setCurrentPlayerAmount(stockSchema.currentPlayerAmount());
         }
 
-        if (stockSection != null) {
-            ProductStockSchema stockSchema = HyphaShop.DATABASE_FACTORY.getProductStockDao().querySchema(id);
-
-            // 仅持久化 currentAmount 数据（尊重最新的 overflow, supply, size 等配置）
-            if (stockSchema != null) {
-                stock.setCurrentGlobalAmount(stockSchema.currentGlobalAmount());
-                stock.setCurrentPlayerAmount(stockSchema.currentPlayerAmount());
-            }
-        }
+        // Actions
+        // 注意此处的继承关系是手动处理的
+        ConfigAccessor actionsConfig = productConfig.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        ConfigAccessor defaultActionsConfig = defaultSettings.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        ActionsConfig actions = ActionsConfig.of(actionsConfig);
+        actions.inherit(ActionsConfig.of(defaultActionsConfig));
 
         // IconDecorator
-        BaseItem base = BaseItemBuilder.get(iconSection.getString("base", "dirt"));
-
-        if (base == null) {
-            LogUtils.warn("Product " + id + " has invalid base setting. Please check it.");
-            return;
-        }
-
-        // ListConditions
-        List<String> listConditions = productSection.getStringList("list-conditions");
-
-        BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(iconSection);
-
-        if (iconDecorator == null) {
-            LogUtils.warn("Product " + id + " has invalid icon setting. Please check it.");
-            return;
-        }
+        BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(inheritedIconConfig);
 
         // 脚本用上下文
-        Context ctx = ScriptUtils.extractContext(productSection.getString("context", ""));
+        Context ctx = ScriptUtils.extractContext(inheritedProductConfig.getString("context").orElse(""));
 
         // 构建商品 & 储存
-        if (productSection.contains("buy-commands") || productSection.contains("sell-commands")) {
-            // 命令
-            products.put(id,
-                    new CommandProduct(id, buyPrice, sellPrice, rarity, iconDecorator, stock, listConditions, ctx,
-                            productSection.getStringList("buy-commands"),
-                            productSection.getStringList("sell-commands")));
-        } else if (productSection.contains("bundle-contents")) {
+        if (inheritedProductConfig.contains("bundle-contents") && inheritedProductConfig.isList("bundle-contents")) {
             Map<String, Integer> bundleContents = new HashMap<>();
-            for (String contentData : productSection.getStringList("bundle-contents")) {
+            for (String contentData : inheritedProductConfig.getStringList("bundle-contents").orElse(Collections.emptyList())) {
                 String[] parsedContentData = contentData.split(":");
                 if (parsedContentData.length == 1) {
                     bundleContents.put(parsedContentData[0], 1);
                 } else if (parsedContentData.length == 2) {
                     bundleContents.put(parsedContentData[0], Integer.parseInt(parsedContentData[1]));
                 } else {
-                    LogUtils.warn("Product " + id + " has invalid bundle-contents. The invalid line is: " + contentData + ".");
+                    LogUtils.warn("Product \"" + id + "\" has invalid bundle-contents. The invalid line is: " + contentData + ".");
                     continue;
                 }
                 // 检查捆绑包内容商品是否存在
                 // 需确保捆绑包商品在所有商品之后加载
                 Product content = products.get(parsedContentData[0]);
                 if (content == null) {
-                    LogUtils.warn("Bundle product " + id + " has invalid content " + contentData + ". Please check and fix it in your product config.");
+                    LogUtils.warn("Bundle product \"" + id + "\" has invalid content " + contentData + ". Please check and fix it in your product config.");
                     bundleContents.remove(parsedContentData[0]);
                 }
             }
-            // 捆绑包
             products.put(id,
-                    new BundleProduct(id, buyPrice, sellPrice, rarity, iconDecorator, stock, listConditions, ctx, bundleContents));
+                    new BundleProduct(id, buyPrice, sellPrice, rarity, iconDecorator, stock, ctx, actions, bundleContents));
         } else if (itemDecorator != null) {
-            // 纯物品
             products.put(id,
-                    new ItemProduct(id, buyPrice, sellPrice, rarity, iconDecorator, itemDecorator, stock, listConditions, ctx, isCacheable));
+                    new ItemProduct(id, buyPrice, sellPrice, rarity, iconDecorator, itemDecorator, stock, ctx, actions, isCacheable));
         } else {
-            throw new IllegalArgumentException("Product is neither item, bundle or command.");
+            if (actions.isEmpty())
+                LogUtils.warn("Product \"" + id + "\" has neither bundle-contents, item nor actions, which is meaningless. This product will still be loaded but will do nothing when being bought or sold. Please check your product config.");
+            products.put(id,
+                    new VirtualProduct(id, buyPrice, sellPrice, rarity, iconDecorator, stock, ctx, actions, isCacheable));
         }
     }
 
@@ -225,7 +193,7 @@ public class ProductFactoryImpl implements ProductFactory {
     }
 
     @Override
-    public Product getProduct(@NotNull String id) {
+    public @Nullable Product getProduct(@NotNull String id) {
         return products.get(id);
     }
 
@@ -242,12 +210,9 @@ public class ProductFactoryImpl implements ProductFactory {
 
     @Override
     public void save() {
-        for (Product product : getProducts().values()) {
-            // 仅需要储存有库存设置的商品
-            if (product.getProductStock().isGlobalStock() || product.getProductStock().isPlayerStock()) {
-                ProductStockDao dao = HyphaShop.DATABASE_FACTORY.getProductStockDao();
-                dao.insertSchema(ProductStockSchema.of(product.getProductStock()));
-            }
-        }
+        products.values().forEach(product -> {
+            ProductDao dao = HyphaShop.DATABASE_FACTORY.getProductDao();
+            dao.insertSchema(ProductSchema.of(product.getProductStock()));
+        });
     }
 }

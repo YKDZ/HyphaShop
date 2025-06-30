@@ -11,10 +11,6 @@ public class MythicMobsHook {
         }
     }
 
-    public static String getIdentifier() {
-        return "MM:";
-    }
-
     public static boolean isHooked() {
         return Bukkit.getPluginManager().getPlugin("MythicMobs") != null;
     }

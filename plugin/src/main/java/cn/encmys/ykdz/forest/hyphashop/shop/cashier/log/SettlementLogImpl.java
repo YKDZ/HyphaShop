@@ -3,58 +3,22 @@ package cn.encmys.ykdz.forest.hyphashop.shop.cashier.log;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class SettlementLogImpl implements SettlementLog {
-    protected UUID customer;
-    protected OrderType type;
-    protected Date transitionTime;
-    protected double price;
-    protected Map<String, AmountPair> orderedProducts;
-    protected String settledShopId;
+    protected final @NotNull Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>();
+    protected final @NotNull Map<ProductLocation, Double> bill = new HashMap<>();
+    protected @NotNull UUID customer;
+    protected @NotNull OrderType type;
+    protected @NotNull Date transitionTime = new Date();
 
-    private SettlementLogImpl() {
-    }
-
-    public static @NotNull SettlementLog of(@NotNull OrderType type, @NotNull UUID customer) {
-        switch (type) {
-            case SELL_TO -> {
-                return SettlementLogImpl.sellToLog(customer);
-            }
-            case BUY_ALL_FROM -> {
-                return SettlementLogImpl.buyAllFromLog(customer);
-            }
-            default -> {
-                return SettlementLogImpl.buyFromLog(customer);
-            }
-        }
-    }
-
-    public static @NotNull SettlementLog buyFromLog(@NotNull UUID customer) {
-        return new SettlementLogImpl()
-                .setCustomerUUID(customer)
-                .setType(OrderType.BUY_FROM)
-                .setTransitionTime(new Date());
-    }
-
-    public static @NotNull SettlementLog buyAllFromLog(@NotNull UUID customer) {
-        return new SettlementLogImpl()
-                .setCustomerUUID(customer)
-                .setType(OrderType.BUY_ALL_FROM)
-                .setTransitionTime(new Date());
-    }
-
-    public static @NotNull SettlementLog sellToLog(@NotNull UUID customer) {
-        return new SettlementLogImpl()
-                .setCustomerUUID(customer)
-                .setType(OrderType.SELL_TO)
-                .setTransitionTime(new Date());
+    public SettlementLogImpl(@NotNull UUID customer, @NotNull OrderType type) {
+        this.customer = customer;
+        this.type = type;
     }
 
     @Override
@@ -76,31 +40,27 @@ public class SettlementLogImpl implements SettlementLog {
     }
 
     @Override
-    public @NotNull SettlementLog setTotalPrice(double price) {
-        this.price = price;
-        return this;
-    }
-
-    @Override
-    public @NotNull @Unmodifiable Map<String, AmountPair> getOrderedProducts() {
+    public @NotNull @Unmodifiable Map<ProductLocation, AmountPair> getOrderedProducts() {
         return Collections.unmodifiableMap(orderedProducts);
     }
 
     @Override
-    public @NotNull SettlementLog setOrderedProducts(@NotNull Map<String, AmountPair> orderedProducts) {
-        this.orderedProducts = orderedProducts;
+    public @NotNull SettlementLog setOrderedProducts(@NotNull Map<ProductLocation, AmountPair> orderedProducts) {
+        this.orderedProducts.clear();
+        this.orderedProducts.putAll(orderedProducts);
         return this;
     }
 
     @Override
-    public @NotNull String getSettledShopId() {
-        return settledShopId;
+    public @NotNull SettlementLog setBill(@NotNull Map<ProductLocation, Double> bill) {
+        this.bill.clear();
+        this.bill.putAll(bill);
+        return this;
     }
 
     @Override
-    public @NotNull SettlementLog setSettledShopId(@NotNull String settledShopId) {
-        this.settledShopId = settledShopId;
-        return this;
+    public @NotNull @Unmodifiable Map<ProductLocation, Double> getBill() {
+        return Collections.unmodifiableMap(bill);
     }
 
     @Override
@@ -120,6 +80,6 @@ public class SettlementLogImpl implements SettlementLog {
 
     @Override
     public double getTotalPrice() {
-        return price;
+        return bill.values().stream().reduce(0.0, Double::sum);
     }
 }

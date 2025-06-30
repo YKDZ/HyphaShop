@@ -1,87 +1,102 @@
 package cn.encmys.ykdz.forest.hyphashop.item.builder;
 
-import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionClickType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
-import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
+import cn.encmys.ykdz.forest.hyphashop.api.profile.cart.Cart;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.order.ShopOrder;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.config.CartGUIConfig;
-import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.CartProductIconRecord;
+import cn.encmys.ykdz.forest.hyphashop.utils.DecoratorUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.VarUtils;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.Item;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CartProductIconBuilder {
     @NotNull
-    public static Item toCartGUIItem(@NotNull Shop shop, @NotNull ShopOrder cartOrder, @NotNull String productId) {
-        CartProductIconRecord iconRecord = CartGUIConfig.getGUIRecord().cartProductIcon();
-        Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
+    public static Item build(@NotNull Cart cart, @NotNull ProductLocation productLoc) {
+        Product product = productLoc.product();
+        Shop shop = productLoc.shop();
 
-        if (product == null) return Item.simple(new ItemStack(Material.AIR));
+        if (product == null || shop == null) return Item.simple(new ItemStack(Material.AIR));
 
-        return Item.builder()
+        BaseItemDecorator staticIconDecorator = CartGUIConfig.getCartProductIconRecord().iconDecorator();
+
+        var builder = Item.builder()
                 .setItemProvider((player) -> {
-                    int stack = cartOrder.getOrderedProducts().getOrDefault(productId, 0);
+                    int stack = cart.getOrder().getOrderedProducts().getOrDefault(productLoc, 0);
                     if (stack <= 0) {
                         return new xyz.xenondevs.invui.item.ItemBuilder(Material.AIR);
                     }
 
                     Map<String, Object> vars = new HashMap<>() {{
-                        putAll(VarUtils.extractVars(player, shop));
-                        putAll(VarUtils.extractVars(shop, product));
                         put("stack", stack);
-                        {
-                            // 保证购物车商品数量更新时能立刻看到价格变化
-                            if (!cartOrder.isBilled()) {
-                                shop.getShopCashier().billOrder(cartOrder);
-                            }
-                            put("total_price", cartOrder.getOrderType() == OrderType.SELL_TO ? MessageConfig.format_decimal.format(cartOrder.getBilledPrice(product)) : MessageConfig.placeholderAPI_cartTotalPrice_notSellToMode);
-                        }
+                        put("total_price", cart.getOrder().getBilledPrice(productLoc));
                     }};
 
-                    Component name = TextUtils.decorateTextToComponent(iconRecord.formatName(), player, vars);
-                    List<Component> lore = TextUtils.decorateTextToComponent(iconRecord.formatLore(), player, vars, null);
+                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
+                            product.getScriptContext().clone(),
+                            shop.getScriptContext().clone()
+                    ), player, shop, product, cart.getOrder());
 
+                    // 在商品自己图标的基础上覆盖名称、lore 和 itemFlags
                     return new xyz.xenondevs.invui.item.ItemBuilder(
                             new ItemBuilder(product.getIconDecorator().getBaseItem().build(player))
-                                    .setDisplayName(name)
-                                    .setLore(lore)
+                                    .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), ContextUtils.linkContext(
+                                            product.getScriptContext().clone(),
+                                            shop.getScriptContext().clone()
+                                    ), vars, player, shop, product, cart.getOrder()))
+                                    .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), ContextUtils.linkContext(
+                                            product.getScriptContext().clone(),
+                                            shop.getScriptContext().clone()
+                                    ), vars, player, shop, product, cart.getOrder()))
+                                    .setItemFlags(iconDecorator.getProperty(ItemProperty.ITEM_FLAGS))
+                                    .setBannerPatterns(product.getIconDecorator().getProperty(ItemProperty.BANNER_PATTERNS))
+                                    .setFireworkEffects(product.getIconDecorator().getProperty(ItemProperty.FIREWORK_EFFECTS))
+                                    .setEnchantments(product.getIconDecorator().getProperty(ItemProperty.ENCHANTMENTS))
+                                    .setPotionEffects(product.getIconDecorator().getProperty(ItemProperty.POTION_EFFECTS))
+                                    .setArmorTrim(product.getIconDecorator().getProperty(ItemProperty.ARMOR_TRIM))
+                                    .setEnchantable(product.getIconDecorator().getProperty(ItemProperty.ENCHANTABLE))
+                                    .setGlider(product.getIconDecorator().getProperty(ItemProperty.GLIDER))
+                                    .setFlightDuration(product.getIconDecorator().getProperty(ItemProperty.FLIGHT_DURATION))
+                                    .setEnchantGlint(product.getIconDecorator().getProperty(ItemProperty.ENCHANT_GLINT))
+                                    .setPotionCustomColor(product.getIconDecorator().getProperty(ItemProperty.POTION_COLOR))
+                                    .setPotionType(product.getIconDecorator().getProperty(ItemProperty.POTION_TYPE))
+                                    .setPotionCustomName(product.getIconDecorator().getProperty(ItemProperty.POTION_CUSTOM_NAME))
+                                    .setCustomModelData(product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS))
                                     .build(stack)
                     );
                 })
                 .addClickHandler((item, click) -> {
-                    Player player = click.getPlayer();
-                    ClickType clickType = click.getClickType();
+                    Player player = click.player();
 
-                    Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
-                    if (iconRecord.featuresAdd1Stack() == clickType) {
-                        cartOrder.modifyStack(product, 1);
-                    }
-                    if (iconRecord.featuresRemove1Stack() == clickType) {
-                        cartOrder.modifyStack(product, -1);
-                    }
-                    if (iconRecord.featuresRemoveAll() == clickType) {
-                        cartOrder.setStack(product, 0);
-                    }
-                    if (iconRecord.featuresInputInAnvil() == clickType) {
-                        HyphaShop.PROFILE_FACTORY.getProfile(player).pickProductStack(shop, productId);
-                    }
-                    profile.getCartGUI().loadContent(player);
-                })
-                // 购物车商品图标不刷新
-                .build();
+                    BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
+                            product.getScriptContext().clone(),
+                            shop.getScriptContext().clone()
+                    ), player, shop, product, click, item, cart.getOrder());
+                    ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
+
+                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, ContextUtils.linkContext(
+                            product.getScriptContext(),
+                            shop.getScriptContext()
+                    ), Collections.emptyMap(), player, shop, product, click, item, cart.getOrder());
+                });
+
+        if (Boolean.TRUE.equals(staticIconDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
+        Integer period = staticIconDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
+        if (period != null) builder.updatePeriodically(period);
+        return builder.build();
     }
 }

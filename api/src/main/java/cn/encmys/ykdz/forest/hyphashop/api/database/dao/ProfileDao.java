@@ -7,9 +7,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 public interface ProfileDao {
-    void initDB();
     @Nullable ProfileSchema querySchema(@NotNull UUID playerUUID);
+
     void insertSchema(@NotNull ProfileSchema schema);
+
     void updateSchema(@NotNull ProfileSchema schema);
+
     void deleteSchema(@NotNull ProfileSchema schema);
 }

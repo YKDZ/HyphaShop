@@ -3,12 +3,14 @@ package cn.encmys.ykdz.forest.hyphashop.item;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
-import cn.encmys.ykdz.forest.hyphautils.HyphaAdventureUtils;
+import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
 import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.stat.type.NameData;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -28,20 +30,20 @@ public class MMOItemsItem implements BaseItem {
     }
 
     @Override
-    public @Nullable String getDisplayName(@NotNull BaseItemDecorator decorator) {
+    public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
         MMOItem mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
 
         if (mmoItem == null) {
-            return null;
+            return Component.translatable("Name of MMOItems item " + getType().getId() + ":" + getId() + " not found").color(TextColor.color(255, 0, 0));
         }
 
         for (var stat : mmoItem.getStats()) {
             if (stat.getId().equals("NAME")) {
-                return HyphaAdventureUtils.legacyToMiniMessage(((NameData) mmoItem.getData(stat)).getMainName());
+                return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(((NameData) mmoItem.getData(stat)).getMainName()));
             }
         }
 
-        return null;
+        return Component.translatable("Name of MMOItems item " + getId() + " not found").color(TextColor.color(255, 0, 0));
     }
 
     @Override

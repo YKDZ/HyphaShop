@@ -2,28 +2,23 @@ package cn.encmys.ykdz.forest.hyphashop.api.database.dao;
 
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface SettlementLogDao {
-    void initDB();
+    @NotNull List<SettlementLog> queryLogs(@NotNull String shopId, @NotNull OrderType @NotNull ... types);
 
-    List<SettlementLog> queryLogs(UUID playerUUID, long dayLimit, long amountLimit, OrderType... types);
+    @NotNull List<SettlementLog> queryLogs(@NotNull UUID playerUUID, int offset, int limit, @NotNull OrderType @NotNull ... types);
 
-    List<SettlementLog> queryLogs(String shopId, long dayLimit, long amountLimit, OrderType... types);
+    int queryHistoryStack(@NotNull String productId, @NotNull OrderType @NotNull ... types);
 
-    List<SettlementLog> queryLogs(String shopId, UUID playerUUID, long dayLimit, long amountLimit, OrderType... types);
+    int queryHistoryAmount(@NotNull String productId, @NotNull OrderType @NotNull ... types);
 
-    List<SettlementLog> queryLogs(UUID playerUUID, int pageIndex, int pageSize, OrderType... types);
+    void insertLog(@NotNull SettlementLog log);
 
-    List<SettlementLog> queryLogs(String shopId, int pageIndex, int pageSize, OrderType... types);
+    void deleteLog(@NotNull UUID customerUUID, long daysLateThan);
 
-    List<SettlementLog> queryLogs(String shopId, UUID playerUUID, int pageIndex, int pageSize, OrderType... types);
-
-    void insertLog(SettlementLog log);
-
-    void deleteLog(UUID customerUUID, long daysLateThan, OrderType... types);
-
-    int countLog(UUID customerUUID, long dayLimit, long amountLimit, OrderType... types);
+    int countLog(@NotNull UUID customerUUID, @NotNull OrderType @NotNull ... types);
 }

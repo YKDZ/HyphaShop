@@ -1,13 +1,22 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.order;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.ShopOrder;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
+import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
+import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
+import cn.encmys.ykdz.forest.hyphashop.utils.BalanceUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
-import com.google.gson.annotations.Expose;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -15,17 +24,10 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.*;
 
 public class ShopOrderImpl implements ShopOrder, Cloneable {
-    @Expose
-    private UUID customerUUID;
-    @Expose
-    private final Map<String, Integer> orderedProducts = new HashMap<>();
-    @Expose
-    private OrderType orderType;
-    @Expose
-    private Map<String, Double> bill = new HashMap<>();
-    @Expose
-    private boolean isSettled = false;
-    @Expose
+    private final @NotNull Map<@NotNull ProductLocation, @NotNull Integer> orderedProducts = new HashMap<>();
+    private final Map<ProductLocation, Double> bill = new HashMap<>();
+    private @NotNull UUID customerUUID;
+    private @NotNull OrderType type = OrderType.SELL_TO;
     private boolean isBilled = false;
 
     public ShopOrderImpl(@NotNull UUID customerUUID) {
@@ -33,116 +35,328 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     public ShopOrderImpl(@NotNull Player customer) {
-        this.customerUUID = customer.getUniqueId();
+        this(customer.getUniqueId());
     }
 
     @Override
-    public @NotNull ShopOrder combineOrder(@NotNull ShopOrder order) {
-        if (!customerUUID.equals(order.getCustomerUUID())) {
+    public void combineOrder(@NotNull ShopOrder newOrder) {
+        if (!customerUUID.equals(newOrder.getCustomerUUID())) {
             LogUtils.warn("Try to combine orders with different customer.");
-            return this;
+            return;
         }
-        if (orderType != order.getOrderType()) {
+        if (type != newOrder.getType()) {
             LogUtils.warn("Try to combine orders with different order types.");
-            return this;
+            return;
         }
-        if (isSettled || order.isSettled()) {
-            LogUtils.warn("Try to combine orders that has already been settled.");
-            return this;
-        }
-        for (Map.Entry<String, Integer> entry : order.getOrderedProducts().entrySet()) {
-            modifyStack(entry.getKey(), entry.getValue());
-        }
+        // 新定单合并到本定单
+        newOrder.getOrderedProducts()
+                .forEach(this::modifyStack);
         setBilled(false);
+    }
+
+    @Override
+    public @NotNull SettlementResult settle() {
+        bill();
+        return switch (type) {
+            case BUY_FROM, BUY_ALL_FROM -> buyFrom();
+            case SELL_TO -> sellTo();
+        };
+    }
+
+    private @NotNull SettlementResult sellTo() {
+        Player customer = Bukkit.getPlayer(customerUUID);
+        if (customer == null) {
+            return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
+        }
+
+        SettlementResult result = new SettlementResult(canSellTo(), getTotalPrice());
+        if (result.type() == SettlementResultType.SUCCESS) {
+            for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+                ProductLocation productLoc = entry.getKey();
+                Product product = productLoc.product();
+                Shop shop = productLoc.shop();
+                int stack = entry.getValue();
+
+                if (product == null || shop == null) continue;
+
+                // 处理商人模式
+                if (shop.getShopCashier().isMerchant() && (shop.getShopCashier().isReplenish() && getTotalPrice() > 0))
+                    shop.getShopCashier().modifyBalance(getTotalPrice());
+
+                // 处理库存
+                ProductStock stock = product.getProductStock();
+                if (stock.isGlobalStock()) stock.modifyGlobal(this);
+                if (stock.isPlayerStock()) stock.modifyPlayer(this);
+
+                // 处理余额
+                BalanceUtils.removeBalance(customer, getBilledPrice(productLoc));
+
+                // 给予商品
+                product.give(shop, customer, stack);
+            }
+
+            log();
+        }
+
+        return result;
+    }
+
+    private @NotNull SettlementResult buyFrom() {
+        Player customer = Bukkit.getPlayer(customerUUID);
+        if (customer == null) return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
+
+        SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrice());
+        if (result.type() == SettlementResultType.SUCCESS) {
+            for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+                ProductLocation productLoc = entry.getKey();
+                Product product = productLoc.product();
+                Shop shop = productLoc.shop();
+                int stack = entry.getValue();
+
+                if (product == null || shop == null) continue;
+
+                // 处理商人模式
+                if (shop.getShopCashier().isMerchant())
+                    shop.getShopCashier().modifyBalance(-1 * getTotalPrice());
+
+                // 处理库存
+                ProductStock stock = product.getProductStock();
+                if (stock.isGlobalStock() && stock.isGlobalReplenish()) stock.modifyGlobal(this);
+                if (stock.isPlayerStock() && stock.isGlobalReplenish()) stock.modifyPlayer(this);
+
+                // 处理余额
+                BalanceUtils.addBalance(customer, getBilledPrice(productLoc));
+
+                // 收取商品
+                product.take(shop, customer, stack);
+            }
+
+            log();
+        }
+
+        return result;
+    }
+
+    @Override
+    public @NotNull SettlementResultType canSellTo() {
+        Player customer = Bukkit.getPlayer(customerUUID);
+
+        // 顾客不存在
+        if (customer == null) {
+            return SettlementResultType.INVALID_CUSTOMER;
+        }
+        // 订单为空（实际上在 ProfileImpl#settleCart 中用于处理购物车为空的情况）
+        else if (orderedProducts.isEmpty()) {
+            return SettlementResultType.EMPTY;
+        }
+
+        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            ProductLocation productLoc = entry.getKey();
+            Product product = productLoc.product();
+            Shop shop = productLoc.shop();
+            int stack = entry.getValue();
+
+            if (product == null || shop == null) continue;
+
+            // 当前未上架（购物车暂存）
+            if (!shop.getShopStocker().isListedProduct(product.getId())) {
+                return SettlementResultType.NOT_LISTED;
+            }
+            // 商品未开放购买
+            else if (product.getBuyPrice().getPriceMode() == PriceMode.DISABLE || Double.isNaN(getBilledPrice(productLoc))) {
+                return SettlementResultType.TRANSITION_DISABLED;
+            }
+            // 客户余额不足
+            else if (BalanceUtils.checkBalance(customer) < getBilledPrice(productLoc)) {
+                return SettlementResultType.NOT_ENOUGH_MONEY;
+            }
+            // 商品个人库存不足
+            else if (product.getProductStock().isPlayerStock() && product.getProductStock().isReachPlayerLimit(customerUUID, stack)) {
+                return SettlementResultType.NOT_ENOUGH_PLAYER_STOCK;
+            }
+            // 商品总库存不足
+            else if (product.getProductStock().isGlobalStock() && product.getProductStock().isReachGlobalLimit(stack)) {
+                return SettlementResultType.NOT_ENOUGH_GLOBAL_STOCK;
+            }
+        }
+
+        // 客户背包空间不足
+        // 需要保证所有商品都上架才能检查
+        // 故放在最后
+        if (!canHold()) {
+            return SettlementResultType.NOT_ENOUGH_INVENTORY_SPACE;
+        }
+
+        return SettlementResultType.SUCCESS;
+    }
+
+    @Override
+    public @NotNull SettlementResultType canBuyFrom() {
+        Player customer = Bukkit.getPlayer(customerUUID);
+
+        // 顾客不存在
+        if (customer == null) {
+            return SettlementResultType.INVALID_CUSTOMER;
+        }
+        // 订单为空
+        else if (orderedProducts.isEmpty()) {
+            return SettlementResultType.EMPTY;
+        }
+
+        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            ProductLocation productLoc = entry.getKey();
+            Product product = productLoc.product();
+            Shop shop = productLoc.shop();
+            int stack = entry.getValue();
+
+            if (product == null || shop == null) continue;
+
+            // 当前未上架（购物车暂存）
+            if (!shop.getShopStocker().isListedProduct(product.getId())) {
+                return SettlementResultType.NOT_LISTED;
+            }
+            // 商品未开放收购
+            else if (product.getSellPrice().getPriceMode() == PriceMode.DISABLE || Double.isNaN(getBilledPrice(productLoc))) {
+                return SettlementResultType.TRANSITION_DISABLED;
+            }
+            // 商人模式余额不足
+            else if (shop.getShopCashier().isMerchant() && shop.getShopCashier().getBalance() < getTotalPrice()) {
+                return SettlementResultType.NOT_ENOUGH_MERCHANT_BALANCE;
+            }
+            // 客户没有足够的商品
+            else if (product.has(shop, customer, stack) == 0) {
+                return SettlementResultType.NOT_ENOUGH_PRODUCT;
+            }
+        }
+        return SettlementResultType.SUCCESS;
+    }
+
+    @Override
+    public boolean canHold() {
+        Player customer = Bukkit.getPlayer(customerUUID);
+        if (customer == null) return false;
+
+
+        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            ProductLocation productLoc = entry.getKey();
+            Product product = productLoc.product();
+            Shop shop = productLoc.shop();
+            int stack = entry.getValue();
+
+            if (product == null || shop == null) continue;
+
+            if (!product.canHold(shop, customer, stack)) return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public void bill() {
+        if (isBilled()) return;
+
+        Map<ProductLocation, Double> bill = new HashMap<>();
+        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            ProductLocation productLoc = entry.getKey();
+            String productId = productLoc.productId();
+            Shop shop = productLoc.shop();
+            int stack = entry.getValue();
+            double price;
+
+            if (shop == null) continue;
+
+            if (type == OrderType.SELL_TO) {
+                price = shop.getShopPricer().getBuyPrice(productId) * stack;
+            } else {
+                price = shop.getShopPricer().getSellPrice(productId) * stack;
+            }
+
+            bill.put(productLoc, price);
+        }
+
+        setBill(bill);
+        setBilled(true);
+    }
+
+    private void log() {
+        SettlementLog log = new SettlementLogImpl(customerUUID, type);
+
+        Map<ProductLocation, AmountPair> orderResult = new HashMap<>();
+        for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+            ProductLocation productLoc = entry.getKey();
+            Product product = productLoc.product();
+            Shop shop = productLoc.shop();
+            int stack = entry.getValue();
+
+            if (product == null || shop == null) continue;
+
+            int amount = shop.getShopCounter().getAmount(productLoc.productId());
+
+            orderResult.put(productLoc, new AmountPair(amount, stack));
+        }
+
+        Scheduler.runAsyncTask((task) -> HyphaShop.DATABASE_FACTORY.getSettlementLogDao().insertLog(log
+                .setOrderedProducts(orderResult)
+                .setBill(bill)
+        ));
+    }
+
+    @Override
+    public @NotNull ShopOrder setType(@NotNull OrderType orderType) {
+        this.type = orderType;
+        this.isBilled = false;
         return this;
     }
 
     @Override
-    public @NotNull ShopOrder setOrderType(@NotNull OrderType orderType) {
-        if (isSettled) {
-            return this;
-        }
-        this.orderType = orderType;
-        setBilled(false);
-        return this;
+    public @NotNull ShopOrder modifyStack(@NotNull ProductLocation productLoc, int amount) {
+        int newValue = orderedProducts.getOrDefault(productLoc, 0) + amount;
+        return setStack(productLoc, newValue);
     }
 
     @Override
-    public @NotNull ShopOrder modifyStack(@NotNull Product product, int amount) {
-        return modifyStack(product.getId(), amount);
-    }
-
-    @Override
-    public @NotNull ShopOrder modifyStack(@NotNull String productId, int amount) {
-        if (isSettled) {
-            return this;
-        }
-        int newValue = orderedProducts.getOrDefault(productId, 0) + amount;
-        return setStack(productId, newValue);
-    }
-
-    @Override
-    public @NotNull ShopOrder setStack(@NotNull Product product, int amount) {
-        return setStack(product.getId(), amount);
-    }
-
-    @Override
-    public @NotNull ShopOrder setStack(@NotNull String productId, int amount) {
-        if (isSettled) {
-            return this;
-        }
+    public @NotNull ShopOrder setStack(@NotNull ProductLocation productLoc, int amount) {
         if (amount <= 0) {
-            orderedProducts.remove(productId);
+            orderedProducts.remove(productLoc);
         } else {
-            orderedProducts.put(productId, amount);
+            orderedProducts.put(productLoc, amount);
         }
         setBilled(false);
         return this;
     }
 
     @Override
-    public boolean isSettled() {
-        return isSettled;
+    public @NotNull OrderType getType() {
+        return type;
     }
 
     @Override
-    public ShopOrder setSettled(boolean settled) {
-        isSettled = settled;
-        return this;
-    }
-
-    @Override
-    public @NotNull OrderType getOrderType() {
-        return orderType;
-    }
-
-    @Override
-    public UUID getCustomerUUID() {
+    public @NotNull UUID getCustomerUUID() {
         return customerUUID;
     }
 
     @Override
-    public @NotNull @Unmodifiable Map<String, Integer> getOrderedProducts() {
+    public @NotNull @Unmodifiable Map<ProductLocation, Integer> getOrderedProducts() {
         return Collections.unmodifiableMap(orderedProducts);
     }
 
     @Override
-    public double getBilledPrice(Product product) {
-        return bill.getOrDefault(product.getId(), -1d);
+    public double getBilledPrice(@NotNull ProductLocation productLoc) {
+        if (!isBilled()) bill();
+        return bill.getOrDefault(productLoc, Double.NaN);
     }
 
     @Override
-    public @NotNull ShopOrder setBill(Map<String, Double> bill) {
-        if (isSettled) {
-            return this;
-        }
-        this.bill = bill;
+    public @NotNull ShopOrder setBill(@NotNull @Unmodifiable Map<ProductLocation, Double> bill) {
+        this.bill.clear();
+        this.bill.putAll(bill);
         setBilled(false);
         return this;
     }
 
     @Override
     public double getTotalPrice() {
+        if (!isBilled()) bill();
         return bill.values().stream().mapToDouble(Double::doubleValue).sum();
     }
 
@@ -153,34 +367,30 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     @Override
     public @NotNull ShopOrder setBilled(boolean billed) {
-        if (isSettled) {
-            return this;
-        }
         isBilled = billed;
         return this;
     }
 
     @Override
     public void clear() {
-        if (isSettled) {
-            return;
-        }
         isBilled = false;
         orderedProducts.clear();
     }
 
     @Override
-    public void clean(@NotNull Shop shop) {
-        Iterator<Map.Entry<String, Integer>> iterator = orderedProducts.entrySet().iterator();
+    public void clean() {
+        Iterator<Map.Entry<ProductLocation, Integer>> iterator = orderedProducts.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<String, Integer> entry = iterator.next();
+            Map.Entry<ProductLocation, Integer> entry = iterator.next();
 
+            ProductLocation productLoc = entry.getKey();
+            String productId = productLoc.productId();
+            Product product = productLoc.product();
+            Shop shop = productLoc.shop();
             int stack = entry.getValue();
-            String productId = entry.getKey();
-            Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
 
-            // 商品不存在
-            if (product == null) {
+            // 商品 / 商店不存在
+            if (product == null || shop == null) {
                 iterator.remove();
             }
             // 商品未上架
@@ -203,7 +413,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     @Override
-    public @NotNull ShopOrder setOrderedProducts(@NotNull Map<String, Integer> orderedProducts) {
+    public @NotNull ShopOrder setOrderedProducts(@NotNull Map<ProductLocation, Integer> orderedProducts) {
         this.orderedProducts.clear();
         this.orderedProducts.putAll(orderedProducts);
         return this;
@@ -216,14 +426,16 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     @Override
-    public @NotNull ShopOrder clone() throws CloneNotSupportedException {
-        ShopOrder shopOrder = (ShopOrder) super.clone();
-        return shopOrder
-                .setCustomerUUID(customerUUID)
-                .setOrderType(orderType)
-                .setBill(bill)
-                .setBilled(isBilled)
-                .setSettled(isSettled)
-                .setOrderedProducts(orderedProducts);
+    public @NotNull ShopOrder clone() {
+        try {
+            return ((ShopOrder) super.clone())
+                    .setCustomerUUID(customerUUID)
+                    .setType(type)
+                    .setBill(bill)
+                    .setBilled(isBilled)
+                    .setOrderedProducts(orderedProducts);
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

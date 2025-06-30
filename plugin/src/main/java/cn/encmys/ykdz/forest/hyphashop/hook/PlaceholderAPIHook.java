@@ -1,7 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.hook;
 
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
-import cn.encmys.ykdz.forest.hyphautils.HyphaPluginUtils;
+import org.bukkit.Bukkit;
 
 public class PlaceholderAPIHook {
     public static void load() {
@@ -12,6 +12,6 @@ public class PlaceholderAPIHook {
     }
 
     public static boolean isHooked() {
-        return HyphaPluginUtils.isExist("PlaceholderAPI");
+        return Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null;
     }
 }
