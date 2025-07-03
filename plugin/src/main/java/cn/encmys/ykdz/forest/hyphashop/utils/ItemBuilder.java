@@ -1,5 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import io.papermc.paper.datacomponent.item.*;
 import net.kyori.adventure.text.Component;
@@ -26,6 +28,25 @@ public class ItemBuilder {
 
     public ItemBuilder(@NotNull ItemStack raw) {
         this.raw = raw;
+    }
+
+    public @NotNull ItemBuilder decorate(@NotNull BaseItemDecorator decorator) {
+        return this
+                .setItemFlags(decorator.getProperty(ItemProperty.ITEM_FLAGS))
+                .setBannerPatterns(decorator.getProperty(ItemProperty.BANNER_PATTERNS))
+                .setFireworkEffects(decorator.getProperty(ItemProperty.FIREWORK_EFFECTS))
+                .setEnchantments(decorator.getProperty(ItemProperty.ENCHANTMENTS))
+                .setPotionEffects(decorator.getProperty(ItemProperty.POTION_EFFECTS))
+                .setArmorTrim(decorator.getProperty(ItemProperty.ARMOR_TRIM))
+                .setEnchantable(decorator.getProperty(ItemProperty.ENCHANTABLE))
+                .setEnchantGlint(decorator.getProperty(ItemProperty.ENCHANT_GLINT))
+                .setGlider(decorator.getProperty(ItemProperty.GLIDER))
+                .setFlightDuration(decorator.getProperty(ItemProperty.FLIGHT_DURATION))
+                .setPotionCustomColor(decorator.getProperty(ItemProperty.POTION_COLOR))
+                .setPotionType(decorator.getProperty(ItemProperty.POTION_TYPE))
+                .setPotionCustomName(decorator.getProperty(ItemProperty.POTION_CUSTOM_NAME))
+                .setUnbreakable(decorator.getProperty(ItemProperty.UNBREAKABLE))
+                .setCustomModelData(decorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS), decorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS), decorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS), decorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS));
     }
 
     public @NotNull ItemBuilder setDisplayName(@Nullable Component customName) {
@@ -237,6 +258,18 @@ public class ItemBuilder {
         }
 
         raw.setData(DataComponentTypes.CUSTOM_MODEL_DATA, builder.build());
+
+        return this;
+    }
+
+    public @NotNull ItemBuilder setUnbreakable(@Nullable Boolean unbreakable) {
+        if (unbreakable == null) return this;
+
+        if (unbreakable) {
+            raw.setData(DataComponentTypes.UNBREAKABLE);
+        } else {
+            raw.unsetData(DataComponentTypes.UNBREAKABLE);
+        }
 
         return this;
     }

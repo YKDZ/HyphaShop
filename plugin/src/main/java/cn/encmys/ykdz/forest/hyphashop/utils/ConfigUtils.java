@@ -53,6 +53,17 @@ public class ConfigUtils {
         if (data == null) return null;
 
         final String[] parsed = data.split(":");
+
+        if (!Key.parseable(parsed[0])) {
+            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            return null;
+        }
+
+        if (!Key.parseable(parsed[1])) {
+            LogUtils.warn("Invalid namespace config: " + parsed[1] + " in " + data);
+            return null;
+        }
+
         try {
             Registry<@NotNull TrimMaterial> materialRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.TRIM_MATERIAL);
             Registry<@NotNull TrimPattern> patternRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.TRIM_PATTERN);
@@ -109,6 +120,7 @@ public class ConfigUtils {
         if (data.isEmpty()) return null;
         return data.stream()
                 .map(ConfigUtils::parsePotionEffectsData)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
@@ -116,8 +128,14 @@ public class ConfigUtils {
      * @param data Potion effect data format like "night_vision:100:1:true:true:true" (PotionEffectType:duration:amplifier:ambient:particles:icon)
      * @return PotionEffect
      */
-    private static @NotNull PotionEffect parsePotionEffectsData(@NotNull String data) {
+    private static @Nullable PotionEffect parsePotionEffectsData(@NotNull String data) {
         final String[] parsed = data.split(":");
+
+        if (!Key.parseable(parsed[0])) {
+            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            return null;
+        }
+
         try {
             Registry<@NotNull PotionEffectType> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.MOB_EFFECT);
             return new PotionEffect(
@@ -157,6 +175,11 @@ public class ConfigUtils {
     private static @NotNull Map.Entry<Enchantment, Integer> parseEnchantmentData(@NotNull String data) {
         final String[] parsed = data.split(":");
 
+        if (!Key.parseable(parsed[0])) {
+            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            return Map.entry(Enchantment.SHARPNESS, 5);
+        }
+
         try {
             final Registry<@NotNull Enchantment> enchantmentRegistry = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT);
             final Enchantment enchantment = enchantmentRegistry.getOrThrow(Key.key(parsed[0]));
@@ -193,6 +216,11 @@ public class ConfigUtils {
      */
     private static @NotNull Map.Entry<PatternType, DyeColor> parseBannerPatternData(@NotNull @Subst("YELLOW:bricks") String data) {
         final String[] parsed = data.split(":");
+
+        if (!Key.parseable(parsed[1])) {
+            LogUtils.warn("Invalid namespace config: " + parsed[1] + " in " + data);
+            return Map.entry(PatternType.BRICKS, DyeColor.YELLOW);
+        }
 
         try {
             final DyeColor color = DyeColor.valueOf(parsed[0]);
@@ -233,7 +261,7 @@ public class ConfigUtils {
             return Map.entry(flag, isAdd);
         } catch (IllegalArgumentException e) {
             LogUtils.warn("Banner pattern data: " + data + " is invalid. Use HIDE_ADDITIONAL_TOOLTIP as fallback");
-            return Map.entry(ItemFlag.HIDE_ADDITIONAL_TOOLTIP, true);
+            return Map.entry(ItemFlag.HIDE_DYE, true);
         }
     }
 
@@ -292,6 +320,11 @@ public class ConfigUtils {
     public static @Nullable PotionType parsePotionTypeData(@Nullable String data) {
         if (data == null) return null;
 
+        if (!Key.parseable(data)) {
+            LogUtils.warn("Invalid namespace config: " + data);
+            return null;
+        }
+
         Registry<@NotNull PotionType> registry = RegistryAccess.registryAccess().getRegistry(RegistryKey.POTION);
 
         PotionType type = PotionType.HEALING;
@@ -343,6 +376,7 @@ public class ConfigUtils {
                 .setProperty(ItemProperty.ENCHANT_GLINT, config.getBoolean("enchantment-glint").orElse(null))
                 .setProperty(ItemProperty.ENCHANTABLE, config.getBoolean("enchantable").orElse(null))
                 .setProperty(ItemProperty.GLIDER, config.getBoolean("glider").orElse(null))
+                .setProperty(ItemProperty.UNBREAKABLE, config.getBoolean("unbreakable").orElse(null))
                 .setProperty(ItemProperty.FLIGHT_DURATION, config.getInt("flight-duration").orElse(null))
                 .setProperty(ItemProperty.POTION_TYPE, parsePotionTypeData(config.getString("potion-type").orElse(null)))
                 .setProperty(ItemProperty.POTION_COLOR, parseColorData(config.getString("potion-color").orElse(null)))

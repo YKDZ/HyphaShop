@@ -102,22 +102,9 @@ public class ProductIconBuilder {
                                     // 只有 displayName 和 lore
                                     // 会使用 iconDecorator 的设置
                                     // 其他都会继承 productIconDecorator
+                                    .decorate(productIconDecorator)
                                     .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), parent, vars, shop, product, player))
                                     .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), parent, vars, shop, product, player))
-                                    .setItemFlags(productIconDecorator.getProperty(ItemProperty.ITEM_FLAGS))
-                                    .setBannerPatterns(productIconDecorator.getProperty(ItemProperty.BANNER_PATTERNS))
-                                    .setFireworkEffects(productIconDecorator.getProperty(ItemProperty.FIREWORK_EFFECTS))
-                                    .setEnchantments(productIconDecorator.getProperty(ItemProperty.ENCHANTMENTS))
-                                    .setPotionEffects(productIconDecorator.getProperty(ItemProperty.POTION_EFFECTS))
-                                    .setArmorTrim(productIconDecorator.getProperty(ItemProperty.ARMOR_TRIM))
-                                    .setEnchantable(productIconDecorator.getProperty(ItemProperty.ENCHANTABLE))
-                                    .setGlider(productIconDecorator.getProperty(ItemProperty.GLIDER))
-                                    .setFlightDuration(productIconDecorator.getProperty(ItemProperty.FLIGHT_DURATION))
-                                    .setEnchantGlint(productIconDecorator.getProperty(ItemProperty.ENCHANT_GLINT))
-                                    .setPotionCustomColor(productIconDecorator.getProperty(ItemProperty.POTION_COLOR))
-                                    .setPotionType(productIconDecorator.getProperty(ItemProperty.POTION_TYPE))
-                                    .setPotionCustomName(productIconDecorator.getProperty(ItemProperty.POTION_CUSTOM_NAME))
-                                    .setCustomModelData(productIconDecorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS), productIconDecorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS), productIconDecorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS), productIconDecorator.getProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS))
                                     .build(amount));
                 })
                 .addClickHandler((item, click) -> {

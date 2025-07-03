@@ -1,0 +1,12 @@
+export const Config = {
+  namespace: "unpack",
+  isUnpack: true,
+};
+
+export * from "HyphaShopBasic";
+export * from "HyphaShopAction";
+export * from "PlaceholderAPI";
+export * from "Player";
+export * from "Command";
+export * from "Server";
+export * from "console";

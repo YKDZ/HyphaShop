@@ -1,5 +1,3 @@
-context: |
-
 # 传统的颜色格式 (使用 & 符号) 不受支持,
 # 请使用 MiniMessage 格式, 参考以下页面:
 # https://docs.adventure.kyori.net/minimessage/format.html
@@ -98,7 +96,7 @@ messages:
             <gray>你不能从商店 <reset>${shop-name}<gray> 购买 <reset>${name} <gray>x
             <white>${amount}<gray>. 商店分配给你的商品配额已经被消耗完了.
           inventory-space: <gray>你的背包空间无法容纳 <reset>${name} <gray>x <white>${amount}<gray>.
-      # 商店从玩家处收购商品
+      # 商店从玩家处收购商
       buy-from:
         success:
           <gray>成功向商店 <reset>${shop-name}<gray> 出售了 <reset>${name} <gray>x <white>${amount}<gray>.

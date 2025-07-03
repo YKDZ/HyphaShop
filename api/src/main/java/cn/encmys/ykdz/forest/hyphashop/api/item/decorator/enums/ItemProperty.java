@@ -44,6 +44,8 @@ public enum ItemProperty {
     }),
     GLIDER(new TypeToken<Boolean>() {
     }),
+    UNBREAKABLE(new TypeToken<Boolean>() {
+    }),
     FLIGHT_DURATION(new TypeToken<Integer>() {
     }),
     POTION_TYPE(new TypeToken<PotionType>() {

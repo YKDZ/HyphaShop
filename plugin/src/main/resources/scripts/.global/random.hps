@@ -1,0 +1,9 @@
+export const Config = {
+  namespace: "random",
+  isUnpack: true,
+};
+
+export const randomMsg = (...msg) => {
+  if (msg.length() == 0) return null;
+  return msg[Math.random() * msg.length()];
+};

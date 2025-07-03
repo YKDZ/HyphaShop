@@ -1,6 +1,8 @@
 package cn.encmys.ykdz.forest.hyphashop;
 
-import cn.encmys.ykdz.forest.hypharepo.factory.InternalObjectFactory;
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.loader.ScriptLoader;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.config.*;
 import cn.encmys.ykdz.forest.hyphashop.database.factory.DatabaseFactoryImpl;
@@ -15,8 +17,7 @@ import cn.encmys.ykdz.forest.hyphashop.product.factory.ProductFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.profile.factory.ProfileFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.rarity.factory.RarityFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.ConnTasksImpl;
-import cn.encmys.ykdz.forest.hyphashop.script.pack.HyphaShopActionObject;
-import cn.encmys.ykdz.forest.hyphashop.script.pack.HyphaShopBasicObject;
+import cn.encmys.ykdz.forest.hyphashop.script.pack.*;
 import cn.encmys.ykdz.forest.hyphashop.shop.factory.ShopFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import net.milkbowl.vault.economy.Economy;
@@ -31,6 +32,8 @@ public final class HyphaShopImpl extends HyphaShop {
         SHOP_FACTORY.unload();
         PRODUCT_FACTORY.unload();
         NORMAL_GUI_FACTORY.unload();
+
+        loadScripts();
 
         Config.load();
         MessageConfig.load();
@@ -60,8 +63,7 @@ public final class HyphaShopImpl extends HyphaShop {
     public void onLoad() {
         INSTANCE = this;
 
-        InternalObjectFactory.register(new HyphaShopBasicObject());
-        InternalObjectFactory.register(new HyphaShopActionObject());
+        loadScripts();
     }
 
     @Override
@@ -142,5 +144,26 @@ public final class HyphaShopImpl extends HyphaShop {
     public void setupBStats() {
         final int pluginId = 21305;
         METRICS = new Metrics(this, pluginId);
+    }
+
+    @Override
+    public void loadScripts() {
+        InternalObjectManager.registerObject(new ConsoleObject());
+        InternalObjectManager.registerObject(new PlaceholderAPIObject());
+        InternalObjectManager.registerObject(new PlayerObject());
+        InternalObjectManager.registerObject(new ServerObject());
+        InternalObjectManager.registerObject(new CommandObject());
+        InternalObjectManager.registerObject(new HyphaShopBasicObject());
+        InternalObjectManager.registerObject(new HyphaShopActionObject());
+
+        try {
+            ScriptLoader.load(getDataFolder() + "/" + "scripts");
+            LogUtils.info("Successfully loaded scripts. Result global context is: ");
+            LogUtils.info(Context.GLOBAL_OBJECT.toString());
+        } catch (Exception e) {
+            LogUtils.error("Failed to load scripts. HyphaShop will be disabled.");
+            setEnabled(false);
+            e.printStackTrace();
+        }
     }
 }

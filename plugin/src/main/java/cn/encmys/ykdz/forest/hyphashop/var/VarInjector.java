@@ -1,12 +1,12 @@
 package cn.encmys.ykdz.forest.hyphashop.var;
 
-import cn.encmys.ykdz.forest.hypharepo.config.MainConfig;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarExtractor;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarInjectorContext;
+import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.extractor.*;
 import org.jetbrains.annotations.NotNull;
@@ -82,8 +82,8 @@ public class VarInjector {
         if (!ctx.isReady()) throw new IllegalStateException("Context is not ready");
 
         // 用于调试的标记
-        if (MainConfig.debug)
-            ctx.getTarget().forceSetLocalMember("__var_injector_context__", new Reference(new Value(ctx.toString()), true, false));
+        if (Config.debug)
+            ctx.getTarget().forceSetLocalMember("__var_injector_context__", new Reference(new Value(ctx.toString()), true));
 
         injectExtraVars();
 
@@ -97,9 +97,9 @@ public class VarInjector {
     private void injectExtraVars() {
         extraVars.forEach((name, value) -> {
             if (value != null && value.getClass().isArray()) {
-                ctx.getTarget().declareMember(name, new Reference(new Value(ScriptUtils.convertArray((Object[]) value)), true, false));
+                ctx.getTarget().declareMember(name, new Reference(new Value(ScriptUtils.convertArray((Object[]) value)), true));
             } else {
-                ctx.getTarget().declareMember(name, new Reference(new Value(value), true, false));
+                ctx.getTarget().declareMember(name, new Reference(new Value(value), true));
             }
         });
     }

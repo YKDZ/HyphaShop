@@ -41,4 +41,6 @@ public abstract class HyphaShop extends JavaPlugin {
     public abstract boolean setupEconomy();
 
     public abstract void setupBStats();
+
+    public abstract void loadScripts();
 }

@@ -25,7 +25,7 @@ import java.util.Map;
  * Use to translate the display name of the vanilla base item in gui to specific language.
  * Inspired by <a href="https://github.com/ManyouTeam/UltimateShop">UltimateShop</a>.
  *
- * @since 0.4.0-beta
+ * @since 0.3.1-beta
  * @deprecated Replaced by Translatable Component
  */
 @Deprecated
@@ -199,7 +199,7 @@ public class MinecraftLangConfig {
 
         // 若目录不存在则创建
         final File file = new File(fileDestination);
-        final  File parentDir = file.getParentFile();
+        final File parentDir = file.getParentFile();
         if (parentDir != null && !parentDir.exists()) {
             if (!parentDir.mkdirs()) {
                 throw new IOException("Failed to create directory: " + parentDir.getAbsolutePath());

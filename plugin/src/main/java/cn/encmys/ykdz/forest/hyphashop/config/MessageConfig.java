@@ -1,6 +1,5 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.enums.ShoppingMode;
@@ -9,7 +8,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.EnumUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -27,7 +25,6 @@ public class MessageConfig {
     //
     private static final @NotNull Map<String, Script> messages_settleResult = new HashMap<>();
     private static final @NotNull Map<String, Script> messages_action = new HashMap<>();
-    public static Context scriptContext;
     public static DecimalFormat format_decimal;
     public static String format_timer;
     public static SimpleDateFormat format_date;
@@ -75,8 +72,6 @@ public class MessageConfig {
     }
 
     private static void setUp() {
-        scriptContext = ScriptUtils.extractContext(config.getString("context", ""));
-
         format_decimal = new DecimalFormat(config.getString("format.decimal", "###,###.##"));
         format_timer = config.getString("format.timer", "%02dh:%02dm:%02ds");
         format_date = new SimpleDateFormat(config.getString("format.date.pattern", "MMMM dd, yyyy HH:mm:ss"), HyphaConfigUtils.getLocale(config.getString("format.date.locale", "en_US")));

@@ -45,10 +45,10 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("add_to_cart")
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static void addToCart(@NotNull Context ctx) {
-        final Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
         final Shop shop = ContextUtils.getShop(ctx).orElse(null);
         final Product product = ContextUtils.getProduct(ctx).orElse(null);
-        final int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        final int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return;
 
@@ -78,10 +78,10 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("remove_from_cart")
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static void removeFromCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return;
 
@@ -102,7 +102,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("remove_all_from_cart")
     @FunctionParas({"__player", "__shop", "__product"})
     public static void removeAllFromCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
 
@@ -120,10 +120,10 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("sell_to")
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static @Nullable String sellToDirectly(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) {
             LogUtils.warn("Player: " + player + " | Shop: " + shop + " | Product: " + product + " | Amount: " + amount);
@@ -152,10 +152,10 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("buy_from")
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static @Nullable String buyFromDirectly(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return null;
 
@@ -182,7 +182,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("buy_all_from")
     @FunctionParas({"__player", "__shop", "__product"})
     public static void buyAllFromDirectly(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
 
@@ -207,7 +207,7 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__gui"})
     public static void scroll(@NotNull Context ctx) {
         ScrollGui<?> gui = ContextUtils.getScrollGui(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (gui == null) return;
 
@@ -219,7 +219,7 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__gui"})
     public static void changePage(@NotNull Context ctx) {
         PagedGui<?> gui = ContextUtils.getPagedGui(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (gui == null) return;
 
@@ -230,8 +230,8 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("open_shop")
     @FunctionParas({"shop", "__player"})
     public static void openShop(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
-        String shopId = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getStringParam(ctx, "shop").orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        String shopId = ContextUtils.getStringParam(ctx, "shop").orElse(null);
 
         if (shopId == null) return;
 
@@ -246,8 +246,8 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("open_gui")
     @FunctionParas({"id", "__player"})
     public static void openGUI(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
-        String id = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getStringParam(ctx, "id").orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        String id = ContextUtils.getStringParam(ctx, "id").orElse(null);
 
         if (id == null || player == null || !HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id)) return;
 
@@ -258,7 +258,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("close_gui")
     @FunctionParas({"__player"})
     public static void closeGUI(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -270,7 +270,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("switch_shopping_mode")
     @FunctionParas({"__player", "__shop"})
     public static void switchShoppingMode(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
 
         if (player == null || shop == null) return;
@@ -284,7 +284,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("open_cart")
     @FunctionParas({"__player"})
     public static void openCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -296,7 +296,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("switch_cart_mode")
     @FunctionParas({"__player"})
     public static void switchCartMode(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -317,7 +317,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("clean_cart")
     @FunctionParas({"__player"})
     public static void cleanCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -330,7 +330,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("clear_cart")
     @FunctionParas({"__player"})
     public static void clearCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -343,7 +343,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("open_order_history")
     @FunctionParas({"__player"})
     public static void openOrderHistory(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -355,11 +355,11 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("modify_order_stack")
     @FunctionParas({"amount", "__order", "__player", "__product", "__shop"})
     public static void modifyOrderStack(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         ShopOrder order = ContextUtils.getShopOrder(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || order == null || product == null || shop == null) return;
 
@@ -372,11 +372,11 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("set_order_stack")
     @FunctionParas({"amount", "__order", "__player", "__product", "__shop"})
     public static void setOrderStack(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         ShopOrder order = ContextUtils.getShopOrder(ctx).orElse(null);
         Product product = ContextUtils.getProduct(ctx).orElse(null);
         Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        int amount = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getIntParam(ctx, "amount").orElse(0);
+        int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || order == null || product == null || shop == null) return;
 
@@ -393,13 +393,13 @@ public class HyphaShopActionObject extends InternalObject {
         CompletableFuture<Reference> future = new CompletableFuture<>();
         wrapper.forceSetLocalMember("future", new Reference(new Value(future)));
 
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         if (player == null) {
             future.complete(new Reference(new Value("")));
             return wrapper;
         }
 
-        ScriptObject guiConfig = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getScriptObjectParam(ctx, "gui_config").orElse(new ScriptObject());
+        ScriptObject guiConfig = ContextUtils.getScriptObjectParam(ctx, "gui_config").orElse(new ScriptObject());
 
         AtomicReference<String> result = new AtomicReference<>("");
         Window window = AnvilWindow.builder()
@@ -417,7 +417,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("settle_cart")
     @FunctionParas({"__player"})
     public static void settleCart(@NotNull Context ctx) {
-        Player player = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getPlayer(ctx).orElse(null);
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
         if (player == null) return;
 
@@ -431,9 +431,9 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("update_icon")
     @FunctionParas({"target", "__icon", "__gui_structure", "__gui"})
     public static void updateIcon(@NotNull Context ctx) {
-        char target = cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getCharacterParam(ctx, "target").orElse('\0');
+        char target = ContextUtils.getCharacterParam(ctx, "target").orElse('\0');
         Item icon = ContextUtils.getIcon(ctx).orElse(null);
-        Reference[] structureRef = (Reference[]) cn.encmys.ykdz.forest.hypharepo.utils.ContextUtils.getMember(ctx, "__gui_structure", Reference[].class).orElse(new Reference[0]);
+        Reference[] structureRef = (Reference[]) ContextUtils.getMember(ctx, "__gui_structure", Reference[].class).orElse(new Reference[0]);
         Gui gui = ContextUtils.getGui(ctx).orElse(null);
 
         if (icon == null) return;

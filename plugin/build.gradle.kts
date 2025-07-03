@@ -1,5 +1,5 @@
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.21.6-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT")
 
     compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
     compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
@@ -23,13 +23,9 @@ dependencies {
 
     implementation("com.zaxxer:HikariCP:6.3.0")
 
-    compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
+    implementation("cn.encmys:HyphaScript:0.1.0-Beta")
 
     implementation("cn.encmys:HyphaUtils:0.1.0-Beta")
-
-    compileOnly("cn.encmys:HyphaRepo:0.1.0-Beta") {
-        exclude(group = "cn.encmys")
-    }
 
     compileOnly("io.lumine:Mythic-Dist:5.9.1") {
         exclude(group = "com.mojang")

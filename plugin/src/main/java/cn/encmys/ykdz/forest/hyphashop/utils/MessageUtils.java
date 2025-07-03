@@ -35,7 +35,7 @@ public class MessageUtils {
 
         Scheduler.runAsyncTask((task) -> {
             final Context context = new VarInjector()
-                    .withTarget(new Context(MessageConfig.scriptContext))
+                    .withTarget(new Context())
                     .withRequiredVars(message)
                     .withExtraVars(vars)
                     .withExtraVars(extraVars)
@@ -56,7 +56,7 @@ public class MessageUtils {
 
         Scheduler.runAsyncTask((task) -> {
             final Context context = new VarInjector()
-                    .withTarget(new Context(MessageConfig.scriptContext))
+                    .withTarget(new Context())
                     .withRequiredVars(message)
                     .withExtraVars(vars)
                     .withExtraVars(extraVars)

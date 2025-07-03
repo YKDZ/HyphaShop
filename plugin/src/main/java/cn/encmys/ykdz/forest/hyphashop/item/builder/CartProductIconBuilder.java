@@ -54,6 +54,7 @@ public class CartProductIconBuilder {
                     // 在商品自己图标的基础上覆盖名称、lore 和 itemFlags
                     return new xyz.xenondevs.invui.item.ItemBuilder(
                             new ItemBuilder(product.getIconDecorator().getBaseItem().build(player))
+                                    .decorate(product.getIconDecorator())
                                     .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), ContextUtils.linkContext(
                                             product.getScriptContext().clone(),
                                             shop.getScriptContext().clone()
@@ -62,20 +63,6 @@ public class CartProductIconBuilder {
                                             product.getScriptContext().clone(),
                                             shop.getScriptContext().clone()
                                     ), vars, player, shop, product, cart.getOrder()))
-                                    .setItemFlags(iconDecorator.getProperty(ItemProperty.ITEM_FLAGS))
-                                    .setBannerPatterns(product.getIconDecorator().getProperty(ItemProperty.BANNER_PATTERNS))
-                                    .setFireworkEffects(product.getIconDecorator().getProperty(ItemProperty.FIREWORK_EFFECTS))
-                                    .setEnchantments(product.getIconDecorator().getProperty(ItemProperty.ENCHANTMENTS))
-                                    .setPotionEffects(product.getIconDecorator().getProperty(ItemProperty.POTION_EFFECTS))
-                                    .setArmorTrim(product.getIconDecorator().getProperty(ItemProperty.ARMOR_TRIM))
-                                    .setEnchantable(product.getIconDecorator().getProperty(ItemProperty.ENCHANTABLE))
-                                    .setGlider(product.getIconDecorator().getProperty(ItemProperty.GLIDER))
-                                    .setFlightDuration(product.getIconDecorator().getProperty(ItemProperty.FLIGHT_DURATION))
-                                    .setEnchantGlint(product.getIconDecorator().getProperty(ItemProperty.ENCHANT_GLINT))
-                                    .setPotionCustomColor(product.getIconDecorator().getProperty(ItemProperty.POTION_COLOR))
-                                    .setPotionType(product.getIconDecorator().getProperty(ItemProperty.POTION_TYPE))
-                                    .setPotionCustomName(product.getIconDecorator().getProperty(ItemProperty.POTION_CUSTOM_NAME))
-                                    .setCustomModelData(product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS), product.getIconDecorator().getProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS))
                                     .build(stack)
                     );
                 })
