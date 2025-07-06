@@ -31,8 +31,8 @@ dependencies {
         exclude(group = "com.mojang")
     }
 
-    compileOnly("net.kyori:adventure-api:4.22.0")
-    compileOnly("net.kyori:adventure-text-minimessage:4.22.0")
+    compileOnly("net.kyori:adventure-api:4.23.0")
+    compileOnly("net.kyori:adventure-text-minimessage:4.23.0")
 
     implementation(project(":api"))
 }
