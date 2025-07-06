@@ -3,11 +3,8 @@ package cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 public record ScriptOrComponentItemName(@Nullable Script scriptName, @Nullable Component componentName) {
     public static @NotNull ScriptOrComponentItemName of(@NotNull Script scriptName) {

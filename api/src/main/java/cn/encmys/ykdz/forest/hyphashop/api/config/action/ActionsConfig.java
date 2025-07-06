@@ -1,6 +1,5 @@
 package cn.encmys.ykdz.forest.hyphashop.api.config.action;
 
-import cn.encmys.ykdz.forest.hypharepo.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionClickType;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionEvent;
@@ -24,7 +23,6 @@ public record ActionsConfig(@NotNull Map<@NotNull ActionableKey, @NotNull List<@
                 try {
                     actionKey = ActionClickType.fromConfigKey(key);
                 } catch (Exception e2) {
-                    LogUtils.warn(e.getMessage());
                     return;
                 }
             }

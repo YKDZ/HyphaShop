@@ -60,7 +60,7 @@ public class TextUtils {
             // 获取时间单位对应的 ticks
             Integer unitTicks = TIME_UNITS.get(unit);
             if (unitTicks == null) {
-                LogUtils.warn("Invalid time unit: '" + unit + "', in experssion'" + part + "'. Use 's' as fallback.");
+                LogUtils.warn("Invalid time unit: '" + unit + "', in expression'" + part + "'. Use 's' as fallback.");
                 unitTicks = TIME_UNITS.get('s'); // 使用秒作为 fallback
             }
 

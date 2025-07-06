@@ -62,6 +62,8 @@ public enum ItemProperty {
     }),
     CUSTOM_MODEL_DATA_STRINGS(new TypeToken<List<String>>() {
     }),
+    TOOLTIP_DISPLAY_HIDE_TOOLTIP(new TypeToken<Boolean>() {
+    }),
     // 按钮用
     UPDATE_PERIOD(new TypeToken<Integer>() {
     }),

@@ -21,7 +21,7 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.13.1")
 
-    compileOnly("cn.encmys:HyphaRepo:0.1.0-Beta")
+    compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
 }
 
 tasks {

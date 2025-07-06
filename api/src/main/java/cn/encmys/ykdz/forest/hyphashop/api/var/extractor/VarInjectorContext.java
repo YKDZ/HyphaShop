@@ -65,7 +65,7 @@ public class VarInjectorContext {
         assert requiredVars != null;
         assert target != null;
         if (name.startsWith("__") || requiredVars.contains(name)) {
-            target.declareMember(name, new Reference(new Value(value.get()), true, false));
+            target.declareMember(name, new Reference(new Value(value.get()), true));
         }
     }
 

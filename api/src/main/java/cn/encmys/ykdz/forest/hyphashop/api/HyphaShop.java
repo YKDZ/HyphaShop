@@ -34,9 +34,13 @@ public abstract class HyphaShop extends JavaPlugin {
     public static Metrics METRICS;
     protected static boolean isInitialized = false;
 
+    public abstract void disable();
+
     public abstract void reload();
 
     public abstract void init();
+
+    public abstract void enable();
 
     public abstract boolean setupEconomy();
 

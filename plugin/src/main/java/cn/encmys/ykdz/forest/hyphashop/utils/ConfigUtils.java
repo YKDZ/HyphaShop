@@ -385,6 +385,7 @@ public class ConfigUtils {
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS, parseColorsData(config.getStringList("custom-model-data.colors").orElse(new ArrayList<>())))
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS, config.getFloatList("custom-model-data.floats").orElse(null))
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS, config.getStringList("custom-model-data.strings").orElse(null))
+                .setProperty(ItemProperty.TOOLTIP_DISPLAY_HIDE_TOOLTIP, config.getBoolean("tooltip-display.hide-tooltip").orElse(null))
                 .setProperty(ItemProperty.CONDITIONAL_ICONS, parseConditionIconRecords(config.getConfigList("icons").orElse(new ArrayList<>()), config))
                 .setProperty(ItemProperty.ACTIONS, ActionsConfig.of(config.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))));
     }

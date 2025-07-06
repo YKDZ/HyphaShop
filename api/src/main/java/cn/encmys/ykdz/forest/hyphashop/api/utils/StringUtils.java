@@ -1,6 +1,5 @@
 package cn.encmys.ykdz.forest.hyphashop.api.utils;
 
-import cn.encmys.ykdz.forest.hypharepo.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
 import cn.encmys.ykdz.forest.hyphascript.script.ParserResult;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
@@ -21,7 +20,7 @@ public class StringUtils {
 
     public static @NotNull ScriptObject wrapToScriptObject(@NotNull Map<String, ?> map) {
         ScriptObject object = new ScriptObject();
-        map.forEach((key, value) -> object.declareMember(key, new Reference(new Value(value), true, false)));
+        map.forEach((key, value) -> object.declareMember(key, new Reference(new Value(value), true)));
         return object;
     }
 
@@ -31,9 +30,11 @@ public class StringUtils {
 
         Script script = new Script(scriptStr);
         ParserResult result = script.parse();
+
         if (result.resultType() != ParserResult.Type.SUCCESS) {
-            LogUtils.warn(result.toString());
+            throw new RuntimeException("Script failed to parse: " + result.resultType());
         }
+
         return script;
     }
 
@@ -50,9 +51,11 @@ public class StringUtils {
 
         Script script = new Script(handleOmit(scriptStr));
         ParserResult result = script.parse();
+
         if (result.resultType() != ParserResult.Type.SUCCESS) {
-            LogUtils.warn(result.toString());
+            throw new RuntimeException("Script failed to parse: " + result.resultType());
         }
+
         return script;
     }
 

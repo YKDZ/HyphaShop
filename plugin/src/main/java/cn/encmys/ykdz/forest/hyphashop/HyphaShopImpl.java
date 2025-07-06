@@ -1,8 +1,8 @@
 package cn.encmys.ykdz.forest.hyphashop;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
-import cn.encmys.ykdz.forest.hyphascript.loader.ScriptLoader;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
+import cn.encmys.ykdz.forest.hyphascript.script.ScriptManager;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.config.*;
 import cn.encmys.ykdz.forest.hyphashop.database.factory.DatabaseFactoryImpl;
@@ -25,45 +25,12 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
 
+import java.nio.file.Paths;
+
 public final class HyphaShopImpl extends HyphaShop {
-    @Override
-    public void reload() {
-        PROFILE_FACTORY.unload();
-        SHOP_FACTORY.unload();
-        PRODUCT_FACTORY.unload();
-        NORMAL_GUI_FACTORY.unload();
-
-        loadScripts();
-
-        Config.load();
-        MessageConfig.load();
-        RarityConfig.load();
-        ProductConfig.load();
-        ShopConfig.load();
-        CartGUIConfig.load();
-        OrderHistoryGUIConfig.load();
-        NormalGUIConfig.load();
-
-        saveDefaultConfig();
-
-        DATABASE_FACTORY = new DatabaseFactoryImpl();
-
-        if (!DATABASE_FACTORY.migrate()) {
-            setEnabled(false);
-        }
-
-        PROFILE_FACTORY = new ProfileFactoryImpl();
-        RARITY_FACTORY = new RarityFactoryImpl();
-        PRODUCT_FACTORY = new ProductFactoryImpl();
-        SHOP_FACTORY = new ShopFactoryImpl();
-        NORMAL_GUI_FACTORY = new NormalGUIFactoryImpl();
-    }
-
     @Override
     public void onLoad() {
         INSTANCE = this;
-
-        loadScripts();
     }
 
     @Override
@@ -76,10 +43,12 @@ public final class HyphaShopImpl extends HyphaShop {
     }
 
     @Override
-    public void init() {
-        if (isInitialized) return;
-        isInitialized = true;
+    public void onDisable() {
+        disable();
+    }
 
+    @Override
+    public void init() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), INSTANCE);
 
         if (!setupEconomy()) {
@@ -92,6 +61,15 @@ public final class HyphaShopImpl extends HyphaShop {
         MMOItemsHook.load();
         ItemsAdderHook.load();
         MythicMobsHook.load();
+
+        setupBStats();
+
+        enable();
+    }
+
+    @Override
+    public void enable() {
+        loadScripts();
 
         Config.load();
         MessageConfig.load();
@@ -115,16 +93,22 @@ public final class HyphaShopImpl extends HyphaShop {
         NORMAL_GUI_FACTORY = new NormalGUIFactoryImpl();
 
         CONN_TASKS = new ConnTasksImpl();
-
-        setupBStats();
     }
 
     @Override
-    public void onDisable() {
+    public void disable() {
         PROFILE_FACTORY.unload();
         SHOP_FACTORY.unload();
         PRODUCT_FACTORY.unload();
         NORMAL_GUI_FACTORY.unload();
+
+        ScriptManager.unloadAllScripts();
+    }
+
+    @Override
+    public void reload() {
+        disable();
+        enable();
     }
 
     @Override
@@ -157,7 +141,7 @@ public final class HyphaShopImpl extends HyphaShop {
         InternalObjectManager.registerObject(new HyphaShopActionObject());
 
         try {
-            ScriptLoader.load(getDataFolder() + "/" + "scripts");
+            ScriptManager.loadAllFrom(Paths.get(getDataFolder() + "/" + "scripts"));
             LogUtils.info("Successfully loaded scripts. Result global context is: ");
             LogUtils.info(Context.GLOBAL_OBJECT.toString());
         } catch (Exception e) {

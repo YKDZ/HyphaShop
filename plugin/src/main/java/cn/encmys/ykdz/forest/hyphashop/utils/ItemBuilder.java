@@ -33,6 +33,7 @@ public class ItemBuilder {
     public @NotNull ItemBuilder decorate(@NotNull BaseItemDecorator decorator) {
         return this
                 .setItemFlags(decorator.getProperty(ItemProperty.ITEM_FLAGS))
+                .setTooltipDisplay(decorator.getProperty(ItemProperty.TOOLTIP_DISPLAY_HIDE_TOOLTIP))
                 .setBannerPatterns(decorator.getProperty(ItemProperty.BANNER_PATTERNS))
                 .setFireworkEffects(decorator.getProperty(ItemProperty.FIREWORK_EFFECTS))
                 .setEnchantments(decorator.getProperty(ItemProperty.ENCHANTMENTS))
@@ -77,6 +78,14 @@ public class ItemBuilder {
                 raw.addItemFlags(data.getKey());
             }
         }
+
+        return this;
+    }
+
+    public @NotNull ItemBuilder setTooltipDisplay(@Nullable Boolean hide) {
+        if (hide == null) return this;
+
+        raw.setData(DataComponentTypes.TOOLTIP_DISPLAY, TooltipDisplay.tooltipDisplay().hideTooltip(hide).build());
 
         return this;
     }
