@@ -17,7 +17,7 @@ dependencies {
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    compileOnly("org.xerial:sqlite-jdbc:3.50.1.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.50.2.0")
 
     implementation("com.google.code.gson:gson:2.13.1")
 
