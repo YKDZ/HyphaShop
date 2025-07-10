@@ -2,7 +2,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.7-R0.1-SNAPSHOT")
 
     compileOnly("io.lumine:MythicLib-dist:1.7.1-SNAPSHOT")
-    compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
+    compileOnly("net.Indyuce:MMOItems-API:6.10.1-SNAPSHOT")
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
