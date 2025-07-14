@@ -2,26 +2,27 @@ name: HyphaShop
 version: '${version}'
 main: cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl
 bootstrapper: cn.encmys.ykdz.forest.hyphashop.HyphaShopBootstrapImpl
+loader: cn.encmys.ykdz.forest.hyphashop.HyphaShopLoaderImpl
 api-version: '1.21.7'
 dependencies:
   server:
     Vault:
-      load: AFTER
+      load: BEFORE
       required: true
       join-classpath: true
     PlaceholderAPI:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true
     MMOItems:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true
     ItemsAdder:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true
     MythicMobs:
-      load: AFTER
+      load: BEFORE
       required: false
       join-classpath: true

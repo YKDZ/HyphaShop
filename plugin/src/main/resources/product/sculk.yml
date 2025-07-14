@@ -1,30 +1,17 @@
-default-settings:
+default-configs:
   item:
     amount: 1
-  # Product can be listed only when
-  # type of all the expressions
-  # in list-conditions is true.
-  list-conditions:
-    # Multi-line Rhino JavaScript expression
-    # The value of the last line of the expression
-    # is considered to be the type value.
-    # The return keyword is not required and cannot be used
-    # outside a function.
-    - |
-      // Represent that all products in this pack
-      // can be listed only if time in world "world" is night.
-      // You need PlaceholderAPI extension World to make this script work.
-      function isNight() {
-        let timeStr = "%world_time_world%".split(':');
-        let hours = Number(timeStr[0]);
-        return Number(hours) >= 20 || Number(hours) < 6;
-      }
-      isNight();
-    # Single-line Rhino JavaScript expression
-    # Represent that all products in this pack
-    # can not be listed when it is sold for 64 stack
-    # in shop {shop-id} in total.
-    - "Number(%dailyshop_shop_{shop-id}_history_buy_{product-id}%) <= 64"
+  actions:
+    # Only when the output values of all script expressions in this list
+    # are true can they be listed
+    on-before-list:
+      # This product can only be listed between 8pm and 6am on World Day
+      - |
+        const timeStr = papi("%world_time_world%").split(":");
+        const hours = timeStr[0];
+        Number.number(hours) >= 20 || Number.number(hours) < 6;
+      # This product can only be listed when the historical purchase quantity does not exceed 64
+      - total_history_bought_amount <= 64
   buy-price:
     mean: 2000
     dev: 20
@@ -39,12 +26,15 @@ products:
   SCULK_SENSOR:
     item:
       base: sculk_sensor
+
   SCULK:
     item:
       base: sculk
+
   SCULK_CATALYST:
     item:
       base: sculk_catalyst
+
   SCULK_SHRIEKER:
     item:
       base: sculk_shrieker

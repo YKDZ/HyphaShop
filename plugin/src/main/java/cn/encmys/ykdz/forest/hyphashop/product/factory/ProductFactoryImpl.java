@@ -42,7 +42,7 @@ public class ProductFactoryImpl implements ProductFactory {
             final ConfigAccessor config = new ConfigurationSectionAccessor(ProductConfig.getConfig(configId));
 
             final ConfigAccessor products = config.getConfig("products").orElse(null);
-            final ConfigAccessor defaultSettings = config.getConfig("default-settings").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+            final ConfigAccessor defaultSettings = config.getConfig("default-configs").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
 
             if (products == null) {
                 continue;

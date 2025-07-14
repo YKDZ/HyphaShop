@@ -1,22 +1,30 @@
 language:
-  # 使用哪个语言文件
-  message: zh_CN
+  # Name of a language file under lang/ directory
+  message: en_US
 period:
-  # 保存插件数据的周期
+  # Cycle for saving plugin data
+  # The allowed formats are similar to:
+  # 5m
+  # 3m 10s
+  # 1h 10s
+  # 7d
   save-data: 5m
-  # 多久检查一次商店是否需要重载
+  # Cycle for checking if the store needs to restock
   check-restocking: 3s
 database:
-  # 无需额外配置
-  # 使用 data/database.db 文件做数据库
+  # Use data/database.db as database
   sqlite:
     enabled: true
-# 一个商品的收购价可能会小于其出售价（比如使用随机价格或不小心填错价格），
-# 这将会导致玩家可以无限制地购买商品并卖回商店获取利润。
-# 插件将会在这种时候禁用收购（设为 true）或出售（设为 false）来避免此问题。
+script:
+  unpack-internal-object: true
+# The purchase price of a product may be lower than its selling price
+# (such as using a random price or accidentally filling in the wrong price),
+# which will allow players to purchase the product without restrictions
+# and sell it back to the store for profit.
+# We will disable sell (set to true) or buy (set to false) at this time to avoid this issue.
 price-correct-by-disable-sell-or-buy: true
-# 是否在控制台打印 Debug 消息
+# Whether to print Debug messages on the console
 debug: false
-# 不要手动修改以下条目
-# 它被用于配置文件自动更新
+# Do not manually modify the following entries
+# It is used for automatic updating of configuration files
 version: 1

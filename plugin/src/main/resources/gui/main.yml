@@ -1,0 +1,64 @@
+main-1:
+  title: "Shop List #1"
+  structure:
+    - "# # # # # # # # #"
+    - "# 0 0 0 0 0 0 0 #"
+    - "# 0 a b c d e 0 #"
+    - "# 0 f g h i j 0 #"
+    - "# 0 0 0 0 0 0 0 #"
+    - "# # # # # > > > #"
+  icons:
+    "0":
+      base: air
+    "#":
+      base: black_stained_glass_pane
+      name: " "
+      lore:
+        - "<dark_gray>Wall"
+        - " "
+    "a":
+      base: diamond_ore
+      name: "<#A0522D>Block Shop"
+      actions:
+        left:
+          - open_shop{shop="blocks"}
+    "b":
+      base: ender_eye
+      name: "<gray>Black Market"
+      actions:
+        left:
+          - open_shop{shop="black_market"}
+    ">":
+      base: lime_stained_glass_pane
+      name: "<green>Next Page"
+      actions:
+        left:
+          - open_gui{id="main-2"}
+
+main-2:
+  title: "Shop List #2"
+  structure:
+    - "# # # # # # # # #"
+    - "# 0 0 0 0 0 0 0 #"
+    - "# 0 a b c d b 0 #"
+    - "# 0 f g h i j 0 #"
+    - "# 0 0 0 0 0 0 0 #"
+    - "# < < < # # # # #"
+  icons:
+    "0":
+      base: air
+    "#":
+      base: black_stained_glass_pane
+      name: " "
+      lore:
+        - "<dark_gray>Wall"
+        - " "
+    "a":
+      base: paper
+      name: "Dont know what to put here"
+    "<":
+      base: red_stained_glass_pane
+      name: "<red>Previous Page"
+      actions:
+        left:
+          - open_gui{id="main-1"}

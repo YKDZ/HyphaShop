@@ -1,6 +1,6 @@
-default-settings:
+default-configs:
   item:
-    amount: 16
+    amount: 1
   buy-price:
     mean: 200
     dev: 20
@@ -13,16 +13,14 @@ default-settings:
 
 products:
   A_JOKE:
-    # Icon will display in gui
+    # The icon will be displayed in the shop gui
     icon:
       base: diamond
-      name: "<white>Cheap Diamond"
-      amount: 1
-    # Item is what buyer really get
+      name: "<white>Cheap diamond"
+    # Item refers to the actual item bought or sold by the player
     item:
       base: dirt
-      name: "<white>Just Dirt :)"
-      amount: 1
+      name: "<white>Just dirt :)"
     buy-price:
       fixed: 1
     sell-price:
@@ -30,175 +28,172 @@ products:
 
   WARM_WELCOME:
     icon:
-      base: sunflower
-      amount: 1
-      name: "<white>Warm Welcome from server"
-    buy-commands:
-      - "tell %player_name% Welcome %player_name%!"
-      - "-p:true -repeat:3 tell %player_name% Have fun!"
+      base: minecraft:sunflower
+      name: "<white>Warm welcome from server"
     sell-price:
       disable: true
+    actions:
+      on-give:
+        - command{cmd=`tell ${player_name} Welcome ${player_name}!`}
+        - command{cmd=`tell ${player_name} Have fun!`, repeat=3}
     stock:
-      # Represents that the following stock settings will act independently on each player,
-      # rather than being shared by all players.
       player:
-        # Indicates the initial size of the product's stock.
-        # Each time a player buy this product, the stock is decreased.
-        # If the remaining stock drops to 0, this player will no longer be able to buy this product.
         size: 1
-        # Indicates whether the product's stock
-        # can be replenished when player sell this product to shop.
         replenish: false
-        # Indicates whether the product's stock can exceed
-        # "size" value above when it is replenished.
         overflow: false
-        # Indicates whether the base will reset the stock to
-        # the "size" value above when restocked.
         inherit: true
     rarity: ancient
 
-  # You can use command product to do various of things
-  # like sell a permission.
+  # Sell LuckPerms permission through actions
   FLY_PERMISSION:
     icon:
       base: feather
-      amount: 1
-      name: "<white>Fly for 30 minutes"
-    buy-commands:
-      - "lp user %player_name% permission settemp cmi.command.fly true 30m"
-      - "tell %player_name% Now you can fly in 30 minutes!"
-    #    sell-commands:
-    #      - "tell You can also \"sell\" a command."
-    #      - "tell I don't really know what this feature is for."
-    #      - "tell I just implemented it :)"
+      name: "<white>Fly 30 minutes"
     sell-price:
       disable: true
+    actions:
+      on-give:
+        - command{cmd=`lp user ${player_name} permission settemp cmi.command.fly true 30m`, repeat=stack}
+        - command{cmd=`tell ${player_name} Now you can fly 30 minutes in total by /fly command!`, repeat=stack}
     rarity: ancient
 
-  # This product will not load if MMOItems plugin is not installed.
+  # This product will only be loaded normally
+  # when the MMOItems plugin is installed
   LONG_SWORD:
     item:
       base: MI:SWORD:LONG_SWORD
-      amount: 1
     icon:
       lore:
-        - "<gray>This is a Long Sword from <white>MMOItems<gray>."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a long sword from <white>MMOItems<gray>."
+        - "<gray>Product will not carry this lore."
     # For the mmoitem that has random modifier, level or stat value things,
     # you need to disable cache to enable it, or every product base
-    # that player buy will be the same without any randomization.
+    # that player buys will be the same without any randomization.
     cacheable: false
 
-  # This product will not load if MMOItems plugin is not installed.
+  # This product will only be loaded normally
+  # when the MMOItems plugin is installed
   STEEL_INGOT:
     item:
       base: MI:MATERIAL:STEEL_INGOT
-      amount: 16
     icon:
       lore:
-        - "<gray>This is a Steel Ingot from <white>MMOItems<gray>."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a steel ingot from <white>MMOItems<gray>."
+        - "<gray>Product will not carry this lore."
     # For the static mmoitem base like material, you should
     # enable cache to reduce the lag.
     cacheable: true
 
-  # This product will not load if MythicMobs plugin is not installed.
+  # This product will only be loaded normally
+  # when the MythicMobs plugin is installed
   SkeletonKingSword:
     item:
       base: MM:SkeletonKingSword
-      amount: 1
     icon:
       lore:
-        - "<gray>This is a Skeleton King Sword from <white>MythicMobs<gray>."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a king sword from <white>MythicMobs<gray>."
+        - "<gray>Product will not carry this lore."
+
+  # This product will only be loaded normally
+  # when the ItemsAdder plugin is installed
+  TUNA:
+    item:
+      base: IA:iasurvival:tuna
+    icon:
+      lore:
+        - "<gray>This is a tuna fish from <white>ItemsAdder<gray>."
+        - "<gray>Product will not carry this lore."
 
   CUSTOM_BANNER:
     item:
       base: red_banner
+      name: "<red>National flag of the people's Republic of China"
+      # The pattern listed first is the one drawn first,
+      # that is, the pattern listed first is in the underlying layer
       banner-patterns:
         - "YELLOW:bricks"
         - "RED:small_stripes"
         - "RED:border"
-        - "RED:diagonal_up_right"
-        - "RED:half_vertical"
+        - "RED:diagonal_up_left"
+        - "RED:half_vertical_right"
         - "RED:rhombus"
-      name: "<red>The Flag of China"
-      amount: 1
     icon:
       lore:
-        - "<gray>This is a Custom Banner with 6 patterns."
-        - "<gray>These lore will not be applied to the product base."
-      # Prevent too long product icon lore.
-      # (Hide the banner pattern lore)
-      item-flags:
-        - "HIDE_POTION_EFFECTS"
+        - "<gray>This is a custom flag with 6 pattern."
+        - "<gray>Product will not carry this lore."
 
   CUSTOM_SKULL:
     item:
-      base: SKULL:f0f2185c51b6d7cee7e17042de2ddf8a448552af7b4af1804986fbdd09e9bc08
-      name: "<white>Lightning in a Bottle"
-      amount: 1
+      # Create a skull using JSON material data encoded in base64.
+      # You can find base64 skull data in https://minecraft-heads.com/custom-heads/head/113403-slime-jar
+      base: SKULL:eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTljYmQ4NzQ4NTgyZGM2ODUyNmIwYTI5OTU1ZjU4ZjdlNmNiZGE0ODBhMDQ1NWU4NjUzNGM2ZDIxMDY1MTcxMyJ9fX0=
+      name: "<green>Slim Jar"
     icon:
       lore:
-        - "<gray>This is a Custom Head."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a custom skull."
+        - "<gray>Product will not carry this lore."
+
+  CUSTOM_SKULL_2:
+    item:
+      # Also support url to a standard skin file
+      base: SKULL:http://textures.minecraft.net/texture/7f9bc035cdc80f1ab5e1198f29f3ad3fdd2b42d9a69aeb64de990681800b98dc
+      name: "<red>China ball"
+    icon:
+      lore:
+        - "<gray>This is a custom skull."
+        - "<gray>Product will not carry this lore."
 
   SPLASH_POTION_OF_LEAPING:
     item:
-      # Base potion data
-      base: POTION:SPLASH:jump
-      amount: 1
+      base: splash_potion
+      potion-type: strong_leaping
     icon:
-      # Due to certain reasons, it is not possible to
-      # automatically obtain the name of the potion and
-      # use it for icons. You need to manually set the name.
-      name: "<white>Splash Potion of Leaping"
       lore:
-        - "<gray>This is a Vanilla Potion."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a vanilla potion."
+        - "<gray>Product will not carry this lore."
+      item-flags:
+        - HIDE_ADDITIONAL_TOOLTIP
 
-  TROPICAL_FISH_BUCKET:
+  CUSTOM_POTION:
     item:
-      base: TROPICAL_FISH_BUCKET:CLAYFISH:RED:YELLOW
-      amount: 1
-    icon:
-      name: "<white>Tropical Fish Bucket"
-      lore:
-        - "<gray>This is a Tropical Fish Bucket."
-        - "<gray>These lore will not be applied to the product base."
+      base: potion
+      name: "<gold>Super potion"
+      potion-color: "#ffd700"
+      potion-effects:
+        # Effect:Duration in ticks:Level:Beacon effect:Particle effect:Display icon
+        - "night_vision:1000:1:true:true:true"
+        - "resistance:1000:1:true:true:true"
+        - "haste:1000:5:false:true:true"
+        - "luck:1000:1:false:true:false"
 
-  AXOLOTL_BUCKET:
+  ARMOR_WITH_CUSTOM_TRIM:
     item:
-      base: AXOLOTL_BUCKET:BLUE
-      amount: 1
-    icon:
-      name: "<white>Axolotl Bucket"
-      lore:
-        - "<gray>This is a Axolotl Bucket."
-        - "<gray>These lore will not be applied to the product base."
+      base: diamond_chestplate
+      armor-trim: amethyst:vex
+      glider: true
 
   CUSTOM_FIREWORK:
     item:
-      # Firework with power 3
-      base: FIREWORK:3
-      amount: 1
+      base: firework_rocket
+      flight-duration: 3
       firework-effects:
         - "-t:BALL -c:[#FFFFFF, #123456] -fc:[#FFFFFF, #123456] -trail:false -flicker:true"
         - "-t:CREEPER -c:[#FFFFFF, #123456] -fc:[#FFFFFF, #123456] -trail:true -flicker:false"
     icon:
-      name: "<white>Tropical Fish Bucket"
       lore:
-        - "<gray>This is a Tropical Fish Bucket."
-        - "<gray>These lore will not be applied to the product base."
+        - "<gray>This is a firework rocket with custom effect."
+        - "<gray>Product will not carry this lore."
+      item-flags:
+        - HIDE_ADDITIONAL_TOOLTIP
 
   CUSTOM_WEAPON:
     item:
       base: iron_sword
-      amount: 1
-      name: "<white>Super Sword"
+      name: "<white>Super sword"
       enchantments:
         - "sharpness:5"
-        - "knockback"
+        - "knockback:1"
     icon:
       lore:
-        - "<gray>A sword with custom enchantments"
+        - "<gray>This is a sword with custom enchantments."
+        - "<gray>Product will not carry this lore."

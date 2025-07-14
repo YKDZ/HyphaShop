@@ -1,4 +1,4 @@
-# Traditional color format (using & symbol) is not supported.
+# Traditional color format (using & symbols) is not supported,
 # Please use MiniMessage format, refer to the following page:
 # https://docs.adventure.kyori.net/minimessage/format.html
 format:
@@ -6,33 +6,27 @@ format:
   timer: "%02dh:%02dm:%02ds"
   date:
     # https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
-    pattern: yyyy年MM月dd日 HH:mm:ss
+    pattern: MM/dd/yyyy HH:mm:ss
     # https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
-    locale: zh_CN
+    locale: en_US
 
 terms:
   order-type:
-    sell-to: Buy from Shop
-    buy-from: Sell to Shop
-    buy-all-from: Sell All to Shop
+    sell-to: Buy from shop
+    buy-from: Sell to shop
+    buy-all-from: Sell all to shop
   shopping-mode:
-    direct: Direct Transaction
-    cart: Cart Transaction
-
-placeholder-api:
-  cart-total-price:
-    not-sell-to-mode: Not in sell-to mode
+    direct: Direct trade
+    cart: Cart trade
 
 messages:
   prefix: "<dark_gray>[<gold>🔔<dark_gray>] "
-  no-permission: <red>You do not have permission to do this.
-  notification:
-    restock: <dark_gray>[<red>!<dark_gray>] <white>Shop ${shop} <white>just restocked!
+  no-permission: <red>You don’t have permission to do this.
   command:
     reload:
       success: <green>Plugin reloaded successfully!
     save:
-      success: <green>Successfully saved all plugin data manually!
+      success: <green>All plugin data saved manually!
     shop:
       open:
         success: ""
@@ -40,106 +34,75 @@ messages:
           invalid-shop: <red>Shop ${shop_name} <red>does not exist!
           invalid-player: <red>The specified player does not exist!
       restock:
-        success: <gray>Successfully restocked shop ${shop_name}<gray> manually!
+        success: <gray>Shop ${shop_name}<gray> has been restocked successfully!
         failure:
           invalid-shop: <red>Shop ${shop_id} <red>does not exist!
-      cache:
-        clear:
-          success: <gray>Successfully cleared all internal cache (product items, shop GUI, etc.) for shop <white>${shop_id}!
-          failure:
-            invalid-shop: <red>Shop ${shop_id} <red>does not exist!
-    product:
-      check:
-        success: <green>Successfully obtained <gold>${keys} <green>configuration keys from the item in your hand! Check console for more information.
-        failure:
-          null-meta: <red>Unable to obtain any configuration keys from the item in your hand.
     cart:
       open:
-        success: <gray>Successfully opened the cart for player <reset>${player_name}<gray>.
+        success: ""
         failure:
-          invalid-player: <red>The specified player does not exist!
+          invalid-owner-name: <red>Player ${cart_owner_name} does not exist!
     history:
       open:
-        success: "" # <gray>Successfully opened transaction history for player <reset>${player-name}<gray>!
+        success: ""
         failure:
-          invalid-player: <red>The specified player does not exist!
-      clean:
-        success:
-          <gray>Successfully cleaned all transaction history for player <reset>${player_name} <gray>older than <white>${day_late_than}
-          <reset> days.
-        failure:
-          invalid-player: <red>The specified player does not exist!
-          invalid-day-late-than: <red>The specified day count <white>${day_late_than} <reset>is invalid! It must be an integer.
-    switch-shopping-mode:
-      success:
-        <gray>Successfully switched the shopping mode for player <white>${player_name} <gray>in shop <reset>${shop_name} <gray>to
-        <white>${mode}<gray>.
+          invalid-owner-name: <red>Player ${history_owner_name} does not exist!
+  action:
+    add-to-cart:
+      success: ""
       failure:
-        invalid-shop: <red>Shop <white>${shop_id} <red>does not exist!
-        invalid-player: <red>The specified player does not exist!
+        disabled: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>.
+        player-stock: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. Your personal stock quota has been exhausted.
+        global-stock: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. The shop does not have enough stock.
+        merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance to buy your items.
+        not-listed: <gray>Product <reset>${product_name}<gray> is not listed.
+        money: <gray>You do not have enough money to buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>.
   settle-result:
     direct:
-      # Shop sells product to player
       sell-to:
-        success:
-          "<gray>Successfully purchased <reset>${name} <gray>x <white>${amount} <gray>from shop <reset>${shop-name}<gray>. Total cost: <white>${cost}."
+        success: "<gray>Successfully bought <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. Total cost: <white>${format_decimal(cost)}."
         failure:
-          money: <gray>You do not have enough money to buy <reset>${name} <gray>x <white>${amount}<gray>.
-          disabled:
-            <gray>You cannot buy <reset>${name} <gray>x <white>${amount} <gray>from shop <reset>${shop-name}<gray>.
-          global-stock:
-            <gray>You cannot buy <reset>${name} <gray>x <white>${amount} <gray>from shop <reset>${shop-name}<gray>. The shop's global stock is insufficient.
-          player-stock:
-            <gray>You cannot buy <reset>${name} <gray>x <white>${amount} <gray>from shop <reset>${shop-name}<gray>. Your personal stock quota for this product has been exhausted.
-          inventory-space: <gray>Your inventory does not have enough space for <reset>${name} <gray>x <white>${amount}<gray>.
-      # Shop buys product from player
+          money: <gray>You don’t have enough balance to buy <reset>${product_name} <gray>x <white>${product_amount}<gray>.
+          disabled: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>.
+          global-stock: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. The shop does not have enough stock.
+          player-stock: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. Your personal stock quota has been exhausted.
+          inventory-space: <gray>You don’t have enough inventory space for <reset>${product_name} <gray>x <white>${product_amount}<gray>.
       buy-from:
         success:
-          <gray>Successfully sold <reset>${name} <gray>x <white>${amount} <gray>to shop <reset>${shop-name}<gray>.
-          You earned <white>${earned}.
+          <gray>Successfully sold <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
+          You earned <white>${format_decimal(earned)}.
         failure:
-          disabled:
-            <gray>You cannot sell <reset>${name} <gray>x <white>${amount} <gray>to shop <reset>${shop-name}<gray>.
-          product: <gray>You do not have enough <reset>${name} <gray>x <white>${amount} <gray>in your inventory to sell.
-          merchant-balance:
-            <gray>You cannot sell <reset>${name} <gray>x <white>${amount} <gray>to shop <reset>${shop-name}<gray>. The shop does not have enough balance to buy from you.
-      # Shop buys all of a product the player has in their inventory
+          disabled: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
+          product: <gray>You don’t have enough <reset>${product_name} <gray>x <white>${product_amount} <gray>in your inventory to sell.
+          merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance.
       buy-all-from:
-        success:
-          <gray>Successfully sold all <white>${stack} <gray>stacks of <reset>${name} <gray>x <white>${amount} <gray>in your inventory to shop <reset>${shop-name}<gray>. You earned <white>${earned}.
+        success: <gray>Successfully sold all <white>${stack} <gray>stacks of <reset>${product_name} <gray>x <white>${product_amount}<gray> from your inventory to shop <reset>${shop_name}<gray>. You earned <white>${format_decimal(earned)}.
         failure:
-          disabled:
-            <gray>You cannot sell <reset>${name} <gray>x <white>${amount} <gray>to shop <reset>${shop-name}<gray>.
-          product: <gray>You do not have any <reset>${name} <gray>x <white>${amount} <gray>in your inventory to sell.
-          merchant-balance:
-            <gray>You cannot sell <reset>${name} <gray>x <white>${amount} <gray>to shop <reset>${shop-name}<gray>. The shop does not have enough balance to buy from you.
+          disabled: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
+          product: <gray>You have no <reset>${product_name} <gray>x <white>${product_amount} <gray>in your inventory to sell.
+          merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance.
     cart:
       sell-to:
-        success: <gray>Successfully purchased all items in the cart for <white>${cost}<gray>.
-        partial-success: <gray>Successfully purchased some items in the cart for <white>${cost}<gray>.
+        success: <gray>Successfully bought all items in the cart for <white>${format_decimal(cost)}<gray>.
         failure:
-          empty: "" # <gray>Your cart contains no items for shop <reset>${shop-name}<gray>, nothing to settle.
-          not-listed: <gray>Your cart contains items not currently listed, try clearing your cart.
-          money: <gray>You do not have enough money to buy all items in the cart for shop <reset>${shop_name}<gray>.
-          inventory-space: <gray>Your inventory cannot hold all items in the cart for shop <reset>${shop_name}<gray>.
-          player-stock:
-            <gray>You have exhausted your personal stock quota for an item in the cart for shop <reset>${shop_name}<gray>,
-            try clearing your cart.
-          global-stock: <gray>An item in your cart for shop <reset>${shop_name}<gray> has insufficient global stock, try clearing your cart.
+          empty: ""
+          not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
+          money: <gray>You don’t have enough balance to purchase all items in the cart.
+          inventory-space: <gray>You don’t have enough inventory space for all items in the cart.
+          player-stock: <gray>Your personal stock quota for some items in the cart is exhausted. Please clean your cart.
+          global-stock: <gray>Some items in your cart are out of stock. Please clean your cart.
       buy-from:
-        success: "<gray>Successfully sold all listed items in the cart. Total earnings: <white>${earned}<gray>."
-        partial-success:" <gray>Successfully sold some listed items in the cart. Total earnings: <white>${earned}<gray>."
+        success: "<gray>Successfully sold all items in the cart. Total earned: <white>${format_decimal(earned)}<gray>."
         failure:
-          empty: "" # <gray>Your cart contains no items for shop <reset>${shop-name}<gray>, nothing to settle.
-          not-listed: <gray>Your cart contains items for shop <reset>${shop_name} <gray>not currently listed, try clearing your cart.
-          product: <gray>You do not have enough items in your inventory to sell.
+          empty: ""
+          not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
+          product: <gray>You don’t have enough items in your inventory to sell.
       buy-all-from:
-        success: "<gray>Successfully sold all listed items in the cart that you have in your inventory. Total earnings: <white>${earned}<gray>."
-        partial-success: "<gray>Successfully sold some listed items in the cart that you have in your inventory. Total earnings: <white>${earned}<gray>."
+        success: "<gray>Successfully sold all cart items that you had in your inventory. Total earned: <white>${format_decimal(earned)}<gray>."
         failure:
-          empty: "" # <gray>Your cart contains no items for shop <reset>${shop-name}<gray>, nothing to settle.
-          not-listed: <gray>Your cart contains items for shop <reset>${shop_name} <gray>not currently listed, try clearing your cart.
-          product: <gray>You do not have enough items in your inventory to sell.
+          empty: ""
+          not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
+          product: <gray>You don’t have enough items in your inventory to sell.
 
 # Do not change this
 version: 1

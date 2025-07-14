@@ -9,7 +9,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    implementation("xyz.xenondevs.invui:invui:2.0.0-alpha.15")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.15")
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
@@ -19,9 +19,9 @@ dependencies {
 
     compileOnly("org.xerial:sqlite-jdbc:3.50.2.0")
 
-    implementation("com.google.code.gson:gson:2.13.1")
+    compileOnly("com.google.code.gson:gson:2.13.1")
 
-    implementation("com.zaxxer:HikariCP:6.3.0")
+    compileOnly("com.zaxxer:HikariCP:6.3.0")
 
     implementation("cn.encmys:HyphaScript:0.1.0-Beta")
 

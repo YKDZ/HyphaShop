@@ -25,10 +25,6 @@ public class PriceImpl extends Price {
             this.setProperty(PriceProperty.MIN, config.getDouble("min").orElse(defaultConfig.getDouble("min").orElse(Double.NaN)))
                     .setProperty(PriceProperty.MAX, config.getDouble("max").orElse(defaultConfig.getDouble("max").orElse(Double.NaN)))
                     .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(defaultConfig.getBoolean("round").orElse(false)));
-        } else if (config.getBoolean("bundle-auto-new").orElse(false)) {
-            priceMode = PriceMode.BUNDLE_AUTO_NEW;
-        } else if (config.getBoolean("bundle-auto-reuse").orElse(false)) {
-            priceMode = PriceMode.BUNDLE_AUTO_REUSE;
         } else if (config.contains("formula") || config.contains("context")) {
             priceMode = PriceMode.FORMULA;
             final String formula = config.getString("formula").orElse(defaultConfig.getString("formula").orElse(null));
@@ -46,7 +42,7 @@ public class PriceImpl extends Price {
             priceMode = PriceMode.DISABLE;
         } else {
             priceMode = PriceMode.DISABLE;
-            throw new IllegalArgumentException("Invalid price setting: " + config + ". The price will be disabled.");
+            throw new IllegalArgumentException("Invalid price setting: " + config + " and default configs: " + defaultConfig + ". The price will be disabled.");
         }
     }
 

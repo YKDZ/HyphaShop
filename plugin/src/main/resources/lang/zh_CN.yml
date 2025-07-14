@@ -19,15 +19,9 @@ terms:
     direct: 直接交易
     cart: 购物车交易
 
-placeholder-api:
-  cart-total-price:
-    not-sell-to-mode: 非出售模式
-
 messages:
   prefix: "<dark_gray>[<gold>🔔<dark_gray>] "
   no-permission: <red>你没有这么做的权限.
-  notification:
-    restock: <dark_gray>[<red>!<dark_gray>] <white>Shop ${shop} <white>just restocked!
   command:
     reload:
       success: <green>成功重载插件!
@@ -43,111 +37,101 @@ messages:
         success: <gray>成功手动刷新了商店 ${shop_name}<gray>!
         failure:
           invalid-shop: <red>商店 ${shop_id} <red>不存在!
-      cache:
-        clear:
-          success: <gray>成功清除商店 <white>${shop_id} 中的所有内部缓存（商品物品、商店 GUI 等）!
-          failure:
-            invalid-shop: <red>商店 ${shop_id} <red>不存在!
-    product:
-      check:
-        success: <green>成功在你手中的物品中获取了 <gold>${keys} <green>配置键! 检查控制台以获取更多信息.
-        failure:
-          null-meta: <red>无法在你手中的物品中获取任何配置键.
     cart:
       open:
-        success: <gray>成功打开了玩家 <reset>${player_name} <gray>的购物车.
+        success: ""
         failure:
-          invalid-player: <red>指定的玩家不存在!
+          invalid-owner-name: <red>玩家 ${cart_owner_name} 不存在!
     history:
       open:
-        success: "" # <gray>成功打开玩家 <reset>${player-name} <gray>的购物历史!
+        success: ""
         failure:
-          invalid-player: <red>指定的玩家不存在!
-      clean:
-        success:
-          <gray>成功清理了玩家 <reset>${player_name} <gray>在 <white>${day_late_than}
-          <reset>天以下的所有交易历史.
-        failure:
-          invalid-player: <red>指定的玩家不存在!
-          invalid-day-late-than: <red>指定的天数 <white>${day_late_than} <reset>格式有误! 它必须是一个整数.
-    switch-shopping-mode:
-      success:
-        <gray>成功将玩家 <white>${player_name} <gray>在商店 <reset>${shop_name} <gray>的购物模式切换为
-        <white>${mode}<gray>.
+          invalid-owner-name: <red>玩家 ${history_owner_name} 不存在!
+  action:
+    add-to-cart:
+      success: ""
       failure:
-        invalid-shop: <red>商店 <white>${shop_id} <red>不存在!
-        invalid-player: <red>指定的玩家不存在!
+        disabled:
+          <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+          <white>${product_amount}<gray>.
+        player-stock:
+          <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+          <white>${product_amount}<gray>. 商店分配给你的商品配额已经被消耗完了.
+        global-stock:
+          <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+          <white>${product_amount}<gray>. 商店的总库存不足.
+        merchant-balance:
+          <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name}
+          <gray>x <white>${product_amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
+        not-listed: <gray>商品 <reset>${product_name}<gray> 未上架.
+        money: <gray>你的余额不足以从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
   settle-result:
     direct:
       # 商店向玩家出售商品
       sell-to:
         success:
-          <gray>成功在商店 <reset>${shop-name}<gray> 购买了 <reset>${name} <gray>x <white>${amount}<gray>.
-          共花费 <white>${cost}.
+          <gray>成功在商店 <reset>${shop_name}<gray> 购买了 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
+          共花费 <white>${format_decimal(cost)}.
         failure:
-          money: <gray>你的余额不足以购买 <reset>${name} <gray>x <white>${amount}<gray>.
+          money: <gray>你的余额不足以购买 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
           disabled:
-            <gray>你不能从商店 <reset>${shop-name}<gray> 购买 <reset>${name} <gray>x
-            <white>${amount}<gray>.
+            <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+            <white>${product_amount}<gray>.
           global-stock:
-            <gray>你不能从商店 <reset>${shop-name}<gray> 购买 <reset>${name} <gray>x
-            <white>${amount}<gray>. 商店的总库存不足.
+            <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+            <white>${product_amount}<gray>. 商店的总库存不足.
           player-stock:
-            <gray>你不能从商店 <reset>${shop-name}<gray> 购买 <reset>${name} <gray>x
-            <white>${amount}<gray>. 商店分配给你的商品配额已经被消耗完了.
-          inventory-space: <gray>你的背包空间无法容纳 <reset>${name} <gray>x <white>${amount}<gray>.
-      # 商店从玩家处收购商
+            <gray>你不能从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x
+            <white>${product_amount}<gray>. 商店分配给你的商品配额已经被消耗完了.
+          inventory-space: <gray>你的背包空间无法容纳 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
+      # 商店从玩家处收购商品
       buy-from:
         success:
-          <gray>成功向商店 <reset>${shop-name}<gray> 出售了 <reset>${name} <gray>x <white>${amount}<gray>.
-          你赚得了 <white>${earned}.
+          <gray>成功向商店 <reset>${shop_name}<gray> 出售了 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
+          你赚得了 <white>${format_decimal(earned)}.
         failure:
           disabled:
-            <gray>你不能向商店 <reset>${shop-name}<gray> 出售 <reset>${name} <gray>x
-            <white>${amount}<gray>.
-          product: <gray>你的背包中没有足够的 <reset>${name} <gray>x <white>${amount} <gray>可供出售.
+            <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name} <gray>x
+            <white>${product_amount}<gray>.
+          product: <gray>你的背包中没有足够的 <reset>${product_name} <gray>x <white>${product_amount} <gray>可供出售.
           merchant-balance:
-            <gray>你不能向商店 <reset>${shop-name}<gray> 出售 <reset>${name}
-            <gray>x <white>${amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
+            <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name}
+            <gray>x <white>${product_amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
       # 商店从玩家处收购玩家背包中拥有的所有商品
       buy-all-from:
         success:
-          <gray>成功向商店 <reset>${shop-name}<gray> 出售了背包中全部 <white>${stack} <gray>份的
-          <reset>${name} <gray>x <white>${amount}<gray>. 你赚得了 <white>${earned}.
+          <gray>成功向商店 <reset>${shop_name}<gray> 出售了背包中全部 <white>${stack} <gray>份的
+          <reset>${product_name} <gray>x <white>${product_amount}<gray>. 你赚得了 <white>${format_decimal(earned)}.
         failure:
           disabled:
-            <gray>你不能向商店 <reset>${shop-name}<gray> 出售 <reset>${name} <gray>x
-            <white>${amount}<gray>.
-          product: <gray>你的背包中没有任何 <reset>${name} <gray>x <white>${amount} <gray>可供出售.
+            <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name} <gray>x
+            <white>${product_amount}<gray>.
+          product: <gray>你的背包中没有任何 <reset>${product_name} <gray>x <white>${product_amount} <gray>可供出售.
           merchant-balance:
-            <gray>你不能向商店 <reset>${shop-name}<gray> 出售 <reset>${name}
-            <gray>x <white>${amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
+            <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name}
+            <gray>x <white>${product_amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
     cart:
       sell-to:
-        success: <gray>成功花费 <white>${cost}<gray> 购入了购物车中的所有商品.
-        partial-success: <gray>成功花费 <white>${cost}<gray> 购入了购物车中的部分商品.
+        success: <gray>成功花费 <white>${format_decimal(cost)}<gray> 购入了购物车中的所有商品.
         failure:
-          empty: "" # <gray>你的购物车中没有属于商店 <reset>${shop-name} <gray>的商品, 无需结算.
+          empty: ""
           not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
-          money: <gray>你的余额不足以购买购物车中属于商店 <reset>${shop_name} <gray>的所有商品.
-          inventory-space: <gray>你的背包无法装下购物车中所有属于商店 <reset>${shop_name} <gray>的商品.
+          money: <gray>你的余额不足以购买购物车中的所有商品.
+          inventory-space: <gray>你的背包无法装下购物车中的所有商品.
           player-stock:
-            <gray>你已经耗尽了购物车中属于商店 <reset>${shop_name} <gray>的某件商品分配给你的个人库存,
-            尝试清理购物车.
-          global-stock: <gray>你的购物车中属于商店 <reset>${shop_name} <gray>的某件商品的库存不足, 尝试清理购物车.
+            <gray>你已经耗尽了购物车中某件商品分配给你的个人库存, 尝试清理购物车.
+          global-stock: <gray>你的购物车中的某件商品的库存不足, 尝试清理购物车.
       buy-from:
-        success: <gray>成功出售了购物车中列出的的全部商品. 共赚得 <white>${earned}<gray>.
-        partial-success: <gray>成功出售了购物车中列出的的部分商品. 共赚得 <white>${earned}<gray>.
+        success: <gray>成功出售了购物车中的全部商品. 共赚得 <white>${format_decimal(earned)}<gray>.
         failure:
-          empty: "" # <gray>你的购物车中没有属于商店 <reset>${shop-name} <gray>的商品, 无需结算.
-          not-listed: <gray>你的购物车中有当前未上架的属于商店 <reset>${shop_name} <gray>商品, 尝试清理购物车.
+          empty: ""
+          not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
           product: <gray>你的背包中没有足够的商品物品可供出售.
       buy-all-from:
-        success: <gray>成功出售了背包中有的全部购物车中列出的的全部商品. 共赚得 <white>${earned}<gray>.
-        partial-success: <gray>成功出售了背包中有的全部购物车中列出的的部分商品. 共赚得 <white>${earned}<gray>.
+        success: <gray>成功出售了背包中有的全部购物车中的商品. 共赚得 <white>${format_decimal(earned)}<gray>.
         failure:
-          empty: "" # <gray>你的购物车中没有属于商店 <reset>${shop-name} <gray>的商品, 无需结算.
-          not-listed: <gray>你的购物车中有当前未上架的属于商店 <reset>${shop_name} <gray>商品, 尝试清理购物车.
+          empty: ""
+          not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
           product: <gray>你的背包中没有足够的商品物品可供出售.
 
 # 不要更改此处

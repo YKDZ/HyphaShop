@@ -22,6 +22,7 @@ public class Config {
     public static boolean priceCorrectByDisableSellOrBuy;
     public static long period_saveData;
     public static long period_checkRestocking;
+    public static boolean script_unpackInternalObject;
     public static boolean debug;
     public static int version;
     private static YamlConfiguration config = new YamlConfiguration();
@@ -40,8 +41,8 @@ public class Config {
             HyphaShop.INSTANCE.saveResource("shop/blocks.yml", false);
             HyphaShop.INSTANCE.saveResource("gui/main.yml", false);
             HyphaShop.INSTANCE.saveResource("gui/internal/cart.yml", false);
-            HyphaShop.INSTANCE.saveResource("gui/internal/stack-picker.yml", false);
             HyphaShop.INSTANCE.saveResource("gui/internal/order-history.yml", false);
+            HyphaShop.INSTANCE.saveResource("scripts/.global/random.hps", false);
         }
 
         try {
@@ -67,6 +68,7 @@ public class Config {
         database_sqlite_enabled = config.getBoolean("database.sqlite.enabled", true);
         database_mysql_enabled = config.getBoolean("database.mysql.enabled", true);
         database_mysql_url = config.getBoolean("database.mysql.url", true);
+        script_unpackInternalObject = config.getBoolean("script.unpack-internal-object", true);
         debug = config.getBoolean("debug", false);
         version = config.getInt("version");
     }

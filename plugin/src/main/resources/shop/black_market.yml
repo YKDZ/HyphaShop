@@ -1,114 +1,192 @@
 settings:
-  name: "<gray>Black Market"
-  # Represent the size is infinity
+  name: "<gray>Black market"
+  # Any negative number or simply deleting this configuration
+  # means that the shop size can accommodate an unlimited number of products
   size: -1
   auto-restock:
+    # Disable auto restock
+    # The disadvantage is that when adding new products,
+    # manual refreshing is required to display them in the store
     enabled: false
-  # Allow the shop itself to have a virtual balance
-  # and no longer purchase products from player when the balance is depleted.
+  # The store is seen as a merchant with its own virtual balance, and once the balance is depleted, it will not be able to purchase players' goods
   merchant:
+    # Init balance value
     balance: 1000
-    supply: true
-    overflow: false
-    inherit: false
-
-# This optional section override the same section in your lang file (en_US.yml etc.)
-messages:
-  action:
-    shop:
-      sell-to:
-        success: "<gray>You successfully spent <white>{cost} <gray>to buy <reset>{name} <gray>x <white>{amount} <gray>in the most mysterious market."
-
-sounds:
-  sell-to:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-  buy-from:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-  buy-all-from:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-  add-1-to-cart:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-  remove-1-from-cart:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-  remove-all-from-cart:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
+    # Whether the balance be replenished by the player's purchasing behavior
+    replenish: true
+    # Whether the balance be replenished beyond its initial value.
+    overflow: true
+    # Whether the balance inherited when the store is restocked
+    # If false, each restocking will reset the balance to its initial value
+    inherit: true
+  # Used to simulate the sequential refresh of titles instead of list style titles,
+  # as the store context will be persistently stored
+  context: |
+    const i = {};
+    const title = (uuid) => {
+      i[uuid] = (i[uuid] == null ? 0 : i[uuid]) + 1;
+      return titles[(i[uuid] - 1) % titles.length()];
+    }
 
 shop-gui:
-  title: "Welcome %player_name%"
-  # Available option is HORIZONTAL and VERTICAL
+  title: |
+    const titles = [`Welcome <white>${player_name} <#800080>⭐`,
+                    `Welcome <white>${player_name} <#800080>⭐⭐`,
+                    `Welcome <white>${player_name} <#800080>⭐⭐⭐`,
+                    `Welcome <white>${player_name} <#800080>⭐⭐`];
+    title(player_uuid);
+  # Title refresh frequency,
+  # deleting this key means not refreshing
+  title-update-period: 1s
+  # Scrolling mode, available values are HORIZONTAL and VERTICAL
   scroll-mode: HORIZONTAL
-  # The x character is the placeholder
-  # for the product slot.
-  layout:
-    - "# # # # # # # # #"
-    - "# x x x x x x x #"
-    - "# x x x x x x x #"
+  # The x symbol represents the position where the product icon appears
+  structure:
+    - "# # d # m # b # #"
+    - "x x x x x x x x x"
+    - "x x x x x x x x x"
     - "# # # # c # # # #"
+  actions:
+    on-outside-click:
+      - open_gui{id="main-1"}
   icons:
     "#":
       base: brown_stained_glass_pane
       name: " "
       lore:
-        - "<dark_gray>Wall of Block Shop"
+        - "<dark_gray>Wall"
         - " "
-    "@":
-      base: clock
-      name: "<gray>Restock Timer: <white>%dailyshop_restock_timer_blocks%"
-      update-period: "1s"
+      actions:
+        left:
+          - sound{sound="block.anvil.hit", pitch=1.5}
+          - message{msg=`<gray>Knock knock`}
+    "b":
+      base: bell
+      name: " "
+      update-period: 0.5s
+      lore:
+        - " <gray>Shop Balance: <white>${format_decimal(merchant_balance)} "
+        - " "
     "c":
       base: minecart
       name: " "
       lore:
-        - "<dark_gray>✖ <white>Left Click"
-        - "   <gray>Open cart"
-        - "<dark_gray>✖ <aqua>Right Click"
-        - "   <gray>Switch shopping mode"
-        - "   <gray>Current shopping mode: <white>%dailyshop_shopping_mode_{shop-id}%"
+        - "<dark_gray>✖ <white><key:key.mouse.left>"
+        - "   <gray>Open Cart"
+        - "<dark_gray>✖ <aqua><key:key.mouse.right>"
+        - "   <gray>Switch Shopping mode"
+        - "   <gray>Current Mode: <white>${term(shopping_mode_id)}"
         - " "
-      features:
-        open-cart: LEFT
-        switch-shopping-mode: RIGHT
-  product-icon:
-    format:
-      name: "<dark_gray>Name: <reset>{name} <dark_gray>x <white>{amount}"
+      actions:
+        left:
+          - open_cart()
+        right:
+          - |
+            Future.supply(() => switch_shopping_mode())
+              .then(() => update_icon())
+              .then(() => update_icon{target='d'});
+    "d":
+      base: paper
+      name: " "
+      lore:
+        - "<dark_gray>✖ <white><key:key.mouse.left>"
+        - "   <gray>Buy product from shop"
+        - "<dark_gray>✖ <white><key:key.mouse.right>"
+        - "   <gray>Sell product to shop"
+        - "<dark_gray>✖ <white>Shift + <key:key.mouse.right>"
+        - "   <gray>Sell all the product in your inventory to the shop"
+        - " "
+      icons:
+        - condition: shopping_mode_id == "CART"
+          icon:
+            base: book
+            lore:
+              - "<dark_gray>✖ <white><key:key.mouse.left>"
+              - "   <gray>Add product to cart"
+              - "<dark_gray>✖ <white><key:key.mouse.right>"
+              - "   <gray>Remove product from shop"
+              - "<dark_gray>✖ <white><key:key.drop>"
+              - "   <gray>Remove all this product from cart"
+              - " "
+    "m":
+      base: chest
+      name: "<gray>Shop List"
       lore:
         - " "
-        - "?<dark_gray>- <gray>Buy Price: <white>{buy-price}"
-        - "?<dark_gray>- <gray>Sell Price: <white>{sell-price}"
-        - "~"
-        - "?<dark_gray>Global Stock: <white>{current-global-stock}/{initial-global-stock}"
-        - "?<dark_gray>Player Stock: <white>{current-player-stock}/{initial-player-stock}"
-        - "|"
-        - "|<gray>Bundle Contents:"
-        - "{bundle-contents}"
-        - "|"
-        - "{desc-lore}"
+        - "<dark_gray>✖ <white>Go to shop list menu"
         - " "
-        - "<gray>Rarity: <reset>{rarity}"
+      actions:
+        left:
+          - open_gui{id="main-1"}
+  product-icon:
+    icon:
+      name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
+      lore:
         - " "
-      bundle-contents-line: " <dark_gray>- <white>{name} <gray>x <white>{total-amount}"
-    misc:
-      disabled-price: "<red>✘"
-    # For stock feature etc.
-    # Set to 0s or delete to disable update.
-    update-period: "1s"
-    features:
-      # Work only when shopping mode = direct
-      # Delete, leave blank or set to UNKNOWN to disable an action.
-      sell-to: LEFT
-      buy-from: RIGHT
-      buy-all-from: SHIFT_RIGHT
-      # Work only when shopping mode = cart
-      # Delete, leave blank or set to UNKNOWN to disable an action.
-      add-1-to-cart: LEFT
-      remove-1-from-cart: RIGHT
-      remove-all-from-cart: DROP
+        - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
+        - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+        - " "
+        - "<gray>Rarity: <reset>${product_rarity_name}"
+        - " "
+      # Only WARM.WELCOME has stock.player settings for the products in this shop,
+      # so set "update-on-click" in its icon to update it
+      update-period: 0s
+      update-on-click: false
+      actions:
+        left:
+          - |
+            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1};
+          - update_icon()
+        right:
+          - |
+            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1};
+          - update_icon()
+        shift-right:
+          - if (shopping_mode_id == "DIRECT") buy_all_from();
+          - update_icon()
+        drop:
+          - if (shopping_mode_id == "CART") remove_all_from_cart();
+          - update_icon()
+      icons:
+        - condition: desc_lore && desc_lore.length() > 0 && product_is_stock
+          icon:
+            lore:
+              - " "
+              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
+              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - " "
+              - "<dark_gray>Stock per-player: <white>${current_player_stock}/${initial_player_stock}"
+              - " "
+              - |
+                desc_lore;
+              - " "
+              - "<gray>Rarity: <reset>${product_rarity_name}"
+              - " "
+        - condition: desc_lore && desc_lore.length() > 0
+          icon:
+            lore:
+              - " "
+              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
+              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - " "
+              - |
+                desc_lore;
+              - " "
+              - "<gray>Rarity: <reset>${product_rarity_name}"
+              - " "
+        - condition: product_is_stock
+          icon:
+            lore:
+              - " "
+              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
+              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - " "
+              - "<dark_gray>Stock per-player: <white>${current_player_stock}/${initial_player_stock}"
+              - " "
+              - "<gray>Rarity: <reset>${product_rarity_name}"
+              - " "
+    format:
+      bundle-contents-line: " <dark_gray>- <reset>${product_name} <gray>x <white>${total_amount}"
 
 products:
   - WARM_WELCOME
@@ -116,13 +194,13 @@ products:
   - LONG_SWORD
   - STEEL_INGOT
   - SkeletonKingSword
+  - TUNA
   - CUSTOM_BANNER
   - CUSTOM_SKULL
+  - CUSTOM_SKULL_2
   - SPLASH_POTION_OF_LEAPING
+  - CUSTOM_POTION
   - A_JOKE
-  - TROPICAL_FISH_BUCKET
-  - AXOLOTL_BUCKET
   - CUSTOM_FIREWORK
   - CUSTOM_WEAPON
-  # You can also use PACK:misc
-  # to cover all the products above.
+  - ARMOR_WITH_CUSTOM_TRIM

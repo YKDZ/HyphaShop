@@ -15,6 +15,9 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public abstract class HyphaShop extends JavaPlugin {
     public final static @NotNull Gson GSON = new GsonBuilder()
             // 因为内部使用 NaN 表示无效值
@@ -32,6 +35,7 @@ public abstract class HyphaShop extends JavaPlugin {
     public static NormalGUIFactory NORMAL_GUI_FACTORY;
     public static Economy ECONOMY;
     public static Metrics METRICS;
+    public static final List<String> registeredMembers = new ArrayList<>();
     protected static boolean isInitialized = false;
 
     public abstract void disable();

@@ -1,16 +1,11 @@
-sounds:
-  settle-cart:
-    success: entity.villager.yes
-    failure: entity.villager.no:0.5:1
-
 cart:
-  title: "Cart for player {player-name}"
+  title: "${player_name}'s Cart"
   # Available option is HORIZONTAL and VERTICAL
   page-mode: HORIZONTAL
   # The x character is the placeholder
   # for the history slot.
-  layout:
-    - "# # # 1 # 2 # # u"
+  structure:
+    - "# # # # m # # # u"
     - "# x x x x x x x #"
     - "# x x x x x x x #"
     - "# # # @ # h # # n"
@@ -19,112 +14,119 @@ cart:
       base: brown_stained_glass_pane
       name: " "
       lore:
-        - "<dark_gray>Wall of Cart"
+        - "<dark_gray>Wall"
         - " "
     "u":
       base: green_stained_glass_pane
-      name: "<gray>Previous Page: {current-page}/{total-page}"
-      features:
-        page-change: LEFT
-        page-change-amount: -1
+      name: "<gray>Previous Page: ${current_page}/${total_page}"
+      actions:
+        left:
+          - change_page(-1)
       icons:
-        # Use the same formula parser Rhino like formula-price feature
-        # Result of this formula must be boolean
-        - condition: "{current-page} == 1"
-          # true by default
-          # base and update-period will be inherited anyway
+        - condition: current_page == 1
           inherit: true
           icon:
             base: black_stained_glass_pane
     "n":
       base: red_stained_glass_pane
-      name: "<gray>Next Page: {current-page}/{total-page}"
-      features:
-        page-change: LEFT
-        page-change-amount: 1
+      name: "<gray>Next Page: ${current_page}/${total_page}"
+      actions:
+        left:
+          - change_page(1)
       icons:
-        # Use the same formula parser Rhino like formula-price feature
-        # Result of this formula must be boolean
-        - condition: "{current-page} == {total-page}"
-          # true by default
-          # base and update-period will be inherited anyway
-          inherit: true
+        - condition: current_page == total_page
           icon:
             base: black_stained_glass_pane
     "@":
       base: paper
-      name: "<gray>Total Price: <white>{cart-total-price}"
+      name: "<gray>Total Price: <white>${format_decimal(cart_total_price)}"
       lore:
         - " "
-        - "<dark_gray>✖ <aqua>Left Click"
+        - "<dark_gray>✖ <aqua><key:key.mouse.left>"
         - "   <gray>Settle Cart"
-        - "<dark_gray>✖ <aqua>Shift + Right Click"
-        - "   <gray>Switch cart mode"
-        - "   <gray>Current cart mode: <white>%dailyshop_cart_mode%"
-        - "<dark_gray>✖ <aqua>Right Click"
+        - "<dark_gray>✖ <aqua>Shift + <key:key.mouse.right>"
+        - "   <gray>Switch Cart Mode"
+        - "   <gray>Current Mode: <white>${term(cart_shopping_mode)}"
+        - "<dark_gray>✖ <aqua><key:key.mouse.right>"
         - "   <gray>Clean Cart"
-        - "<dark_gray>✖ <white>Drop"
+        - "<dark_gray>✖ <white><key:key.drop>"
         - "   <gray>Clear Cart"
         - " "
-      update-period: "1s"
-      features:
-        settle-cart: LEFT
-        clean-cart: RIGHT
-        switch-cart-mode: SHIFT_RIGHT
-        clear-cart: DROP
-    "1":
-      base: oak_wood
-      name: "<#A0522D>Blocks Shop"
+      updata-period: 1s
+      actions:
+        left:
+          - settle_cart()
+        shift-right:
+          - switch_cart_mode()
+          - update_icon()
+        right:
+          - clean_cart()
+        drop:
+          - clear_cart()
+    "m":
+      base: chest
+      name: "<gray>Shop List"
       lore:
         - " "
-        - "<dark_gray>✖ <white>Go to block shop"
+        - "<dark_gray>✖ <white>Go to shop list"
         - " "
-      features:
-        open-shop: LEFT
-        open-shop-target: blocks
-    "2":
-      base: ender_eye
-      name: "<gray>Black Market"
-      lore:
-        - " "
-        - "<dark_gray>✖ <white>Go to black market"
-        - " "
-      features:
-        open-shop: LEFT
-        open-shop-target: black_market
+      actions:
+        left:
+          - open_gui{id="main-1"}
     "h":
       base: book
-      name: "<gray>Order History"
+      name: "<gray>Settlement Log"
       lore:
         - " "
-        - "<dark_gray>✖ <white>Check your order history"
+        - "<dark_gray>✖ <white>Check your settlement log"
         - " "
-      features:
-        open-order-history: LEFT
+      actions:
+        left:
+          - open_order_history()
   cart-product-icon:
-    format:
-      name: "<dark_gray>Name: <reset>{name} <dark_gray>x <white>{amount}"
+    icon:
+      name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
       lore:
         - " "
-        - "<gray>Stack: <white>{stack}"
-        - "<gray>Price: <white>{price}"
+        - "<gray>Stack: <white>${stack}"
+        - "<gray>Total Price: <white>${format_decimal(total_price)}"
         - " "
-        - "<dark_gray>✖ <aqua>Left Click"
+        - "<dark_gray>✖ <aqua><key:key.mouse.left>"
         - "   <gray>Add 1 stack"
-        - "<dark_gray>✖ <aqua>Right Click"
+        - "<dark_gray>✖ <aqua><key:key.mouse.right>"
         - "   <gray>Remove 1 stack"
-        - "<dark_gray>✖ <aqua>Drop"
+        - "<dark_gray>✖ <aqua><key:key.drop>"
         - "   <gray>Remove this product"
-        - "<dark_gray>✖ <aqua>Shift + Left Click"
-        - "   <gray>Enter the amount of the stack"
-        - "   <gray>inside an anvil gui"
+        - "<dark_gray>✖ <aqua>Shift + <key:key.mouse.left>"
+        - "   <gray>Input any amount as stack"
         - " "
-    # For price update etc.
-    # Set to 0s or delete to disable update.
-    update-period: "0s"
-    features:
-      # Delete, leave blank or set to UNKNOWN to disable an action.
-      add-1-stack: LEFT
-      remove-1-stack: RIGHT
-      remove-all: DROP
-      input-in-anvil: SHIFT_LEFT
+      actions:
+        left:
+          - modify_order_stack{amount=1}
+        right:
+          - modify_order_stack{amount=-1}
+        drop:
+          - set_order_stack{amount=0}
+        shift-left:
+          - |
+            anvil_input({
+              structure: ["1 2 3"],
+              icons: {
+                1: {
+                  base: "paper",
+                  name: ""
+                },
+                2: {
+                  base: "air"
+                },
+                3: {
+                  base: "air"
+                }
+              }
+            })
+              .then((result) => {
+                if (Number.isNumber(result)) {
+                  set_order_stack{amount=Number.number(result)}
+                }
+              })
+              .then(() => open_cart());

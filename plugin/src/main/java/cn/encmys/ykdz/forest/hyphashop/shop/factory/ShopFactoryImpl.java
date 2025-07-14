@@ -82,7 +82,7 @@ public class ShopFactoryImpl implements ShopFactory {
         // 加载完成
 
         shops.put(id, shop);
-        LogUtils.info("Successfully load shop " + id + " with " + productIds.size() + " productIds.");
+        LogUtils.info("Successfully load shop " + id + " with " + productIds.size() + " product.");
         return shop;
     }
 

@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.ScriptManager;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
@@ -24,6 +25,8 @@ import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.RegisteredServiceProvider;
+import org.jetbrains.annotations.NotNull;
+import xyz.xenondevs.invui.InvUI;
 
 import java.nio.file.Paths;
 
@@ -35,6 +38,8 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void onEnable() {
+        InvUI.getInstance().setPlugin(this);
+
         if (ItemsAdderHook.isHooked()) {
             Bukkit.getPluginManager().registerEvents(new ItemsAdderListener(), INSTANCE);
         } else {
@@ -69,9 +74,10 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void enable() {
+        Config.load();
+
         loadScripts();
 
-        Config.load();
         MessageConfig.load();
         RarityConfig.load();
         ProductConfig.load();
@@ -103,6 +109,7 @@ public final class HyphaShopImpl extends HyphaShop {
         NORMAL_GUI_FACTORY.unload();
 
         ScriptManager.unloadAllScripts();
+        clearInternalObjects();
     }
 
     @Override
@@ -130,15 +137,14 @@ public final class HyphaShopImpl extends HyphaShop {
         METRICS = new Metrics(this, pluginId);
     }
 
-    @Override
     public void loadScripts() {
-        InternalObjectManager.registerObject(new ConsoleObject());
-        InternalObjectManager.registerObject(new PlaceholderAPIObject());
-        InternalObjectManager.registerObject(new PlayerObject());
-        InternalObjectManager.registerObject(new ServerObject());
-        InternalObjectManager.registerObject(new CommandObject());
-        InternalObjectManager.registerObject(new HyphaShopBasicObject());
-        InternalObjectManager.registerObject(new HyphaShopActionObject());
+        loadInternalObject(new ConsoleObject());
+        loadInternalObject(new PlaceholderAPIObject());
+        loadInternalObject(new PlayerObject());
+        loadInternalObject(new ServerObject());
+        loadInternalObject(new CommandObject());
+        loadInternalObject(new HyphaShopBasicObject());
+        loadInternalObject(new HyphaShopActionObject());
 
         try {
             ScriptManager.loadAllFrom(Paths.get(getDataFolder() + "/" + "scripts"));
@@ -149,5 +155,21 @@ public final class HyphaShopImpl extends HyphaShop {
             setEnabled(false);
             e.printStackTrace();
         }
+    }
+
+    private static void clearInternalObjects() {
+        registeredMembers.forEach(Context.GLOBAL_OBJECT::deleteMember);
+        registeredMembers.clear();
+    }
+
+    private static void loadInternalObject(@NotNull InternalObject object) {
+        if (!Config.script_unpackInternalObject) {
+            InternalObjectManager.register(object.getName(), object);
+            registeredMembers.add(object.getName());
+        }
+        else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
+            Context.GLOBAL_OBJECT.declareMember(name, ref);
+            registeredMembers.add(name);
+        });
     }
 }

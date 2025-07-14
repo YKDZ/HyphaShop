@@ -1,39 +1,38 @@
-# In this product pack, nearly all product data
-# except "base" is set at "default-settings".
-# This makes maintaining a large number of
-# similar products very easy.
-default-settings:
+# Most of the attributes of the products in this package
+# are specified by the default-configs, which greatly
+# reduces the size of the configuration file and its maintenance difficulty
+default-configs:
   item:
-    amount: 8-16
+    amount: 8 + Random.nextUniform(8, 16)
+  context: |
+    const buy_range = 0.2;
+    const sell_range = 0.3;
   buy-price:
-    formula: |
-      Math.max(vars.base / 3, Math.min(3 * vars.base, vars.base * (1 + (vars.history_buy - vars.history_sell) / (vars.history_sell + vars.history_buy + 1)) ^ 2)) * vars.item_amount;
+    formula: base * (1 + (Math.random() * 2 - 1) * buy_range) * product_amount
   sell-price:
-    # Multi line formula
-    formula: |
-      Math.max(vars.base / 3, Math.min(3 * vars.base, vars.base * (1 + (vars.history_buy - vars.history_sell) / (vars.history_sell + vars.history_buy + 1)) ^ 2)) * vars.item_amount;
+    formula: base * (1 + (Math.random() * 2 - 1) * sell_range) * product_amount
   stock:
-    # It means that the following stock settings
-    # will be shared by all players, in other words, each player shares the same size etc.
+    # All players share this global stock.
+    # If the size is set to 10 and player A purchases 2 items, the stock will become 8;
+    # Player B sold 2 items, and the stock has increased to 10 (if reset: true)
     global:
-      # Indicates the initial size of the product's stock.
-      # Each time a player buy this product, the stock is decreased.
-      # If the remaining stock drops to 0, this player will no longer be able to buy this product.
+      # The initial stock of the product.
+      # When players sell or buy goods, stock will fluctuate up and down.
+      # If the stock becomes 0, players will not be able to purchase the product
       size: 1024
-      # Indicates whether the product's stock
-      # can be replenished when player sell this product to shop.
+      # Whether stock be replenished when players sell goods.
+      # If false, the stock will only be consumed
       replenish: true
-      # Indicates whether the product's stock can exceed
-      # "size" value above when it is replenished.
+      # Whether the stock be replenished by the player's selling behavior beyond its initial stock size.
       overflow: true
-      # Indicates whether the base will reset the stock to
-      # the "size" value above when restocked.
+      # Whether stock be reset to its initial size upon restocking
       inherit: true
   rarity: uncommon
-  # Whether to cache the product base.
-  # This will reduce the lag of plugin,
-  # but will ignore the player-targeted placeholder
-  # like %player_name% in the name or lore of the base.
+  # Can the ItemStack of the product be cached
+  # Setting it to true will reduce the performance consumption of the plugin,
+  # but it may cause some attribute to fail to refresh dynamically.
+  # For example, the random properties of the MMOItems plugin
+  # or the Placeholder API variables related to players within the item lore
   cacheable: true
 
 products:
@@ -41,158 +40,63 @@ products:
     item:
       base: coal_ore
     buy-price:
-      vars:
-        - "base:30"
+      context: const base = 20
     sell-price:
-      vars:
-        - "base:10"
+      context: const base = 10
 
   COPPER_ORE:
     item:
       base: copper_ore
     buy-price:
-      vars:
-        - "base:60"
+      context: const base = 50
     sell-price:
-      vars:
-        - "base:20"
+      context: const base = 20
 
   IRON_ORE:
     item:
       base: iron_ore
     buy-price:
-      vars:
-        - "base:90"
+      context: const base = 80
     sell-price:
-      vars:
-        - "base:30"
+      context: const base = 30
 
   LAPIS_ORE:
     item:
       base: lapis_ore
     buy-price:
-      vars:
-        - "base:120"
+      context: const base = 110
     sell-price:
-      vars:
-        - "base:40"
+      context: const base = 40
 
   REDSTONE_ORE:
     item:
       base: redstone_ore
     buy-price:
-      vars:
-        - "base:150"
+      context: const base = 140
     sell-price:
-      vars:
-        - "base:50"
+      context: const base = 50
 
   EMERALD_ORE:
     item:
       base: emerald_ore
     buy-price:
-      vars:
-        - "base:180"
+      context: const base = 170
     sell-price:
-      vars:
-        - "base:60"
+      context: const base = 60
 
   GOLD_ORE:
     item:
       base: gold_ore
     buy-price:
-      vars:
-        - "base:210"
+      context: const base = 200
     sell-price:
-      vars:
-        - "base:70"
+      context: const base = 70
 
   DIAMOND_ORE:
     item:
       base: diamond_ore
     buy-price:
-      vars:
-        - "base:240"
+      context: const base = 230
     sell-price:
-      vars:
-        - "base:80"
-
-  DEEPSLATE_COAL_ORE:
-    item:
-      base: deepslate_coal_ore
-    buy-price:
-      vars:
-        - "base:30"
-    sell-price:
-      vars:
-        - "base:10"
-
-  DEEPSLATE_COPPER_ORE:
-    item:
-      base: deepslate_copper_ore
-    buy-price:
-      vars:
-        - "base:60"
-    sell-price:
-      vars:
-        - "base:20"
-
-  DEEPSLATE_IRON_ORE:
-    item:
-      base: deepslate_iron_ore
-    buy-price:
-      vars:
-        - "base:90"
-    sell-price:
-      vars:
-        - "base:30"
-
-  DEEPSLATE_LAPIS_ORE:
-    item:
-      base: deepslate_lapis_ore
-    buy-price:
-      vars:
-        - "base:120"
-    sell-price:
-      vars:
-        - "base:40"
-
-  DEEPSLATE_REDSTONE_ORE:
-    item:
-      base: deepslate_redstone_ore
-    buy-price:
-      vars:
-        - "base:150"
-    sell-price:
-      vars:
-        - "base:50"
-
-  DEEPSLATE_EMERALD_ORE:
-    item:
-      base: deepslate_emerald_ore
-    buy-price:
-      vars:
-        - "base:180"
-    sell-price:
-      vars:
-        - "base:60"
-
-  DEEPSLATE_GOLD_ORE:
-    item:
-      base: deepslate_gold_ore
-    buy-price:
-      vars:
-        - "base:210"
-    sell-price:
-      vars:
-        - "base:70"
-
-  DEEPSLATE_DIAMOND_ORE:
-    item:
-      base: deepslate_diamond_ore
-    buy-price:
-      vars:
-        - "base:240"
-    sell-price:
-      vars:
-        - "base:80"
+      context: const base = 80
+    rarity: epic

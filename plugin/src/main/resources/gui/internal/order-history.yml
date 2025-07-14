@@ -1,10 +1,10 @@
 order-history:
-  title: "Order History for player {player-name}"
-  # Available option is HORIZONTAL and VERTICAL
+  title: "${player_name}'s Settlement Log"
+  # The Available option is HORIZONTAL and VERTICAL
   page-mode: HORIZONTAL
   # The x character is the placeholder
   # for the history slot.
-  layout:
+  structure:
     - "x x x x x x x x x"
     - "x x x x x x x x x"
     - "x x x x x x x x x"
@@ -16,80 +16,80 @@ order-history:
       base: brown_stained_glass_pane
       name: " "
       lore:
-        - "<dark_gray>Wall of History"
+        - "<dark_gray>Wall"
         - " "
     "p":
       base: red_stained_glass_pane
-      name: "<gray>Previous Page: {current-page}/{total-page}"
-      features:
-        page-change: LEFT
-        page-change-amount: -1
+      name: "<gray>Previous Page: ${(current_page + 1).intValue()}/${total_page}"
+      actions:
+        left:
+          - change_page{amount=-1}
       icons:
-        # Use the same formula parser Rhino like formula-price feature
-        # Result of this formula must be boolean
-        - condition: "{current-page} == 1"
-          # true by default
-          # base and update-period will be inherited anyway
-          inherit: true
+        - condition: current_page == 0
           icon:
             base: black_stained_glass_pane
     "n":
       base: green_stained_glass_pane
-      name: "<gray>Next Page: {current-page}/{total-page}"
-      features:
-        page-change: LEFT
-        page-change-amount: 1
-        load-more-log: LEFT
+      name: "<gray>Next Page: ${(current_page + 1).intValue()}/${total_page}"
+      actions:
+        left:
+          - change_page{amount=1}
       icons:
-        # Use the same formula parser Rhino like formula-price feature
-        # Result of this formula must be boolean
-        - condition: "{current-page} == {total-page}"
-          # true by default
-          # base and update-period will be inherited anyway
+        - condition: current_page + 1 == total_page
           inherit: true
           icon:
             base: black_stained_glass_pane
     "@":
       base: minecart
-      name: "<white>Shopping Cart"
-      features:
-        open-cart: LEFT
+      name: "<white>Cart"
+      actions:
+        left:
+          - open_cart()
   history-icon:
-    format:
-      name: "<white>{date}"
+    icon:
+      name: "<white>${format_date(log_date)}"
       lore:
         - ""
-        - "<gray>Shop: {shop-name}"
+        - "<gray>Product:"
+        - " <dark_gray>- Name x Amount x Stack"
+        - |
+          order_contents;
         - ""
-        - "<gray>Products:"
-        - "{order-contents}"
+        - "<gray>Type: ${term(log_type_id)}"
         - ""
-        - "<gray>Type: {type}"
-        - ""
-        - "<gray>Total Price: {total-price}"
+        - "<gray>Total Price: ${format_decimal(log_total_price)}"
         - " "
-      order-content-line: " <dark_gray>- <white>{name} <gray>x <white>{stack}"
-      # Used when product id stored in a settlement log
-      # do not exist in your product config.
-      invalid-order-content-line: " <dark_gray>- <white>{id} <gray>do not exist"
-    # Used when all the products in the log
-    # no longer exist in your config or
-    # can not be build to history icon.
-    misc:
-      placeholder-icon:
-        base: paper
-        name: "<white>{date}"
-        lore:
-          - ""
-          - "<dark_gray>This icon can only be paper"
-          - "<dark_gray>:)"
-          - ""
-          - "<gray>Shop: {shop-name}"
-          - ""
-          - "<gray>Products:"
-          - "{order-contents}"
-          - ""
-          - "<gray>Type: {type}"
-          - ""
-          - "<gray>Total Price: {total-price}"
-          - " "
+      item-flags:
+        - HIDE_ADDITIONAL_TOOLTIP
+        - HIDE_ENCHANTS
+        - HIDE_ATTRIBUTES
+        - HIDE_DYE
+        - HIDE_ARMOR_TRIM
+        - HIDE_STORED_ENCHANTS
+    format:
+      order-content-line: " <dark_gray>- <white>${product_name} <gray>x <white>${amount} <gray>x <white>${stack}"
+      invalid-order-content-line: " <dark_gray>- <white>${product_id} <gray>does not exists"
+  history-placeholder-icon:
+    base: paper
+    name: "<white>${format_date(log_date)}"
+    lore:
+      - ""
+      - "<dark_gray>This icon can only be paper"
+      - "<dark_gray>:)"
+      - ""
+      - "<gray>Product:"
+      - " <dark_gray>- Name x Amount x Stack"
+      - |
+        order_contents;
+      - ""
+      - "<gray>Type: ${term(log_type_id)}"
+      - ""
+      - "<gray>Total Price: ${format_decimal(log_total_price)}"
+      - " "
+    item-flags:
+      - HIDE_ADDITIONAL_TOOLTIP
+      - HIDE_ENCHANTS
+      - HIDE_ATTRIBUTES
+      - HIDE_DYE
+      - HIDE_ARMOR_TRIM
+      - HIDE_STORED_ENCHANTS

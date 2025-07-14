@@ -125,7 +125,12 @@ public class MessageConfig {
         putSettleResultMessage("cart.buy-all-from.failure.not-listed");
         putSettleResultMessage("cart.buy-all-from.failure.product");
         putActionMessage("add-to-cart.success");
+        putActionMessage("add-to-cart.failure.disabled");
+        putActionMessage("add-to-cart.failure.player-stock");
+        putActionMessage("add-to-cart.failure.global-stock");
+        putActionMessage("add-to-cart.failure.merchant-balance");
         putActionMessage("add-to-cart.failure.not-listed");
+        putActionMessage("add-to-cart.failure.money");
 
         version = config.getInt("version");
     }
@@ -138,12 +143,26 @@ public class MessageConfig {
         return config.getString(path, "<red>There may be an error in your language file. The related key is: " + path);
     }
 
-    public static String getTerm(@NotNull OrderType orderType) {
-        return config.getString("terms." + EnumUtils.toConfigName(OrderType.class) + "." + EnumUtils.toConfigName(orderType));
+    public static @NotNull String getTerm(@NotNull OrderType orderType) {
+        final String path = "terms." + EnumUtils.toConfigName(OrderType.class) + "." + EnumUtils.toConfigName(orderType);
+        if (!config.contains(path)) {
+            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+            return "<red>There may be an error in your language file. The related key is: " + path;
+        }
+        final String term = config.getString(path);
+        assert term != null;
+        return term;
     }
 
-    public static String getTerm(@NotNull ShoppingMode shoppingMode) {
-        return config.getString("terms." + EnumUtils.toConfigName(ShoppingMode.class) + "." + EnumUtils.toConfigName(shoppingMode));
+    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode) {
+        final String path = "terms." + EnumUtils.toConfigName(ShoppingMode.class) + "." + EnumUtils.toConfigName(shoppingMode);
+        if (!config.contains(path)) {
+            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+            return "<red>There may be an error in your language file. The related key is: " + path;
+        }
+        final String term = config.getString(path);
+        assert term != null;
+        return term;
     }
 
     private static void putSettleResultMessage(@NotNull String path) {
@@ -156,10 +175,18 @@ public class MessageConfig {
 
     public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode, @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType) {
         final String path = shoppingMode.getConfigKey() + "." + orderType.getConfigKey() + "." + settlementResultType.getConfigKey();
+        if (!messages_settleResult.containsKey(path)) {
+            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+            return new Script("<red>There may be an error in your language file. The related key is: " + path);
+        }
         return messages_settleResult.get(path);
     }
 
     public static @NotNull Script getActionMessage(@NotNull String path) {
+        if (!messages_action.containsKey(path)) {
+            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+            return new Script("<red>There may be an error in your language file. The related key is: " + path);
+        }
         return messages_action.get(path);
     }
 }

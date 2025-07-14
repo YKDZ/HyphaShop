@@ -3,6 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.item;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
+import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
@@ -11,6 +12,7 @@ import net.Indyuce.mmoitems.api.player.PlayerData;
 import net.Indyuce.mmoitems.stat.type.NameData;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +21,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 public class MMOItemsItem implements BaseItem {
     private final @NotNull Type type;
@@ -39,7 +43,8 @@ public class MMOItemsItem implements BaseItem {
 
         for (var stat : mmoItem.getStats()) {
             if (stat.getId().equals("NAME")) {
-                return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(((NameData) mmoItem.getData(stat)).getMainName()));
+                final String name = HyphaAdventureUtils.legacyToMiniMessage(((NameData) mmoItem.getData(stat)).getMainName());
+                return HyphaAdventureUtils.getComponentFromMiniMessage(name);
             }
         }
 
@@ -69,6 +74,27 @@ public class MMOItemsItem implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
+        if (Bukkit.isPrimaryThread()) {
+            return buildSync(player);
+        } else {
+            final CompletableFuture<ItemStack> future = new CompletableFuture<>();
+            Bukkit.getScheduler().runTask(MMOItems.plugin, () -> {
+                try {
+                    future.complete(buildSync(player));
+                } catch (Throwable t) {
+                    future.completeExceptionally(t);
+                }
+            });
+            try {
+                return future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                LogUtils.warn(e.getMessage());
+                return new ItemStack(Material.AIR);
+            }
+        }
+    }
+
+    private @NotNull ItemStack buildSync(@Nullable Player player) {
         final MMOItem mmoItem;
         if (player == null) {
             mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));

@@ -18,7 +18,7 @@ You can find the document [here](https://docs.encmys.cn/s/ykdz-plugin-docs).
 - [x] Total market volume
 - [x] Transaction log
 - [x] SQL Support
-- [x] Random amount and amount based price
+- [x] Random amount and amount-based price
 - [x] List product by condition
 - [ ] Discount
 - [ ] Manually specifying restock results

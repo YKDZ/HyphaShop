@@ -1,8 +1,7 @@
-# In this product pack, nearly all product data
-# except "base" is set at "default-settings".
-# This makes maintaining a large number of
-# similar products very easy.
-default-settings:
+# Most of the attributes of the products in this package
+# are specified by the default-configs, which greatly
+# reduces the size of the configuration file and its maintenance difficulty
+default-configs:
   item:
     amount: 16
   buy-price:
@@ -13,10 +12,11 @@ default-settings:
     mean: 5
     dev: 2
   rarity: uncommon
-  # Whether to cache the product base.
-  # This will reduce the lag of plugin,
-  # but will ignore the player-targeted placeholder
-  # like %player_name% in the name or lore of the base.
+  # Can the ItemStack of the product be cached
+  # Setting it to true will reduce the performance consumption of the plugin,
+  # but it may cause some attribute to fail to refresh dynamically.
+  # For example, the random properties of the MMOItems plugin
+  # or the Placeholder API variables related to players within the item lore
   cacheable: true
 
 products:
@@ -24,19 +24,20 @@ products:
     icon:
       base: barrel
       amount: 1
-      name: "<white>Warm Color Wool Bundle"
+      name: "<white>Warm toned wool bundle"
       lore:
-        - "<gray>A product bundle that contains"
-        - "<gray>all the <gold>warm color <gray>wool."
+        - "<gray>A bundle that contains all"
+        - "<gold>warm toned<gray>wool."
     buy-price:
-      bundle-auto-new: true
+      formula: bundle_total_new * 0.8
     sell-price:
       disable: true
     bundle-contents:
       - YELLOW_WOOL
       - BROWN_WOOL
-      # Three "stack" of red_wool.
-      # In this case, means 16 * 3 in total.
+      - MAGIC_ORANGE_WOOL
+      # 3 stack of red wool product
+      # In the default configuration, it means a total of 3 * 16 = 48 red wool
       - RED_WOOL:3
     rarity: rare
 
@@ -44,19 +45,19 @@ products:
     icon:
       base: barrel
       amount: 1
-      name: "<white>Cold Color Wool Bundle"
+      name: "<white>Cold toned wool bundle"
       lore:
-        - "<gray>A product bundle that contains"
-        - "<gray>all the <blue>cold color <gray>wool."
+        - "<gray>A bundle that contains all"
+        - "<blue>cold toned<gray>wool."
     bundle-contents:
       - MAGENTA_WOOL
       - LIGHT_BLUE_WOOL
       - LIME_WOOL
       - PURPLE_WOOL
       - BLUE_WOOL
-      # Three "stack" of green_wool.
-      # In this case, means 16 * 3 in total.
-      - GREEN_WOOL:3
+      # 2 stack of green wool product
+      # In the default configuration, it means a total of 3 * 16 = 32 green wool
+      - GREEN_WOOL:2
     rarity: rare
 
   WHITE_WOOL:
@@ -66,15 +67,15 @@ products:
   MAGIC_ORANGE_WOOL:
     icon:
       lore:
-        - "<gray>This is a wool with magic."
+        - "<gray>This is a magic wool."
     item:
       base: orange_wool
-      name: "<green>Magic Orange Wool"
+      name: "<green>Magic orange wool"
       lore:
-        - "<gray>Unlike other wools, this wool"
-        - "<gray>will carry these lore and custom name"
-        - "<gray>when purchased by the player."
-    # Player can not sell this wool to shop.
+        - "<gray>Unlike the other wool,"
+        - "<gray>This wool will carry this lore"
+        - "<gray>when purchased by player."
+    # Player cannot sell magic orange wool to shop
     sell-price:
       disable: true
 
@@ -83,11 +84,11 @@ products:
       base: magenta_wool
     icon:
       lore:
-        - "<gray>Unlike the orange wool,"
-        - "<gray>this wool will not carry the lore"
-        - "<gray>when it is purchased by the player,"
-        - "<gray>as icon lore is only displayed"
-        - "<gray>in the shop gui."
+        - "<gray>Unlike orange wool,"
+        - "<gray>This wool will not carry this lore"
+        - "<gray>when purchased by player,"
+        - "<gray>Because lore setting in icon block"
+        - "<gray>only used in product icon in gui."
 
   LIGHT_BLUE_WOOL:
     item:

@@ -3,9 +3,12 @@ package cn.encmys.ykdz.forest.hyphashop.shop.pricer;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphascript.value.Reference;
+import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
+import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
@@ -18,7 +21,6 @@ import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
@@ -61,8 +63,8 @@ public class ShopPricerImpl implements ShopPricer {
             return false;
         }
 
-        double buy = calculatePrice(product.getBuyPrice(), product, true, productId, shop);
-        double sell = calculatePrice(product.getSellPrice(), product, false, productId, shop);
+        double buy = calculatePrice(product.getBuyPrice(), product, true);
+        double sell = calculatePrice(product.getSellPrice(), product, false);
 
         if (!Double.isNaN(buy) && buy <= sell) {
             handlePriceConflict(productId, buy, sell);
@@ -79,17 +81,18 @@ public class ShopPricerImpl implements ShopPricer {
         return true;
     }
 
-    private double calculatePrice(@NotNull Price price, @NotNull Product product, boolean isBuy, @Nullable Object... args) {
-        return switch (price.getPriceMode()) {
-            case FORMULA -> evaluateFormulaPrice(price, product, args);
-            case BUNDLE_AUTO_NEW -> calculateBundleAutoNewPrice(product, isBuy);
-            case BUNDLE_AUTO_REUSE -> calculateBundleAutoReusePrice(product, isBuy);
-            default -> price.getNewPrice();
-        };
+    private double calculatePrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
+        if (price.getPriceMode() == PriceMode.FORMULA) return evaluateFormulaPrice(price, product, isBuy);
+        else return price.getNewPrice();
     }
 
-    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, @Nullable Object... args) {
-        final Context context = price.getProperty(PriceProperty.CONTEXT);
+    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
+        final Context priceContext = price.getProperty(PriceProperty.CONTEXT);
+        final Context context = new Context(ContextUtils.linkContext(
+                priceContext != null ? priceContext.clone() : Context.GLOBAL_OBJECT,
+                product.getScriptContext().clone(),
+                shop.getScriptContext().clone()
+        ));
         final Script formula = price.getProperty(PriceProperty.FORMULA);
 
         if (formula == null) {
@@ -97,12 +100,15 @@ public class ShopPricerImpl implements ShopPricer {
             return Double.NaN;
         }
 
+        if (formula.getLexicalScope() != null && formula.getLexicalScope().contains("bundle_total_reuse")) {
+            context.declareMember("bundle_total_reuse", new Reference(new Value(calculateBundleAutoReusePrice(product, isBuy)), true));
+        }
+        if (formula.getLexicalScope() != null && formula.getLexicalScope().contains("bundle_total_new")) {
+            context.declareMember("bundle_total_new", new Reference(new Value(calculateBundleAutoNewPrice(product, isBuy)), true));
+        }
+
         final Context ctx = new VarInjector()
-                .withTarget(new Context(ContextUtils.linkContext(
-                        context != null ? context.clone() : Context.GLOBAL_OBJECT,
-                        product.getScriptContext().clone(),
-                        shop.getScriptContext().clone()
-                )))
+                .withTarget(context)
                 .withRequiredVars(formula)
                 .withArgs(shop, product)
                 .inject();
