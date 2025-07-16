@@ -27,7 +27,7 @@ dependencies {
 
     implementation("cn.encmys:HyphaUtils:0.1.0-Beta")
 
-    compileOnly("io.lumine:Mythic-Dist:5.9.1") {
+    compileOnly("io.lumine:Mythic-Dist:5.9.5") {
         exclude(group = "com.mojang")
     }
 
