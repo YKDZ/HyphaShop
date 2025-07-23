@@ -2,26 +2,23 @@ package cn.encmys.ykdz.forest.hyphashop.api.database.factory;
 
 import cn.encmys.ykdz.forest.hyphashop.api.database.dao.*;
 import cn.encmys.ykdz.forest.hyphashop.api.database.factory.enums.DBType;
+import cn.encmys.ykdz.forest.hyphashop.api.database.provider.DBProvider;
+import org.jetbrains.annotations.NotNull;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface DatabaseFactory {
-    void loadSQLite();
+    @NotNull DBProvider getProvider();
 
-    boolean migrate();
+    @NotNull Connection getConnection() throws SQLException;
 
-    Connection getConnection() throws SQLException;
+    @NotNull ProductDao getProductDao();
 
-    ProductDao getProductDao();
+    @NotNull ProfileDao getProfileDao();
 
-    ProfileDao getProfileDao();
+    @NotNull SettlementLogDao getSettlementLogDao();
 
-    SettlementLogDao getSettlementLogDao();
-
-    ShopDao getShopDao();
-
-    DBVersionDao getDBVersionDao();
-
-    DBType getDbType();
+    @NotNull ShopDao getShopDao();
 }

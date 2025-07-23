@@ -22,6 +22,8 @@ dependencies {
     compileOnly("com.google.code.gson:gson:2.13.1")
 
     compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
+
+    compileOnly("org.flywaydb:flyway-core:11.10.3")
 }
 
 tasks {

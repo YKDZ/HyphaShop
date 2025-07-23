@@ -1,10 +1,3 @@
-CREATE TABLE IF NOT EXISTS hyphashop_db_version
-(
-    version                INTEGER   NOT NULL,
-    migration_from_version INTEGER   NOT NULL,
-    latest_migration_time  TIMESTAMP NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS hyphashop_profile
 (
     owner_uuid     VARCHAR(32) PRIMARY KEY,

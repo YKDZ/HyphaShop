@@ -11,14 +11,27 @@ import org.jetbrains.annotations.NotNull;
 public class HyphaShopLoaderImpl implements PluginLoader {
     @Override
     public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
-        MavenLibraryResolver resolver = new MavenLibraryResolver();
+        classpathBuilder.addLibrary(mavenCentralArtifact());
+        classpathBuilder.addLibrary(invuiArtifact());
+    }
+
+    private static @NotNull MavenLibraryResolver mavenCentralArtifact() {
+        final MavenLibraryResolver resolver = new MavenLibraryResolver();
         resolver.addDependency(new Dependency(new DefaultArtifact("com.zaxxer:HikariCP:6.3.0"), null));
         resolver.addDependency(new Dependency(new DefaultArtifact("com.google.code.gson:gson:2.13.1"), null));
-        resolver.addDependency(new Dependency(new DefaultArtifact("xyz.xenondevs.invui:invui:2.0.0-alpha.15"), null));
+        resolver.addDependency(new  Dependency(new DefaultArtifact("org.flywaydb:flyway-core:11.10.3"), null));
 
         resolver.addRepository(new RemoteRepository.Builder("central", "default", MavenLibraryResolver.MAVEN_CENTRAL_DEFAULT_MIRROR).build());
+
+        return resolver;
+    }
+
+    private static @NotNull MavenLibraryResolver invuiArtifact() {
+        final MavenLibraryResolver resolver = new MavenLibraryResolver();
+        resolver.addDependency(new Dependency(new DefaultArtifact("xyz.xenondevs.invui:invui:2.0.0-alpha.15"), null));
+
         resolver.addRepository(new RemoteRepository.Builder("xenondevs", "default", "https://repo.xenondevs.xyz/releases").build());
 
-        classpathBuilder.addLibrary(resolver);
+        return resolver;
     }
 }

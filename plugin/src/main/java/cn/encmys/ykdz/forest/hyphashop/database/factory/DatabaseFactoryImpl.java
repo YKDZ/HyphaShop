@@ -1,123 +1,75 @@
 package cn.encmys.ykdz.forest.hyphashop.database.factory;
 
-import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.database.dao.*;
+import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ProductDao;
+import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ProfileDao;
+import cn.encmys.ykdz.forest.hyphashop.api.database.dao.SettlementLogDao;
+import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ShopDao;
 import cn.encmys.ykdz.forest.hyphashop.api.database.factory.DatabaseFactory;
-import cn.encmys.ykdz.forest.hyphashop.api.database.factory.enums.DBType;
+import cn.encmys.ykdz.forest.hyphashop.api.database.provider.DBProvider;
 import cn.encmys.ykdz.forest.hyphashop.config.Config;
-import cn.encmys.ykdz.forest.hyphashop.database.dao.sqlite.*;
-import cn.encmys.ykdz.forest.hyphashop.database.migration.MigrationHandler;
-import com.zaxxer.hikari.HikariConfig;
-import com.zaxxer.hikari.HikariDataSource;
+import cn.encmys.ykdz.forest.hyphashop.database.provider.SQLiteProvider;
+import org.jetbrains.annotations.NotNull;
 
-import javax.sql.DataSource;
-import java.io.File;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 public class DatabaseFactoryImpl implements DatabaseFactory {
-    private DataSource dataSource;
-    private DBType dbType;
+    private DBProvider provider;
     private ProductDao productDao;
     private ProfileDao profileDao;
     private SettlementLogDao settlementLogDao;
     private ShopDao shopDao;
-    private DBVersionDao dbVersionDao;
 
     public DatabaseFactoryImpl() {
-        load();
-    }
-
-    public void load() {
         if (Config.database_sqlite_enabled) {
-            dbType = DBType.SQLITE;
-            loadSQLite();
+            provider = new SQLiteProvider();
         } else if (Config.database_mysql_enabled) {
-            dbType = DBType.MYSQL;
             // TODO MySQL 实现
+            throw new RuntimeException("MySQL not implemented yet");
         }
+        assert provider != null;
+        provider.init();
     }
 
     @Override
-    public void loadSQLite() {
-        final HikariConfig config = new HikariConfig();
-        final String path = HyphaShop.INSTANCE.getDataFolder() + "/data/database.db";
-        final File dbFile = new File(path);
-        if (!dbFile.exists()) {
-            HyphaShop.INSTANCE.saveResource("data/database.db", false);
-        }
-        config.setJdbcUrl("jdbc:sqlite:" + path);
-        dataSource = new HikariDataSource(config);
+    public @NotNull DBProvider getProvider() {
+        return provider;
     }
 
     @Override
-    public boolean migrate() {
-        switch (dbType) {
-            case SQLITE:
-                return new MigrationHandler(DBType.SQLITE).migrate();
-            case MYSQL:
-                // TODO MYSQL 实现
-        }
-        return false;
+    public @NotNull Connection getConnection() throws SQLException {
+        return provider.getJDBCDataSource().getConnection();
     }
 
     @Override
-    public Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
-    }
-
-    @Override
-    public ProductDao getProductDao() {
+    public @NotNull ProductDao getProductDao() {
         if (productDao == null) {
-            switch (dbType) {
-                case SQLITE -> productDao = new SQLiteProductDao();
-            }
+            productDao = provider.getProductDao();
         }
         return productDao;
     }
 
     @Override
-    public ProfileDao getProfileDao() {
+    public @NotNull ProfileDao getProfileDao() {
         if (profileDao == null) {
-            switch (dbType) {
-                case SQLITE -> profileDao = new SQLiteProfileDao();
-            }
+            profileDao =  provider.getProfileDao();
         }
         return profileDao;
     }
 
     @Override
-    public SettlementLogDao getSettlementLogDao() {
+    public @NotNull SettlementLogDao getSettlementLogDao() {
         if (settlementLogDao == null) {
-            switch (dbType) {
-                case SQLITE -> settlementLogDao = new SQLiteSettlementLogDao();
-            }
+            settlementLogDao = provider.getSettlementLogDao();
         }
         return settlementLogDao;
     }
 
     @Override
-    public ShopDao getShopDao() {
+    public @NotNull ShopDao getShopDao() {
         if (shopDao == null) {
-            switch (dbType) {
-                case SQLITE -> shopDao = new SQLiteShopDao();
-            }
+            shopDao = provider.getShopDao();
         }
         return shopDao;
-    }
-
-    @Override
-    public DBVersionDao getDBVersionDao() {
-        if (dbVersionDao == null) {
-            switch (dbType) {
-                case SQLITE -> dbVersionDao = new SQLiteDBVersionDao();
-            }
-        }
-        return dbVersionDao;
-    }
-
-    @Override
-    public DBType getDbType() {
-        return dbType;
     }
 }

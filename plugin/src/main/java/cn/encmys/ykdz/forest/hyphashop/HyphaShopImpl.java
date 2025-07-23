@@ -88,7 +88,7 @@ public final class HyphaShopImpl extends HyphaShop {
 
         DATABASE_FACTORY = new DatabaseFactoryImpl();
 
-        if (!DATABASE_FACTORY.migrate()) {
+        if (!DATABASE_FACTORY.getProvider().migrate().success) {
             setEnabled(false);
         }
 
