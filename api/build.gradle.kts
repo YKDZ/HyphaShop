@@ -23,7 +23,7 @@ dependencies {
 
     compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
 
-    compileOnly("org.flywaydb:flyway-core:11.10.3")
+    compileOnly("org.flywaydb:flyway-core:11.10.4")
 }
 
 tasks {
