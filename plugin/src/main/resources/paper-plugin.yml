@@ -3,7 +3,7 @@ version: '${version}'
 main: cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl
 bootstrapper: cn.encmys.ykdz.forest.hyphashop.HyphaShopBootstrapImpl
 loader: cn.encmys.ykdz.forest.hyphashop.HyphaShopLoaderImpl
-api-version: '1.21.7'
+api-version: '1.21'
 dependencies:
   server:
     Vault:
