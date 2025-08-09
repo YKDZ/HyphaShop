@@ -21,7 +21,7 @@ public class HyphaShopLoaderImpl implements PluginLoader {
         resolver.addDependency(new Dependency(new DefaultArtifact("com.google.code.gson:gson:2.13.1"), null));
         resolver.addDependency(new  Dependency(new DefaultArtifact("org.flywaydb:flyway-core:11.10.3"), null));
 
-        resolver.addRepository(new RemoteRepository.Builder("central", "default", MavenLibraryResolver.MAVEN_CENTRAL_DEFAULT_MIRROR).build());
+        resolver.addRepository(new RemoteRepository.Builder("central", "default", "https://cache-redirector.jetbrains.com/repo1.maven.org/maven2").build());
 
         return resolver;
     }

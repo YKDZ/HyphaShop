@@ -20,8 +20,8 @@ allprojects {
 
     repositories {
         mavenLocal()
-        // Prevent dependabot from pulling packages that have not been updated to Paper's default Maven CDN
-        maven("https://maven-central.storage-download.googleapis.com/maven2")
+        // Prevent dependabot from pulling packages that have not been updated to Maven CDN we used
+        maven("https://cache-redirector.jetbrains.com/repo1.maven.org/maven2")
         //
         maven("https://mvn.lumine.io/repository/maven-public/")
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
