@@ -21,7 +21,7 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.13.1")
 
-    compileOnly("com.zaxxer:HikariCP:7.0.0")
+    compileOnly("com.zaxxer:HikariCP:7.0.1")
 
     implementation("cn.encmys:HyphaScript:0.1.0-Beta")
 
