@@ -8,11 +8,15 @@ on:
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ${{ github.ref_name }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 21
@@ -20,10 +24,32 @@ jobs:
       - name: Build with Gradle ShadowJar
         run: ./gradlew clean :plugin:shadowJar
 
-      - name: Extract Changelog
+      - name: List built artifacts (debug)
+        run: ls -la plugin/build/libs || true
+
+      - name: Extract changelog for this version
         id: changelog
         run: |
-          BODY=$(awk '/^## \[${{ github.ref_name }}\]/{flag=1;next}/^## /{flag=0}flag' CHANGELOG.md)
+          if [ -z "${VERSION:-}" ]; then
+            echo "VERSION is empty" >&2
+            exit 1
+          fi
+
+          # 提取 CHANGELOG.md 中该版本下的内容（匹配 "## [VERSION]" 或 "## VERSION"）
+          BODY=$(awk -v ver="$VERSION" '
+            BEGIN {flag=0}
+            $0 ~ ("^##[[:space:]]*\\[?" ver "\\]?") { flag=1; next }
+            /^##[[:space:]]+/ && flag==1 { exit }
+            flag==1 { print }
+          ' CHANGELOG.md || true)
+
+          # 若为空则认为未维护对应版本段，直接失败，避免发布空说明
+          if [ -z "$(echo "$BODY" | tr -d '\r\n[:space:]')" ]; then
+            echo "ERROR: No changelog found for version '$VERSION' in CHANGELOG.md"
+            echo "Please add a '## [$VERSION] - YYYY-MM-DD' section (or put content under Unreleased then move it) before tagging."
+            exit 1
+          fi
+
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
@@ -31,9 +57,28 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.VERSION }}
           body: ${{ steps.changelog.outputs.body }}
-          files: plugin/build/libs/HyphaShop-*.jar
+          generate_release_notes: false
+          files: |
+            plugin/build/libs/HyphaShop-*.jar
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+          project: SeLGgTIu                  # ← 请确认这是你的 Modrinth project slug 或 id
+          name: ${{ env.VERSION }}
+          version: ${{ env.VERSION }}
+          changelog: ${{ steps.changelog.outputs.body }}
+          loaders: |-
+            paper
+            folia
+            purpur
+          game-versions: |-
+            1.21.x
+          files: |
+            plugin/build/libs/HyphaShop-*.jar
