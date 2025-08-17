@@ -12,7 +12,7 @@ dependencies {
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.16")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.17")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
@@ -23,7 +23,7 @@ dependencies {
 
     compileOnly("cn.encmys:HyphaScript:0.1.0-Beta")
 
-    compileOnly("org.flywaydb:flyway-core:11.10.5")
+    compileOnly("org.flywaydb:flyway-core:11.11.0")
 }
 
 tasks {

@@ -9,7 +9,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2")
     annotationProcessor("org.jetbrains:annotations:26.0.2")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.16")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.17")
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
@@ -21,7 +21,7 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.13.1")
 
-    compileOnly("com.zaxxer:HikariCP:7.0.0")
+    compileOnly("com.zaxxer:HikariCP:7.0.1")
 
     implementation("cn.encmys:HyphaScript:0.1.0-Beta")
 
@@ -34,7 +34,7 @@ dependencies {
     compileOnly("net.kyori:adventure-api:4.24.0")
     compileOnly("net.kyori:adventure-text-minimessage:4.24.0")
 
-    compileOnly("org.flywaydb:flyway-core:11.10.5")
+    compileOnly("org.flywaydb:flyway-core:11.11.0")
 
     implementation(project(":api"))
 }
