@@ -35,7 +35,6 @@ jobs:
             exit 1
           fi
 
-          # 提取 CHANGELOG.md 中该版本下的内容（匹配 "## [VERSION]" 或 "## VERSION"）
           BODY=$(awk -v ver="$VERSION" '
             BEGIN {flag=0}
             $0 ~ ("^##[[:space:]]*\\[?" ver "\\]?") { flag=1; next }
@@ -43,7 +42,6 @@ jobs:
             flag==1 { print }
           ' CHANGELOG.md || true)
 
-          # 若为空则认为未维护对应版本段，直接失败，避免发布空说明
           if [ -z "$(echo "$BODY" | tr -d '\r\n[:space:]')" ]; then
             echo "ERROR: No changelog found for version '$VERSION' in CHANGELOG.md"
             echo "Please add a '## [$VERSION] - YYYY-MM-DD' section (or put content under Unreleased then move it) before tagging."
@@ -70,7 +68,7 @@ jobs:
         uses: cloudnode-pro/modrinth-publish@v2
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
-          project: SeLGgTIu                  # ← 请确认这是你的 Modrinth project slug 或 id
+          project: SeLGgTIu
           name: ${{ env.VERSION }}
           version: ${{ env.VERSION }}
           changelog: ${{ steps.changelog.outputs.body }}
