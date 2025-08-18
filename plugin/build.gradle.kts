@@ -23,9 +23,9 @@ dependencies {
 
     compileOnly("com.zaxxer:HikariCP:7.0.1")
 
-    implementation("cn.encmys:HyphaScript:0.1.0-Beta")
+    implementation("cn.encmys.ykdz.forest:hyphautils:0.1.0-beta")
 
-    implementation("cn.encmys:HyphaUtils:0.1.0-Beta")
+    implementation("cn.encmys.ykdz.forest:hyphascript:0.1.0-beta")
 
     compileOnly("io.lumine:Mythic-Dist:5.9.5") {
         exclude(group = "com.mojang")

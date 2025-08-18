@@ -50,6 +50,8 @@ allprojects {
         maven("https://repo.oraxen.com/releases")
         maven("https://r.irepo.space/maven/")
         maven("https://maven.devs.beer/")
+        maven("https://maven.pkg.github.com/ykdz/HyphaScript")
+        maven("https://maven.pkg.github.com/ykdz/HyphaUtils")
     }
 }
 
