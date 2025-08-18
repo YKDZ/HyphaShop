@@ -18,6 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Strip v prefix from VERSION
+        run: |
+          echo "VERSION_STRIPPED=${VERSION#v}" >> $GITHUB_ENV
+
       - name: Make gradlew executable
         run: chmod +x ./gradlew
 
@@ -67,7 +71,7 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.VERSION }}
-          name: ${{ env.VERSION }}
+          name: ${{ env.VERSION_STRIPPED }}
           body: ${{ steps.changelog.outputs.body }}
           generate_release_notes: false
           files: |
@@ -80,8 +84,8 @@ jobs:
         with:
           token: ${{ secrets.MODRINTH_TOKEN }}
           project: SeLGgTIu
-          name: ${{ env.VERSION }}
-          version: ${{ env.VERSION }}
+          name: ${{ env.VERSION_STRIPPED }}
+          version: ${{ env.VERSION_STRIPPED }}
           changelog: ${{ steps.changelog.outputs.body }}
           channel: ${{ steps.detect-channel.outputs.channel }}
           loaders: |-
@@ -90,4 +94,4 @@ jobs:
             purpur
           game-versions: |-
             1.21.x
-          files: plugin/build/libs/HyphaShop-${{ env.VERSION }}.jar
+          files: plugin/build/libs/HyphaShop-${{ env.VERSION_STRIPPED }}.jar
