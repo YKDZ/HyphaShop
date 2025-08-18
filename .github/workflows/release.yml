@@ -30,6 +30,18 @@ jobs:
       - name: List built artifacts (debug)
         run: ls -la plugin/build/libs || true
 
+      - name: Detect release channel
+        id: channel
+        run: |
+          ver="${VERSION,,}"   # 转小写 (Bash >= 4)
+          if [[ "$ver" == *"alpha"* ]]; then
+            echo "value=alpha" >> $GITHUB_OUTPUT
+          elif [[ "$ver" == *"beta"* ]]; then
+            echo "value=beta" >> $GITHUB_OUTPUT
+          else
+            echo "value=release" >> $GITHUB_OUTPUT
+          fi
+
       - name: Extract changelog for this version
         id: changelog
         run: |
@@ -75,11 +87,10 @@ jobs:
           name: ${{ env.VERSION }}
           version: ${{ env.VERSION }}
           changelog: ${{ steps.changelog.outputs.body }}
+          channel: ${{ steps.detect-channel.outputs.channel }}
           loaders: |-
             paper
             folia
             purpur
-          game-versions: |-
-            1.21.x
-          files: |
-            plugin/build/libs/HyphaShop-*.jar
+          game-versions: '[1.21.x]'
+          files: plugin/build/libs/HyphaShop-*.jar
