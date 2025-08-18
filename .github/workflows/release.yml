@@ -90,4 +90,4 @@ jobs:
             purpur
           game-versions: |-
             1.21.x
-          files: plugin/build/libs/HyphaShop-*.jar
+          files: plugin/build/libs/HyphaShop-${{ env.VERSION }}.jar
