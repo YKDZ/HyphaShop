@@ -50,8 +50,22 @@ allprojects {
         maven("https://repo.oraxen.com/releases")
         maven("https://r.irepo.space/maven/")
         maven("https://maven.devs.beer/")
-        maven("https://maven.pkg.github.com/ykdz/HyphaScript")
-        maven("https://maven.pkg.github.com/ykdz/HyphaUtils")
+
+        maven {
+            url = uri("https://maven.pkg.github.com/ykdz/HyphaShop")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GPR_USER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GPR_KEY")
+            }
+        }
+
+        maven {
+            url = uri("https://maven.pkg.github.com/ykdz/HyphaScript")
+            credentials {
+                username = project.findProperty("gpr.user") as String? ?: System.getenv("GPR_USER")
+                password = project.findProperty("gpr.key") as String? ?: System.getenv("GPR_KEY")
+            }
+        }
     }
 }
 
