@@ -88,5 +88,6 @@ jobs:
             paper
             folia
             purpur
-          game-versions: '[1.21.x]'
+          game-versions: |-
+            1.21.x
           files: plugin/build/libs/HyphaShop-*.jar
