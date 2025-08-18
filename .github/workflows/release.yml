@@ -39,7 +39,7 @@ jobs:
       - name: Detect release channel
         id: channel
         run: |
-          ver="${VERSION,,}"   # 转小写 (Bash >= 4)
+          ver="${VERSION,,}"
           if [[ "$ver" == *"alpha"* ]]; then
             echo "value=alpha" >> $GITHUB_OUTPUT
           elif [[ "$ver" == *"beta"* ]]; then
@@ -51,26 +51,16 @@ jobs:
       - name: Extract changelog for this version
         id: changelog
         run: |
-          if [ -z "${VERSION:-}" ]; then
-            echo "VERSION is empty" >&2
-            exit 1
-          fi
-
-          BODY=$(awk -v ver="$VERSION" '
-            BEGIN {flag=0}
-            $0 ~ ("^##[[:space:]]*\\[?" ver "\\]?") { flag=1; next }
-            /^##[[:space:]]+/ && flag==1 { exit }
-            flag==1 { print }
-          ' CHANGELOG.md || true)
-
-          if [ -z "$(echo "$BODY" | tr -d '\r\n[:space:]')" ]; then
-            echo "ERROR: No changelog found for version '$VERSION' in CHANGELOG.md"
-            echo "Please add a '## [$VERSION] - YYYY-MM-DD' section (or put content under Unreleased then move it) before tagging."
-            exit 1
-          fi
+          VERSION=${VERSION#v}
+          echo "Extracting changelog for $VERSION"
+          awk -v ver="## $VERSION " '
+            $0 ~ ver {flag=1; next}
+            /^## / && flag {exit}
+            flag {print}
+          ' CHANGELOG.md > RELEASE_CHANGELOG.md
 
           echo "body<<EOF" >> $GITHUB_OUTPUT
-          echo "$BODY" >> $GITHUB_OUTPUT
+          cat RELEASE_CHANGELOG.md >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create GitHub Release
