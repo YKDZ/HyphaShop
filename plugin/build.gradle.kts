@@ -6,8 +6,8 @@ dependencies {
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("org.jetbrains:annotations:26.0.2")
-    annotationProcessor("org.jetbrains:annotations:26.0.2")
+    compileOnly("org.jetbrains:annotations:26.0.2-1")
+    annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
     compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.18")
 
