@@ -16,8 +16,8 @@ dependencies {
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    compileOnly("org.jetbrains:annotations:26.0.2")
-    annotationProcessor("org.jetbrains:annotations:26.0.2")
+    compileOnly("org.jetbrains:annotations:26.0.2-1")
+    annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
     compileOnly("com.google.code.gson:gson:2.13.1")
 
