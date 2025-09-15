@@ -19,7 +19,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    compileOnly("com.google.code.gson:gson:2.13.1")
+    compileOnly("com.google.code.gson:gson:2.13.2")
 
     compileOnly("cn.encmys.ykdz.forest:hyphascript:0.1.0-beta")
 
