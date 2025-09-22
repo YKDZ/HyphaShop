@@ -12,7 +12,7 @@ dependencies {
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.18")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.19")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
