@@ -19,7 +19,7 @@ dependencies {
 
     compileOnly("org.xerial:sqlite-jdbc:3.50.3.0")
 
-    compileOnly("com.google.code.gson:gson:2.13.1")
+    compileOnly("com.google.code.gson:gson:2.13.2")
 
     compileOnly("com.zaxxer:HikariCP:7.0.2")
 
