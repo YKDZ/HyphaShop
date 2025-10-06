@@ -9,7 +9,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.19")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.20")
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
