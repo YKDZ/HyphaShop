@@ -1,12 +1,12 @@
 # Changelog
 
-## 0.4.4-Beta 2025.08.17
+## 0.4.4-Beta 2025.10.20
 
 ### Added
-- Gradle
+- Bump deps
 
 ### Changed
-- Re
+- 
 
 ### Fixed
-- 
+- DB Provider init order
