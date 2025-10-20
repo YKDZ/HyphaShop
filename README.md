@@ -10,7 +10,6 @@ efficiency.
 ## Todo
 
 - [x] Dynamic pricing based on market feedback
-- [ ] BE GUI
 - [x] Total market volume
 - [x] Transaction log
 - [x] SQL Support
