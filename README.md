@@ -26,6 +26,7 @@ efficiency.
 - [ ] Cart Collection & Order again
 - [x] Gui icon condition
 - [x] Folia Support
+- [ ] Document
 
 ## API
 
