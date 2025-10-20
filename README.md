@@ -7,10 +7,6 @@ English | [简体中文](README_ZH_CN.md)
 A SpigotMC plugin inspired by [DailyShop](https://github.com/divios/DailyShop). Pursuing ultra customizability and
 efficiency.
 
-## Document
-
-You can find the document [here](https://docs.encmys.cn/s/ykdz-plugin-docs).
-
 ## Todo
 
 - [x] Dynamic pricing based on market feedback

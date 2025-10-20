@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record;
 
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

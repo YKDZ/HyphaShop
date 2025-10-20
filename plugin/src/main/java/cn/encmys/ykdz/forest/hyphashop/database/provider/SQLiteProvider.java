@@ -25,6 +25,12 @@ public class SQLiteProvider implements DBProvider {
     private final @NotNull DataSource dataSource;
 
     public SQLiteProvider() {
+        final File dbFile = new File(getDBFilePath());
+        if (!dbFile.exists()) {
+            HyphaShop.INSTANCE.saveResource("data/database.db", false);
+        }
+        JarUtils.saveMigrationFile("data/migrations/sqlite");
+
         final HikariConfig config = new HikariConfig();
         config.setJdbcUrl(getJDBCUrl());
         dataSource = new HikariDataSource(config);
@@ -33,15 +39,6 @@ public class SQLiteProvider implements DBProvider {
     @Override
     public @NotNull DBType getType() {
         return DBType.SQLITE;
-    }
-
-    @Override
-    public void init() {
-        final File dbFile = new File(getDBFilePath());
-        if (!dbFile.exists()) {
-            HyphaShop.INSTANCE.saveResource("data/database.db", false);
-        }
-        JarUtils.saveMigrationFile("data/migrations/sqlite");
     }
 
     @Override

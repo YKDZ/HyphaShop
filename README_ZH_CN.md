@@ -6,10 +6,6 @@
 
 一个受 [DailyShop](https://github.com/divios/DailyShop) 启发的 SpigotMC 插件。追求超级可自定性和效率。
 
-## 文档
-
-你可以在 [这里](https://docs.encmys.cn/s/ykdz-plugin-docs) 找到插件文档。
-
 ## 代办事项
 
 - [x] 基于市场需求的动态定价
@@ -80,7 +76,7 @@ public class MyPlugin extends JavaPlugin implements Listener {
         shop.getShopStocker().stock();
         // 为商人模式的商店补充余额
         if (shop.getShopCashier().isMerchant()) {
-            // 补充 100 余额 
+            // 补充 100 余额
             shop.getShopCashier().modifyBalance(100);
         }
 

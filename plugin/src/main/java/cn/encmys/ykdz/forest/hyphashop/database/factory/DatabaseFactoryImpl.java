@@ -28,7 +28,6 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
             throw new RuntimeException("MySQL not implemented yet");
         }
         assert provider != null;
-        provider.init();
     }
 
     @Override
@@ -52,7 +51,7 @@ public class DatabaseFactoryImpl implements DatabaseFactory {
     @Override
     public @NotNull ProfileDao getProfileDao() {
         if (profileDao == null) {
-            profileDao =  provider.getProfileDao();
+            profileDao = provider.getProfileDao();
         }
         return profileDao;
     }

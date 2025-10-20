@@ -128,6 +128,7 @@ public final class HyphaShopImpl extends HyphaShop {
             return false;
         }
         ECONOMY = rsp.getProvider();
+
         return true;
     }
 
@@ -166,8 +167,7 @@ public final class HyphaShopImpl extends HyphaShop {
         if (!Config.script_unpackInternalObject) {
             InternalObjectManager.register(object.getName(), object);
             registeredMembers.add(object.getName());
-        }
-        else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
+        } else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
             Context.GLOBAL_OBJECT.declareMember(name, ref);
             registeredMembers.add(name);
         });
