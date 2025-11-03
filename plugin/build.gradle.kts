@@ -13,7 +13,7 @@ dependencies {
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.11.7")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
