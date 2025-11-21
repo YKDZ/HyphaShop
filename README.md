@@ -45,6 +45,10 @@ efficiency.
 ### Gradle (Kotlin)
 
 ```
+repositories {
+    mavenCentral()
+}
+
 dependencies {
     compileOnly("cn.encmys:hyphashop-api:{VERSION}")
 }
