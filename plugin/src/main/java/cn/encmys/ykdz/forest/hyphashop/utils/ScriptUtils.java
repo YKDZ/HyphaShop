@@ -2,6 +2,7 @@ package cn.encmys.ykdz.forest.hyphashop.utils;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.EvaluateResult;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
@@ -25,7 +26,7 @@ public class ScriptUtils {
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when extracting context from script. Use global context as fallback value.");
             LogUtils.warn(result.toString());
-            return Context.GLOBAL_OBJECT;
+            return InternalObjectManager.GLOBAL_OBJECT;
         }
 
         return script.getContext();

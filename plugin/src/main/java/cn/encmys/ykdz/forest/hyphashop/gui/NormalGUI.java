@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.gui;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
@@ -91,7 +92,7 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @NotNull Context getParent() {
-        return Context.GLOBAL_OBJECT;
+        return InternalObjectManager.GLOBAL_OBJECT;
     }
 
     @Override

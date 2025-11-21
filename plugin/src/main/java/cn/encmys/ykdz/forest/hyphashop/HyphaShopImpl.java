@@ -1,6 +1,5 @@
 package cn.encmys.ykdz.forest.hyphashop;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.ScriptManager;
@@ -150,7 +149,7 @@ public final class HyphaShopImpl extends HyphaShop {
         try {
             ScriptManager.loadAllFrom(Paths.get(getDataFolder() + "/" + "scripts"));
             LogUtils.info("Successfully loaded scripts. Result global context is: ");
-            LogUtils.info(Context.GLOBAL_OBJECT.toString());
+            LogUtils.info(InternalObjectManager.GLOBAL_OBJECT.toString());
         } catch (Exception e) {
             LogUtils.error("Failed to load scripts. HyphaShop will be disabled.");
             setEnabled(false);
@@ -159,7 +158,7 @@ public final class HyphaShopImpl extends HyphaShop {
     }
 
     private static void clearInternalObjects() {
-        registeredMembers.forEach(Context.GLOBAL_OBJECT::deleteMember);
+        registeredMembers.forEach(InternalObjectManager.GLOBAL_OBJECT::deleteMember);
         registeredMembers.clear();
     }
 
@@ -168,7 +167,7 @@ public final class HyphaShopImpl extends HyphaShop {
             InternalObjectManager.register(object.getName(), object);
             registeredMembers.add(object.getName());
         } else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
-            Context.GLOBAL_OBJECT.declareMember(name, ref);
+            InternalObjectManager.GLOBAL_OBJECT.declareMember(name, ref);
             registeredMembers.add(name);
         });
     }

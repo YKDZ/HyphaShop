@@ -1,6 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.price;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
@@ -37,7 +37,7 @@ public class PriceImpl extends Price {
             }
 
             this.setProperty(PriceProperty.FORMULA, StringUtils.wrapToScript(formula))
-                    .setProperty(PriceProperty.CONTEXT, context == null ? Context.GLOBAL_OBJECT : ScriptUtils.extractContext(context));
+                    .setProperty(PriceProperty.CONTEXT, context == null ? InternalObjectManager.GLOBAL_OBJECT : ScriptUtils.extractContext(context));
         } else if (config.getBoolean("disable").orElse(false)) {
             priceMode = PriceMode.DISABLE;
         } else {

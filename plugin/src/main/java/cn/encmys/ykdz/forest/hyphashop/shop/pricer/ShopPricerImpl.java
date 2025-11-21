@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.pricer;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
@@ -89,7 +90,7 @@ public class ShopPricerImpl implements ShopPricer {
     private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
         final Context priceContext = price.getProperty(PriceProperty.CONTEXT);
         final Context context = new Context(ContextUtils.linkContext(
-                priceContext != null ? priceContext.clone() : Context.GLOBAL_OBJECT,
+                priceContext != null ? priceContext.clone() : InternalObjectManager.GLOBAL_OBJECT,
                 product.getScriptContext().clone(),
                 shop.getScriptContext().clone()
         ));

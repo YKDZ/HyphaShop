@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.item.builder;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
@@ -95,24 +96,24 @@ public class OrderHistoryIconBuilder {
                             }).orElse(null);
 
                     if (displayItem == null || displayItem.getType() == Material.AIR) {
-                        return NormalIconBuilder.build(historyPlaceholderIcon, GUIType.NORMAL, Context.GLOBAL_OBJECT, player, log)
+                        return NormalIconBuilder.build(historyPlaceholderIcon, GUIType.NORMAL, InternalObjectManager.GLOBAL_OBJECT, player, log)
                                 .getItemProvider(player);
                     }
 
-                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, log, player);
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, InternalObjectManager.GLOBAL_OBJECT, log, player);
 
                     return new ItemBuilder(new cn.encmys.ykdz.forest.hyphashop.utils.ItemBuilder(displayItem)
-                            .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), Context.GLOBAL_OBJECT, vars, log, player))
-                            .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), Context.GLOBAL_OBJECT, vars, log, player))
+                            .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), InternalObjectManager.GLOBAL_OBJECT, vars, log, player))
+                            .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), InternalObjectManager.GLOBAL_OBJECT, vars, log, player))
                             .setItemFlags(iconDecorator.getProperty(ItemProperty.ITEM_FLAGS))
                             .build(log.getOrderedProducts().size())
                     );
                 })
                 .addClickHandler((item, click) -> {
-                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, Context.GLOBAL_OBJECT, item, click, click.player());
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(historyStaticIcon, InternalObjectManager.GLOBAL_OBJECT, item, click, click.player());
                     final ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
 
-                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, Context.GLOBAL_OBJECT, Collections.emptyMap(), item, click, click.player());
+                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, InternalObjectManager.GLOBAL_OBJECT, Collections.emptyMap(), item, click, click.player());
                 })
                 .build();
     }

@@ -1,6 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
-import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.enums.GUIType;
@@ -352,7 +352,7 @@ public class ConfigUtils {
         final Gui.Builder<?, ?> builder = Gui.builder()
                 .setStructure(structure);
 
-        icons.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> builder.addIngredient(key.charAt(0), NormalIconBuilder.build(parseDecorator(childConfig), GUIType.NORMAL, Context.GLOBAL_OBJECT)));
+        icons.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> builder.addIngredient(key.charAt(0), NormalIconBuilder.build(parseDecorator(childConfig), GUIType.NORMAL, InternalObjectManager.GLOBAL_OBJECT)));
 
         return builder.build();
     }
