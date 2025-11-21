@@ -1,8 +1,8 @@
 plugins {
     `java-library`
     id("java")
-    id("maven-publish")
-    id("io.github.goooler.shadow") version "8.1.8"
+    id("com.vanniktech.maven.publish") version "0.35.0"
+    id("com.gradleup.shadow") version "9.2.2"
 }
 
 allprojects {
@@ -11,7 +11,7 @@ allprojects {
 
     apply<JavaPlugin>()
     apply(plugin = "java")
-    apply(plugin = "io.github.goooler.shadow")
+    apply(plugin = "com.gradleup.shadow")
     apply(plugin = "org.gradle.maven-publish")
 
     java {
@@ -54,35 +54,8 @@ allprojects {
 }
 
 subprojects {
-    tasks.processResources {
-        val props = mapOf("version" to version)
-        inputs.properties(props)
-        filteringCharset = "UTF-8"
-        filesMatching("*plugin.yml") {
-            expand(props)
-        }
-    }
-
-    tasks.shadowJar {
-        archiveClassifier.set("")
-        archiveFileName.set(rootProject.name + "-" + project.name + "-" + project.version + ".jar")
-    }
-
     tasks.withType<JavaCompile> {
         options.encoding = "UTF-8"
         options.release.set(21)
-    }
-
-    if ("api" == project.name) {
-        publishing {
-            publications {
-                create<MavenPublication>("mavenJava") {
-                    groupId = "cn.encmys"
-                    artifactId = rootProject.name
-                    version = rootProject.version.toString()
-                    artifact(tasks.shadowJar)
-                }
-            }
-        }
     }
 }

@@ -40,8 +40,18 @@ dependencies {
 }
 
 tasks {
+    processResources {
+        val props = mapOf("version" to version)
+        inputs.properties(props)
+        filteringCharset = "UTF-8"
+        filesMatching("*plugin.yml") {
+            expand(props)
+        }
+    }
+
     shadowJar {
-        archiveFileName.set(rootProject.name + "-" + project.version + ".jar")
+        archiveClassifier.set("")
+        archiveBaseName.set(rootProject.name)
         relocate("org.bstats", "${project.group}.hyphashop.libraries.bstats")
     }
 }

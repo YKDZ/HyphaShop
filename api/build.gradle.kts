@@ -1,6 +1,5 @@
-java {
-    withJavadocJar()
-    withSourcesJar()
+plugins {
+    id("com.vanniktech.maven.publish") version "0.35.0"
 }
 
 dependencies {
@@ -26,9 +25,38 @@ dependencies {
     compileOnly("org.flywaydb:flyway-core:11.17.1")
 }
 
-tasks {
-    shadowJar {
-        archiveClassifier.set("")
-        archiveFileName.set(rootProject.name + "-api-" + project.version + ".jar")
+tasks.withType<Jar>().configureEach {
+    archiveBaseName.set("${rootProject.name}-${project.name}")
+}
+
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
+
+    coordinates("cn.encmys", "hyphashop-api", project.version.toString())
+
+    pom {
+        name.set(rootProject.name + " API")
+        description.set("API from Minecraft Paper plugin HyphaShop")
+        url.set("https://github.com/YKDZ/HyphaShop/")
+        developers {
+            developer {
+                id.set("ykdz")
+                name.set("YKDZ")
+                url.set("https://github.com/YKDZ/")
+            }
+        }
+        scm {
+            url.set("https://github.com/YKDZ/HyphaShop/")
+            connection.set("scm:git:git://github.com/YKDZ/HyphaShop.git")
+            developerConnection.set("scm:git:ssh://git@github.com/YKDZ/HyphaShop.git")
+        }
+        licenses {
+            license {
+                name.set("GNU General Public License v3.0")
+                url.set("https://github.com/YKDZ/cat/blob/main/LICENSE")
+                distribution.set("https://github.com/YKDZ/cat/blob/main/LICENSE")
+            }
+        }
     }
 }

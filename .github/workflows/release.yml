@@ -37,6 +37,12 @@ jobs:
           GPR_USER: ${{ github.actor }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
 
+      - name: Build API
+        run: ./gradlew clean :api:build
+        env:
+          GPR_USER: ${{ github.actor }}
+          GPR_KEY: ${{ secrets.GPR_KEY }}
+
       - name: List built artifacts (debug)
         run: ls -la plugin/build/libs || true
 
