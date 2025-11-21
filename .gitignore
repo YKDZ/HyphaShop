@@ -120,3 +120,21 @@ run/
 /target/
 
 /gradle.properties
+/plugin/bin/main/shop/black_market.yml
+/plugin/bin/main/shop/blocks.yml
+/plugin/bin/main/gui/internal/cart.yml
+/plugin/bin/main/config.yml
+/plugin/bin/main/data/database.db
+/plugin/bin/main/lang/en_US.yml
+/plugin/bin/main/gui/main.yml
+/plugin/bin/main/product/misc.yml
+/plugin/bin/main/gui/internal/order-history.yml
+/plugin/bin/main/product/ores.yml
+/plugin/bin/main/paper-plugin.yml
+/plugin/bin/main/scripts/.global/random.hps
+/plugin/bin/main/rarities.yml
+/plugin/bin/main/product/sculk.yml
+/plugin/bin/main/data/migrations/sqlite/V1__init.sql
+/plugin/bin/main/data/migrations/sqlite/V2__remove_db_version.sql
+/plugin/bin/main/product/wools.yml
+/plugin/bin/main/lang/zh_CN.yml

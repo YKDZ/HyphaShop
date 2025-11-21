@@ -25,10 +25,7 @@ import xyz.xenondevs.invui.gui.Markers;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.Window;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -45,8 +42,8 @@ public class NormalGUI extends AbstractGUI {
     }
 
     @Override
-    public @Nullable Gui getGUI(@NotNull Player player) {
-        return guis.get(player.getUniqueId().toString());
+    public @NotNull Optional<Gui> getGUI(@NotNull Player player) {
+        return Optional.ofNullable(guis.get(player.getName()));
     }
 
     @Override
@@ -83,17 +80,13 @@ public class NormalGUI extends AbstractGUI {
     }
 
     @Override
-    public @Nullable Marker getScrollMode() {
-        final String mode = config.getString("scroll-mode").orElse(null);
-        if (mode == null) return null;
-        return mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL;
+    public @NotNull Optional<Marker> getScrollMode() {
+        return config.getString("scroll-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override
-    public @Nullable Marker getPageMode() {
-        final String mode = config.getString("page-mode").orElse(null);
-        if (mode == null) return null;
-        return mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL;
+    public @NotNull Optional<Marker> getPageMode() {
+        return config.getString("page-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override

@@ -66,8 +66,8 @@ public class ShopGUI extends NormalGUI {
     }
 
     @Override
-    public @Nullable Gui getGUI(@NotNull Player player) {
-        return guis.get(shop.getId()).get(player.getUniqueId().toString());
+    public @NotNull Optional<Gui> getGUI(@NotNull Player player) {
+        return Optional.ofNullable(guis.get(shop.getId()).get(player.getUniqueId().toString()));
     }
 
     @Override

@@ -8,7 +8,7 @@ cart:
     - "# # # # m # # # u"
     - "# x x x x x x x #"
     - "# x x x x x x x #"
-    - "# # # @ # h # # n"
+    - "b # # @ # h # # n"
   icons:
     "#":
       base: brown_stained_glass_pane
@@ -52,7 +52,7 @@ cart:
         - "<dark_gray>✖ <white><key:key.drop>"
         - "   <gray>Clear Cart"
         - " "
-      updata-period: 1s
+      update-period: 1s
       actions:
         left:
           - settle_cart()
@@ -83,6 +83,16 @@ cart:
       actions:
         left:
           - open_order_history()
+    "b":
+      base: red_stained_glass_pane
+      name: "<gray>Back"
+      lore:
+        - " "
+        - "<dark_gray>✖ <white>Back to previous gui"
+        - " "
+      actions:
+        left:
+          - back()
   cart-product-icon:
     icon:
       name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"

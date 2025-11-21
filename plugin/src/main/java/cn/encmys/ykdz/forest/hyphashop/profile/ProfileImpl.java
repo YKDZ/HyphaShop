@@ -17,6 +17,7 @@ import xyz.xenondevs.invui.window.Window;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class ProfileImpl implements Profile {
     private final @NotNull OfflinePlayer owner;
@@ -25,6 +26,8 @@ public class ProfileImpl implements Profile {
     private final @NotNull OrderHistoryGUI orderHistoryGUI;
     private @NotNull Map<@NotNull String, @NotNull ShoppingMode> shoppingModes = new HashMap<>();
     private @Nullable Window viewingWindow;
+
+    private @Nullable GUI previousGUI;
 
     public ProfileImpl(@NotNull OfflinePlayer owner) {
         this.owner = owner;
@@ -75,12 +78,23 @@ public class ProfileImpl implements Profile {
     }
 
     @Override
-    public @Nullable Window getViewingWindow() {
-        return viewingWindow;
+    public @NotNull Optional<Window> getViewingWindow() {
+        return Optional.ofNullable(viewingWindow);
     }
 
     @Override
     public void setViewingWindow(@Nullable Window viewingWindow) {
         this.viewingWindow = viewingWindow;
+    }
+
+
+    @Override
+    public @NotNull Optional<GUI> getPreviousGUI() {
+        return Optional.ofNullable(previousGUI);
+    }
+
+    @Override
+    public void setPreviousGUI(@Nullable GUI previousGUI) {
+        this.previousGUI = previousGUI;
     }
 }

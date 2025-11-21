@@ -10,6 +10,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import xyz.xenondevs.invui.window.Window;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface Profile {
     @NotNull OfflinePlayer getOwner();
@@ -29,7 +30,11 @@ public interface Profile {
 
     @NotNull GUI getOrderHistoryGUI();
 
-    @Nullable Window getViewingWindow();
+    @NotNull Optional<Window> getViewingWindow();
 
     void setViewingWindow(@Nullable Window viewingWindow);
+
+    @NotNull Optional<GUI> getPreviousGUI();
+
+    void setPreviousGUI(@Nullable GUI previousGUI);
 }

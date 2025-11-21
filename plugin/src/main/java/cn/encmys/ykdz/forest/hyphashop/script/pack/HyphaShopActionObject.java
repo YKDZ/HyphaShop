@@ -262,8 +262,7 @@ public class HyphaShopActionObject extends InternalObject {
 
         if (player == null) return;
 
-        Window window = HyphaShop.PROFILE_FACTORY.getProfile(player).getViewingWindow();
-        if (window != null) Scheduler.runTask((task) -> window.close());
+        HyphaShop.PROFILE_FACTORY.getProfile(player).getViewingWindow().ifPresent(window -> Scheduler.runTask((task) -> window.close()));
     }
 
     @Static
@@ -448,5 +447,14 @@ public class HyphaShopActionObject extends InternalObject {
                         item.notifyWindows();
                     });
         }
+    }
+
+    @Static
+    @Function("back")
+    @FunctionParas({"__player"})
+    public static void back(@NotNull Context ctx) {
+        ContextUtils.getPlayer(ctx).ifPresent(player -> {
+            HyphaShop.PROFILE_FACTORY.getProfile(player).getPreviousGUI().ifPresent(previousGUI -> previousGUI.open(player));
+        });
     }
 }

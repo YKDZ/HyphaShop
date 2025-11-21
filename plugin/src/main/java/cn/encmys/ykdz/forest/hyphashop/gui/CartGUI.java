@@ -10,15 +10,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import xyz.xenondevs.invui.gui.Gui;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.Window;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -68,8 +64,8 @@ public class CartGUI extends NormalGUI {
     }
 
     @Override
-    public @Nullable Gui getGUI(@NotNull Player player) {
-        return guis.get(player.getUniqueId().toString());
+    public @NotNull Optional<Gui> getGUI(@NotNull Player player) {
+        return Optional.ofNullable(guis.get(player.getName()));
     }
 
     @Override

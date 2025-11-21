@@ -18,10 +18,7 @@ import xyz.xenondevs.invui.gui.*;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.Window;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -55,13 +52,10 @@ public abstract class AbstractGUI implements GUI {
     }
 
     private @NotNull Gui buildScrollGUI(@NotNull Player player) {
-        if (getScrollMode() == null)
-            throw new IllegalStateException("Try to build ScrollGui with a null scrollMode");
-
-        final ScrollGui.Builder<Item> guiBuilder = ScrollGui.itemsBuilder()
+        final ScrollGui.Builder<@NotNull Item> guiBuilder = ScrollGui.itemsBuilder()
                 .setStructure(getStructure().toArray(new String[0]))
                 .addScrollHandler(getScrollHandler())
-                .addIngredient(markerIdentifier, getScrollMode())
+                .addIngredient(markerIdentifier, getScrollMode().orElse(Markers.CONTENT_LIST_SLOT_HORIZONTAL))
                 .setContent(getContents(player))
                 .applyPreset(buildIconPreset(player));
 
@@ -69,12 +63,10 @@ public abstract class AbstractGUI implements GUI {
     }
 
     private @NotNull Gui buildPagedGUI(@NotNull Player player) {
-        if (getPageMode() == null) throw new IllegalStateException("Try to build PagedGUI with a null pageMode");
-
-        final PagedGui.Builder<Item> guiBuilder = PagedGui.itemsBuilder()
+        final PagedGui.Builder<@NotNull Item> guiBuilder = PagedGui.itemsBuilder()
                 .setStructure(getStructure().toArray(new String[0]))
                 .addPageChangeHandler(getPageChangeHandler(player))
-                .addIngredient(markerIdentifier, getPageMode())
+                .addIngredient(markerIdentifier, getPageMode().orElse(Markers.CONTENT_LIST_SLOT_HORIZONTAL))
                 .setContent(getContents(player))
                 .applyPreset(buildIconPreset(player));
 
@@ -99,6 +91,7 @@ public abstract class AbstractGUI implements GUI {
                 .addCloseHandler(getCloseHandler(player))
                 .addCloseHandler((reason) -> MiscUtils.processActions(ActionEvent.GUI_ON_CLOSE, getActions(), getParent(), Collections.emptyMap(), getArgs(player)))
                 .addCloseHandler((reason) -> HyphaShopImpl.PROFILE_FACTORY.getProfile(player).setViewingWindow(null))
+                .addCloseHandler((reason) -> HyphaShopImpl.PROFILE_FACTORY.getProfile(player).setPreviousGUI(this))
                 .addOutsideClickHandler(event -> MiscUtils.processActions(ActionEvent.GUI_ON_OUTSIDE_CLICK, getActions(), getParent(), Collections.emptyMap(), getArgs(player)))
                 .build(player);
 
@@ -125,22 +118,22 @@ public abstract class AbstractGUI implements GUI {
     }
 
     public @NotNull GUIType getType() {
-        if (getPageMode() != null) {
-            return GUIType.PAGE;
-        } else if (getScrollMode() != null) {
-            return GUIType.SCROLL;
-        } else {
-            return GUIType.NORMAL;
-        }
+        return getPageMode()
+                .map(marker -> GUIType.PAGE)
+                .or(() -> getScrollMode().map(marker -> GUIType.SCROLL))
+                .orElse(GUIType.NORMAL);
     }
+
 
     @SuppressWarnings("unchecked")
     public void updateContents(@NotNull Player player) {
-        final Gui gui = getGUI(player);
+        if (getGUI(player).isEmpty()) return;
+
+        final Gui gui = getGUI(player).get();
         if (gui instanceof ScrollGui<?>) {
-            ((ScrollGui<Item>) gui).setContent(getContents(player));
+            ((ScrollGui<@NotNull Item>) gui).setContent(getContents(player));
         } else if (gui instanceof PagedGui<?>) {
-            ((PagedGui<Item>) gui).setContent(getContents(player));
+            ((PagedGui<@NotNull Item>) gui).setContent(getContents(player));
         }
     }
 
@@ -149,15 +142,15 @@ public abstract class AbstractGUI implements GUI {
         };
     }
 
-    public abstract @Nullable Gui getGUI(@NotNull Player player);
+    public abstract @NotNull Optional<Gui> getGUI(@NotNull Player player);
 
     public abstract @NotNull Supplier<@NotNull Component> getTitleSupplier(@NotNull Player player);
 
     public abstract @NotNull Map<Character, BaseItemDecorator> getIconConfig();
 
-    public abstract @Nullable Marker getScrollMode();
+    public abstract @NotNull Optional<Marker> getScrollMode();
 
-    public abstract @Nullable Marker getPageMode();
+    public abstract @NotNull Optional<Marker> getPageMode();
 
     public abstract @NotNull Context getParent();
 
