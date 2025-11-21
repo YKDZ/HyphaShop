@@ -8,7 +8,7 @@ dependencies {
 
     compileOnly("org.bstats:bstats-bukkit:3.1.0")
 
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.11.7")
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
