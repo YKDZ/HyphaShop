@@ -9,15 +9,15 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.20")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.21")
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.11.7")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    compileOnly("org.xerial:sqlite-jdbc:3.50.3.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.51.0.0")
 
     compileOnly("com.google.code.gson:gson:2.13.2")
 
@@ -34,7 +34,7 @@ dependencies {
     compileOnly("net.kyori:adventure-api:4.25.0")
     compileOnly("net.kyori:adventure-text-minimessage:4.25.0")
 
-    compileOnly("org.flywaydb:flyway-core:11.14.0")
+    compileOnly("org.flywaydb:flyway-core:11.17.1")
 
     implementation(project(":api"))
 }

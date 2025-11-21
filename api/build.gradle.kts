@@ -8,11 +8,11 @@ dependencies {
 
     compileOnly("org.bstats:bstats-bukkit:3.1.0")
 
-    compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("me.clip:placeholderapi:2.11.7")
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.20")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.21")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
@@ -23,7 +23,7 @@ dependencies {
 
     compileOnly("cn.encmys.ykdz.forest:hyphascript:0.1.0-beta")
 
-    compileOnly("org.flywaydb:flyway-core:11.14.0")
+    compileOnly("org.flywaydb:flyway-core:11.17.1")
 }
 
 tasks {
