@@ -5,8 +5,8 @@ default-configs:
   item:
     amount: 8 + Random.nextUniform(8, 16)
   context: |
-    const buy_range = 0.2;
-    const sell_range = 0.3;
+    const buy_range = 0.2
+    const sell_range = 0.3
   buy-price:
     formula: base * (1 + (Math.random() * 2 - 1) * buy_range) * product_amount
   sell-price:

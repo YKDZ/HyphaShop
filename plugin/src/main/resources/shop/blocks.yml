@@ -29,7 +29,7 @@ shop-gui:
       - sound{sound="entity.villager.trade"}
       - message{msg=randomMsg(`<gray>Welcome ${player_name} to <reset>${shop_name}<gray>! What do you want? :)`,
         `<gray>Welcome ${player_name} to <reset>${shop_name}<gray>!`,
-        `<gray>Welcome ${player_name} to <reset>${shop_name}<gray>! :)`)};
+        `<gray>Welcome ${player_name} to <reset>${shop_name}<gray>! :)`)}
     on-outside-click:
       - open_gui{id="main-1"}
   icons:
@@ -80,7 +80,7 @@ shop-gui:
           - |
             Future.supply(() => switch_shopping_mode())
               .then(() => update_icon())
-              .then(() => update_icon{target='d'});
+              .then(() => update_icon{target='d'})
     "d":
       base: paper
       name: " "
@@ -122,17 +122,17 @@ shop-gui:
         - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
         - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
         - |
-          product_is_stock ? " " : null;
+          product_is_stock ? " " : null
         - "?`<dark_gray>Global stock: <white>${current_global_stock}/${initial_global_stock}`"
         - "?`<dark_gray>Stock per-player: <white>${current_player_stock}/${initial_player_stock}`"
         - |
-          bundle_contents_lore && bundle_contents_lore.length() > 0 ? [" ", "<gray>Bundle Contents:"] : null;
+          bundle_contents_lore && bundle_contents_lore.length() > 0 ? [" ", "<gray>Bundle Contents:"] : null
         - |
-          bundle_contents_lore;
+          bundle_contents_lore
         - |
-          desc_lore.length() > 0 ? " " : null;
+          desc_lore.length() > 0 ? " " : null
         - |
-          desc_lore;
+          desc_lore
         - " "
         - "<gray>Rarity: <reset>${product_rarity_name}"
         - " "
@@ -141,17 +141,17 @@ shop-gui:
       actions:
         left:
           - |
-            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1};
+            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1}
           - update_icon()
         right:
           - |
-            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1};
+            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1}
           - update_icon()
         shift-right:
-          - if (shopping_mode_id == "DIRECT") buy_all_from();
+          - if (shopping_mode_id == "DIRECT") buy_all_from()
           - update_icon()
         drop:
-          - if (shopping_mode_id == "CART") remove_all_from_cart();
+          - if (shopping_mode_id == "CART") remove_all_from_cart()
           - update_icon()
     format:
       bundle-content-line: " <dark_gray>- <reset>${product_name} <gray>x <white>${total_amount}"

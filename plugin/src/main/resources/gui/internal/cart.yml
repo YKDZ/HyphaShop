@@ -139,4 +139,4 @@ cart:
                   set_order_stack{amount=Number.number(result)}
                 }
               })
-              .then(() => open_cart());
+              .then(() => open_cart())

@@ -22,10 +22,10 @@ settings:
   # Used to simulate the sequential refresh of titles instead of list style titles,
   # as the store context will be persistently stored
   context: |
-    const i = {};
+    const i = {}
     const title = (uuid) => {
-      i[uuid] = (i[uuid] == null ? 0 : i[uuid]) + 1;
-      return titles[(i[uuid] - 1) % titles.length()];
+      i[uuid] = (i[uuid] == null ? 0 : i[uuid]) + 1
+      return titles[(i[uuid] - 1) % titles.length()]
     }
 
 shop-gui:
@@ -33,8 +33,8 @@ shop-gui:
     const titles = [`Welcome <white>${player_name} <#800080>⭐`,
                     `Welcome <white>${player_name} <#800080>⭐⭐`,
                     `Welcome <white>${player_name} <#800080>⭐⭐⭐`,
-                    `Welcome <white>${player_name} <#800080>⭐⭐`];
-    title(player_uuid);
+                    `Welcome <white>${player_name} <#800080>⭐⭐`]
+    title(player_uuid)
   # Title refresh frequency,
   # deleting this key means not refreshing
   title-update-period: 1s
@@ -135,17 +135,17 @@ shop-gui:
       actions:
         left:
           - |
-            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1};
+            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1}
           - update_icon()
         right:
           - |
-            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1};
+            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1}
           - update_icon()
         shift-right:
-          - if (shopping_mode_id == "DIRECT") buy_all_from();
+          - if (shopping_mode_id == "DIRECT") buy_all_from()
           - update_icon()
         drop:
-          - if (shopping_mode_id == "CART") remove_all_from_cart();
+          - if (shopping_mode_id == "CART") remove_all_from_cart()
           - update_icon()
       icons:
         - condition: desc_lore && desc_lore.length() > 0 && product_is_stock
