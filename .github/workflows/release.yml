@@ -3,7 +3,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
 
 permissions:
   contents: write
@@ -38,7 +38,10 @@ jobs:
           GPR_KEY: ${{ secrets.GPR_KEY }}
 
       - name: Build API
-        run: ./gradlew clean :api:build
+        # Don't run `clean` here — an additional clean will remove the plugin artifact
+        # produced by the previous step. Build only the API module to avoid deleting
+        # plugin/build/libs/HyphaShop-*.jar before release upload.
+        run: ./gradlew :api:build
         env:
           GPR_USER: ${{ github.actor }}
           GPR_KEY: ${{ secrets.GPR_KEY }}
