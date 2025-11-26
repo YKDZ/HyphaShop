@@ -110,15 +110,7 @@ public class ScriptUtils {
             return Component.empty();
         }
 
-        if (!result.value().isType(Value.Type.ADVENTURE_COMPONENT, Value.Type.STRING, Value.Type.NULL)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not component, string or null but " + result.value().getType() + ". Use empty string as fallback value.");
-            return Component.empty();
-        }
-
-        if (result.value().isType(Value.Type.ADVENTURE_COMPONENT)) return result.value().getAsAdventureComponent();
-        else if (result.value().isType(Value.Type.STRING))
-            return HyphaAdventureUtils.getComponentFromMiniMessage(result.value().getAsString());
-        else return Component.empty();
+        return result.value().getAsAdventureComponent();
     }
 
     public static @NotNull List<Component> evaluateComponentList(@NotNull Context context, @NotNull Script script) {

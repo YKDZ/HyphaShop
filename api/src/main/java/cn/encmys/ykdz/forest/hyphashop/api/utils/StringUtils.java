@@ -32,7 +32,7 @@ public class StringUtils {
         ParserResult result = script.parse();
 
         if (result.resultType() != ParserResult.Type.SUCCESS) {
-            throw new RuntimeException("Script failed to parse: " + result.resultType());
+            System.out.println(result);
         }
 
         return script;
