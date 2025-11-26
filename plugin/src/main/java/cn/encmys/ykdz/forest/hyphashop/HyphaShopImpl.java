@@ -30,6 +30,21 @@ import xyz.xenondevs.invui.InvUI;
 import java.nio.file.Paths;
 
 public final class HyphaShopImpl extends HyphaShop {
+    private static void clearInternalObjects() {
+        registeredMembers.forEach(InternalObjectManager.GLOBAL_OBJECT::deleteMember);
+        registeredMembers.clear();
+    }
+
+    private static void loadInternalObject(@NotNull InternalObject object) {
+        if (!Config.script_unpackInternalObject) {
+            InternalObjectManager.register(object.getName(), object);
+            registeredMembers.add(object.getName());
+        } else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
+            InternalObjectManager.GLOBAL_OBJECT.declareMember(name, ref);
+            registeredMembers.add(name);
+        });
+    }
+
     @Override
     public void onLoad() {
         INSTANCE = this;
@@ -155,20 +170,5 @@ public final class HyphaShopImpl extends HyphaShop {
             setEnabled(false);
             e.printStackTrace();
         }
-    }
-
-    private static void clearInternalObjects() {
-        registeredMembers.forEach(InternalObjectManager.GLOBAL_OBJECT::deleteMember);
-        registeredMembers.clear();
-    }
-
-    private static void loadInternalObject(@NotNull InternalObject object) {
-        if (!Config.script_unpackInternalObject) {
-            InternalObjectManager.register(object.getName(), object);
-            registeredMembers.add(object.getName());
-        } else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
-            InternalObjectManager.GLOBAL_OBJECT.declareMember(name, ref);
-            registeredMembers.add(name);
-        });
     }
 }

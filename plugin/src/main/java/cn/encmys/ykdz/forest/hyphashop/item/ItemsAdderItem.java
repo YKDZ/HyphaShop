@@ -13,18 +13,13 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class ItemsAdderItem implements BaseItem {
-    private final @NotNull String namespacedId;
-
-    public ItemsAdderItem(@NotNull String namespacedId) {
-        this.namespacedId = namespacedId;
-    }
+public record ItemsAdderItem(@NotNull String namespacedId) implements BaseItem {
 
     @Override
     public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
         final CustomStack instance = CustomStack.getInstance(namespacedId);
         if (instance == null)
-            return Component.translatable("Name of ItemsAdder item " + getNamespacedId() + " not found").color(TextColor.color(255, 0, 0));
+            return Component.translatable("Name of ItemsAdder item " + namespacedId() + " not found").color(TextColor.color(255, 0, 0));
         return HyphaAdventureUtils.getComponentFromMiniMessage(HyphaAdventureUtils.legacyToMiniMessage(instance.getDisplayName()));
     }
 
@@ -47,15 +42,11 @@ public class ItemsAdderItem implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
-        final CustomStack stack = CustomStack.getInstance(getNamespacedId());
+        final CustomStack stack = CustomStack.getInstance(namespacedId());
         if (stack != null) {
             return stack.getItemStack().clone();
         } else {
             return new ItemStack(Material.AIR);
         }
-    }
-
-    public @NotNull String getNamespacedId() {
-        return namespacedId;
     }
 }

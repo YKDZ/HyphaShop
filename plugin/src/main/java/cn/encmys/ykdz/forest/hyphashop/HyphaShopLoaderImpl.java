@@ -9,12 +9,6 @@ import org.eclipse.aether.repository.RemoteRepository;
 import org.jetbrains.annotations.NotNull;
 
 public class HyphaShopLoaderImpl implements PluginLoader {
-    @Override
-    public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
-        classpathBuilder.addLibrary(mavenCentralArtifact());
-        classpathBuilder.addLibrary(invuiArtifact());
-    }
-
     private static @NotNull MavenLibraryResolver mavenCentralArtifact() {
         final MavenLibraryResolver resolver = new MavenLibraryResolver();
         resolver.addDependency(new Dependency(new DefaultArtifact("com.zaxxer:HikariCP:7.0.2"), null));
@@ -35,5 +29,11 @@ public class HyphaShopLoaderImpl implements PluginLoader {
                 new RemoteRepository.Builder("xenondevs", "default", "https://repo.xenondevs.xyz/releases").build());
 
         return resolver;
+    }
+
+    @Override
+    public void classloader(@NotNull PluginClasspathBuilder classpathBuilder) {
+        classpathBuilder.addLibrary(mavenCentralArtifact());
+        classpathBuilder.addLibrary(invuiArtifact());
     }
 }

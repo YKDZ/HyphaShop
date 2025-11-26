@@ -36,6 +36,10 @@ public class SQLiteProvider implements DBProvider {
         dataSource = new HikariDataSource(config);
     }
 
+    private static @NotNull String getDBFilePath() {
+        return HyphaShop.INSTANCE.getDataFolder() + "/data/database.db";
+    }
+
     @Override
     public @NotNull DBType getType() {
         return DBType.SQLITE;
@@ -80,9 +84,5 @@ public class SQLiteProvider implements DBProvider {
     @Override
     public @NotNull ShopDao getShopDao() {
         return new SQLiteShopDao();
-    }
-
-    private static @NotNull String getDBFilePath() {
-        return HyphaShop.INSTANCE.getDataFolder() + "/data/database.db";
     }
 }

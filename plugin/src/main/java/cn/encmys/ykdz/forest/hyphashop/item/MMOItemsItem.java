@@ -24,21 +24,17 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-public class MMOItemsItem implements BaseItem {
-    private final @NotNull Type type;
-    private final @NotNull String id;
-
+public record MMOItemsItem(@NotNull Type type, @NotNull String id) implements BaseItem {
     public MMOItemsItem(@NotNull String type, @NotNull String id) {
-        this.type = Objects.requireNonNull(Type.get(type));
-        this.id = id;
+        this(Objects.requireNonNull(Type.get(type)), id);
     }
 
     @Override
     public @NotNull Component getDisplayName(@NotNull BaseItemDecorator decorator) {
-        final MMOItem mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
+        final MMOItem mmoItem = MMOItems.plugin.getMMOItem(type(), id().toUpperCase(Locale.ENGLISH));
 
         if (mmoItem == null) {
-            return Component.translatable("Name of MMOItems item " + getType().getId() + ":" + getId() + " not found").color(TextColor.color(255, 0, 0));
+            return Component.translatable("Name of MMOItems item " + type().getId() + ":" + id() + " not found").color(TextColor.color(255, 0, 0));
         }
 
         for (var stat : mmoItem.getStats()) {
@@ -48,7 +44,7 @@ public class MMOItemsItem implements BaseItem {
             }
         }
 
-        return Component.translatable("Name of MMOItems item " + getId() + " not found").color(TextColor.color(255, 0, 0));
+        return Component.translatable("Name of MMOItems item " + id() + " not found").color(TextColor.color(255, 0, 0));
     }
 
     @Override
@@ -56,7 +52,7 @@ public class MMOItemsItem implements BaseItem {
         final Type itemType = Type.get(MMOItems.getTypeName(item));
         final String itemId = MMOItems.getID(item);
         if (itemType != null && itemId != null) {
-            return itemType.equals(getType()) && itemId.equals(getId());
+            return itemType.equals(type()) && itemId.equals(id());
         } else {
             return false;
         }
@@ -97,18 +93,10 @@ public class MMOItemsItem implements BaseItem {
     private @NotNull ItemStack buildSync(@Nullable Player player) {
         final MMOItem mmoItem;
         if (player == null) {
-            mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH));
+            mmoItem = MMOItems.plugin.getMMOItem(type(), id().toUpperCase(Locale.ENGLISH));
         } else {
-            mmoItem = MMOItems.plugin.getMMOItem(getType(), getId().toUpperCase(Locale.ENGLISH), PlayerData.get(player));
+            mmoItem = MMOItems.plugin.getMMOItem(type(), id().toUpperCase(Locale.ENGLISH), PlayerData.get(player));
         }
         return mmoItem == null ? new ItemStack(Material.AIR) : Objects.requireNonNull(mmoItem.newBuilder().build());
-    }
-
-    public @NotNull Type getType() {
-        return type;
-    }
-
-    public @NotNull String getId() {
-        return id;
     }
 }
