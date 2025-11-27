@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.7-Beta 2025.11.27
+
+### Added
+
+- Bump `HyphaScript` to `0.1.3-Beta`, fix multiple issue
+- Add dialog support, default config also updated
+
+### Changed
+
+-
+
+### Fixed
+
+-
+
 ## 0.4.6-Beta 2025.11.26
 
 ### Added
