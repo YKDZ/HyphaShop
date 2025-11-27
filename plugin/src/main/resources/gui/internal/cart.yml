@@ -113,30 +113,42 @@ cart:
       actions:
         left:
           - modify_order_stack{amount=1}
+          - update_icon()
         right:
           - modify_order_stack{amount=-1}
+          - update_icon()
         drop:
           - set_order_stack{amount=0}
+          - update_icon()
         shift-left:
           - |
-            anvil_input({
-              structure: ["1 2 3"],
-              icons: {
-                1: {
-                  base: "paper",
-                  name: ""
-                },
-                2: {
-                  base: "air"
-                },
-                3: {
-                  base: "air"
+            show_dialog({
+              title: "Input Amount",
+              inputs: [
+                {
+                  type: "number-range",
+                  key: "stack",
+                  label: "Stack Amount",
+                  labelFormat: "%s: %s",
+                  width: 256,
+                  start: 1,
+                  end: 1024,
+                  initial: 1,
+                  step: 1
                 }
-              }
+              ],
+              actions: [
+                {
+                  label: "Confirm",
+                  width: 256,
+                  click: {
+                    type: "custom",
+                    onClick: () => {
+                      const stack = getFloat("stack")
+                      set_order_stack{amount=stack}
+                      open_cart()
+                    }
+                  }
+                }
+              ]
             })
-              .then((result) => {
-                if (Number.isNumber(result)) {
-                  set_order_stack{amount=Number.number(result)}
-                }
-              })
-              .then(() => open_cart())
