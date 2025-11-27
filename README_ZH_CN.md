@@ -31,19 +31,10 @@
 ### Maven
 
 ```
-<repositories>
-    <repository>
-        <id>jitpack</id>
-        <url>https://jitpack.io/</url>
-    </repository>
-</repositories>
-```
-
-```
 <dependencies>
     <dependency>
         <groupId>cn.encmys</groupId>
-        <artifactId>HyphaShop</artifactId>
+        <artifactId>hyphashop-api</artifactId>
         <version>{VERSION}</version>
         <scope>provided</scope>
     </dependency>
@@ -54,13 +45,11 @@
 
 ```
 repositories {
-    maven("https://jitpack.io/")
+    mavenCentral()
 }
-```
 
-```
 dependencies {
-    compileOnly("cn.encmys:HyphaShop:{VERSION}")
+    compileOnly("cn.encmys:hyphashop-api:{VERSION}")
 }
 ```
 
