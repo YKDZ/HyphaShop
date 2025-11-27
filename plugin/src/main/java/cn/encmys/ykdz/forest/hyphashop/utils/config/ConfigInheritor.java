@@ -1,6 +1,9 @@
 package cn.encmys.ykdz.forest.hyphashop.utils.config;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.function.Function;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -34,6 +37,13 @@ public class ConfigInheritor implements ConfigAccessor {
         if (nonInheritableKeys.contains(path)) return config.getString(path);
         return config.getString(path)
                 .or(() -> parent.getString(path));
+    }
+
+    @Override
+    public @NotNull Optional<Component> getComponent(@NotNull String path) {
+        if (nonInheritableKeys.contains(path)) return config.getComponent(path);
+        return config.getComponent(path)
+                .or(() -> parent.getComponent(path));
     }
 
     @Override
@@ -86,6 +96,13 @@ public class ConfigInheritor implements ConfigAccessor {
     }
 
     @Override
+    public @NotNull Optional<Function> getFunction(@NotNull String path, @NotNull Context ctx) {
+        if (nonInheritableKeys.contains(path)) return config.getFunction(path, ctx);
+        return config.getFunction(path, ctx)
+                .or(() -> parent.getFunction(path, ctx));
+    }
+
+    @Override
     public @NotNull Optional<List<String>> getStringList(@NotNull String path) {
         if (nonInheritableKeys.contains(path)) return config.getStringList(path);
         return config.getStringList(path)
@@ -111,7 +128,7 @@ public class ConfigInheritor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<Object> get(@NotNull String path) {
-        if (config.getString(path).isPresent()) return config.get(path);
+        if (config.getComponent(path).isPresent()) return config.get(path);
         return config.get(path)
                 .or(() -> parent.get(path));
     }

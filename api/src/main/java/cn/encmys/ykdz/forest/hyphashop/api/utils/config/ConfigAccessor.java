@@ -1,5 +1,8 @@
 package cn.encmys.ykdz.forest.hyphashop.api.utils.config;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.function.Function;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -14,6 +17,8 @@ public interface ConfigAccessor {
 
     @NotNull Optional<String> getString(@NotNull String path);
 
+    @NotNull Optional<Component> getComponent(@NotNull String path);
+
     @NotNull Optional<Boolean> getBoolean(@NotNull String path);
 
     @NotNull Optional<List<Boolean>> getBooleanList(@NotNull String path);
@@ -27,6 +32,8 @@ public interface ConfigAccessor {
     @NotNull Optional<Long> getLong(@NotNull String path);
 
     @NotNull Optional<Double> getDouble(@NotNull String path);
+
+    @NotNull Optional<Function> getFunction(@NotNull String path, @NotNull Context ctx);
 
     @NotNull Optional<List<String>> getStringList(@NotNull String path);
 

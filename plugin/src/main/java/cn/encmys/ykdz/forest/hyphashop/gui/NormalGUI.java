@@ -82,12 +82,12 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @NotNull Optional<Marker> getScrollMode() {
-        return config.getString("scroll-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
+        return config.getComponent("scroll-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override
     public @NotNull Optional<Marker> getPageMode() {
-        return config.getString("page-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
+        return config.getComponent("page-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override

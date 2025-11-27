@@ -25,6 +25,7 @@ import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.order.ShopOrderImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.*;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ScriptObjectAccessor;
+import net.kyori.adventure.audience.Audience;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -412,6 +413,28 @@ public class HyphaShopActionObject extends InternalObject {
         return wrapper;
     }
 
+
+    @Static
+    @Function("show_dialog")
+    @FunctionParas({"dialog_config", "__player"})
+    public static ScriptObject dialogInput(@NotNull Context ctx) {
+        ScriptObject wrapper = InternalObjectManager.FUTURE.newInstance();
+        CompletableFuture<Reference> future = new CompletableFuture<>();
+        wrapper.forceSetLocalMember("future", new Reference(new Value(future)));
+
+        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        if (player == null) {
+            future.complete(new Reference(new Value("")));
+            return wrapper;
+        }
+
+        ScriptObject dialogConfig = ContextUtils.getScriptObjectParam(ctx, "dialog_config").orElse(new ScriptObject());
+
+        player.showDialog(ConfigUtils.parseDialog(new ScriptObjectAccessor(dialogConfig)));
+
+        return wrapper;
+    }
+
     @Static
     @Function("settle_cart")
     @FunctionParas({"__player"})
@@ -453,8 +476,20 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("back")
     @FunctionParas({"__player"})
     public static void back(@NotNull Context ctx) {
-        ContextUtils.getPlayer(ctx).ifPresent(player -> {
-            HyphaShop.PROFILE_FACTORY.getProfile(player).getPreviousGUI().ifPresent(previousGUI -> previousGUI.open(player));
-        });
+        ContextUtils.getPlayer(ctx).ifPresent(player -> HyphaShop.PROFILE_FACTORY.getProfile(player).getPreviousGUI().ifPresent(previousGUI -> previousGUI.open(player)));
+    }
+
+    @Static
+    @Function("close_dialog")
+    @FunctionParas({"__player"})
+    public static void closeDialog(@NotNull Context ctx) {
+        ContextUtils.getPlayer(ctx).ifPresent(Audience::closeDialog);
+    }
+
+    @Static
+    @Function("close_inventory")
+    @FunctionParas({"__player"})
+    public static void closeInventory(@NotNull Context ctx) {
+        ContextUtils.getPlayer(ctx).ifPresent(Player::closeInventory);
     }
 }

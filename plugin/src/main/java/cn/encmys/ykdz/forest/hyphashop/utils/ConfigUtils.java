@@ -1,7 +1,10 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.function.JavaFunction;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.enums.GUIType;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.record.ConditionalIconRecord;
@@ -14,10 +17,21 @@ import cn.encmys.ykdz.forest.hyphashop.item.builder.BaseItemBuilder;
 import cn.encmys.ykdz.forest.hyphashop.item.builder.NormalIconBuilder;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigInheritor;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
+import io.papermc.paper.dialog.Dialog;
 import io.papermc.paper.registry.RegistryAccess;
 import io.papermc.paper.registry.RegistryKey;
+import io.papermc.paper.registry.data.dialog.ActionButton;
+import io.papermc.paper.registry.data.dialog.DialogBase;
+import io.papermc.paper.registry.data.dialog.action.DialogAction;
+import io.papermc.paper.registry.data.dialog.input.DialogInput;
+import io.papermc.paper.registry.data.dialog.input.SingleOptionDialogInput;
+import io.papermc.paper.registry.data.dialog.input.TextDialogInput;
+import io.papermc.paper.registry.data.dialog.type.DialogType;
 import net.kyori.adventure.key.InvalidKeyException;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickCallback;
+import net.kyori.adventure.text.event.ClickEvent;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
@@ -380,7 +394,7 @@ public class ConfigUtils {
                 .setProperty(ItemProperty.FLIGHT_DURATION, config.getInt("flight-duration").orElse(null))
                 .setProperty(ItemProperty.POTION_TYPE, parsePotionTypeData(config.getString("potion-type").orElse(null)))
                 .setProperty(ItemProperty.POTION_COLOR, parseColorData(config.getString("potion-color").orElse(null)))
-                .setProperty(ItemProperty.POTION_CUSTOM_NAME, config.getString("potion-custom-name").orElse(null))
+                .setProperty(ItemProperty.POTION_CUSTOM_NAME, config.getComponent("potion-custom-name").orElse(null))
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_FLAGS, config.getBooleanList("custom-model-data.flags").orElse(null))
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_COLORS, parseColorsData(config.getStringList("custom-model-data.colors").orElse(new ArrayList<>())))
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_FLOATS, config.getFloatList("custom-model-data.floats").orElse(null))
@@ -429,5 +443,112 @@ public class ConfigUtils {
         });
 
         return conditionIcons;
+    }
+
+    @SuppressWarnings("UnstableApiUsage")
+    public static @NotNull Dialog parseDialog(@NotNull ConfigAccessor config) {
+        final Component title = config.getComponent("title").orElse(Component.empty());
+        final boolean canCloseWithEscape = config.getBoolean("closeWithEscape").orElse(true);
+        final List<? extends ConfigAccessor> inputs = config.getConfigList("inputs").orElse(List.of());
+        final List<? extends ConfigAccessor> actions = config.getConfigList("actions").orElse(List.of());
+
+        return Dialog.create(builder -> builder.empty()
+                .base(DialogBase.builder(title).canCloseWithEscape(canCloseWithEscape).inputs(inputs.stream().map(inputConfig ->
+                        switch (inputConfig.getString("type").orElse("text")) {
+                            case "single-option" -> DialogInput.singleOption(
+                                    inputConfig.getString("key").orElse(UUID.randomUUID().toString()),
+                                    inputConfig.getInt("width").orElse(1024),
+                                    inputConfig.getConfigList("options").orElse(List.of()).stream().map((optionConfig) -> SingleOptionDialogInput.OptionEntry.create(
+                                            optionConfig.getString("id").orElse(UUID.randomUUID().toString()),
+                                            optionConfig.getComponent("display").orElse(Component.text("Option")),
+                                            optionConfig.getBoolean("initial").orElse(false)
+                                    )).toList(),
+                                    inputConfig.getComponent("label").orElse(Component.empty()),
+                                    true
+                            );
+                            case "number-range" -> DialogInput.numberRange(
+                                    inputConfig.getString("key").orElse(UUID.randomUUID().toString()),
+                                    inputConfig.getInt("width").orElse(1024),
+                                    inputConfig.getComponent("label").orElse(Component.empty()),
+                                    inputConfig.getString("labelFormat").orElse(""),
+                                    inputConfig.getFloat("start").orElse(0f),
+                                    inputConfig.getFloat("end").orElse(0f),
+                                    inputConfig.getFloat("initial").orElse(0f),
+                                    inputConfig.getFloat("step").orElse(0f)
+                            );
+                            case "boolean" -> DialogInput.bool(
+                                    inputConfig.getString("key").orElse(UUID.randomUUID().toString()),
+                                    inputConfig.getComponent("label").orElse(Component.empty())
+                            ).build();
+                            default -> DialogInput.text(
+                                    inputConfig.getString("key").orElse(UUID.randomUUID().toString()),
+                                    inputConfig.getInt("width").orElse(1024),
+                                    inputConfig.getComponent("label").orElse(Component.empty()),
+                                    true,
+                                    inputConfig.getString("initial").orElse(""),
+                                    inputConfig.getInt("maxLength").orElse(64),
+                                    TextDialogInput.MultilineOptions.create(
+                                            inputConfig.getInt("maxLines").orElse(1),
+                                            inputConfig.getInt("maxHeight").orElse(64)
+                                    )
+                            );
+                        }).toList()).build())
+                .type(DialogType.multiAction(
+                                actions.stream().map(actionConfig ->
+                                {
+                                    final ConfigAccessor clickConfig = actionConfig.getConfig("click").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+                                    return ActionButton.create(
+                                            actionConfig.getComponent("label").orElse(Component.empty()),
+                                            actionConfig.getComponent("tooltip").orElse(Component.empty()),
+                                            actionConfig.getInt("width").orElse(1024),
+                                            switch (clickConfig.getString("type").orElse("static")) {
+                                                case "custom" -> DialogAction.customClick(
+                                                        (view, audience) -> {
+                                                            final Context ctx = Context.Builder.create()
+                                                                    .with("getText", new Value(new JavaFunction("getText",
+                                                                            (target, paras, context) ->
+                                                                                    view.getText(paras.getFirst().getAsString()))))
+                                                                    .with("getFloat", new Value(new JavaFunction("getFloat",
+                                                                            (target, paras, context) ->
+                                                                                    view.getFloat(paras.getFirst().getAsString()))))
+                                                                    .with("getBoolean", new Value(new JavaFunction("getBoolean",
+                                                                            (target, paras, context) ->
+                                                                                    view.getBoolean(paras.getFirst().getAsString()))))
+                                                                    .build();
+                                                            clickConfig.getFunction("onClick", ctx)
+                                                                    .ifPresent(onClick -> onClick.call(new Value(), List.of(), ctx));
+                                                        },
+                                                        ClickCallback.Options.builder()
+                                                                .uses(1)
+                                                                .lifetime(ClickCallback.DEFAULT_LIFETIME)
+                                                                .build()
+                                                );
+                                                case "command" -> DialogAction.commandTemplate(
+                                                        clickConfig.getString("template").orElse("")
+                                                );
+                                                default -> DialogAction.staticAction(
+                                                        switch (clickConfig.getString("type").orElse("copy")) {
+                                                            case "copy" ->
+                                                                    ClickEvent.copyToClipboard(clickConfig.getString("copied").orElse("copied text"));
+                                                            case "run-command" ->
+                                                                    ClickEvent.runCommand(clickConfig.getString("command").orElse("/say Custom Command"));
+                                                            case "open-url" ->
+                                                                    ClickEvent.openUrl(clickConfig.getString("url").orElse("https://github.com/YKDZ"));
+                                                            case "open-file" ->
+                                                                    ClickEvent.openFile(clickConfig.getString("file").orElse("file.txt"));
+                                                            case "change-page" ->
+                                                                    ClickEvent.changePage(clickConfig.getInt("page").orElse(0));
+                                                            case "open-dialog" ->
+                                                                    ClickEvent.showDialog(parseDialog(clickConfig.getConfig("dialog").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))));
+                                                            default ->
+                                                                    ClickEvent.suggestCommand(clickConfig.getString("command").orElse("/suggested command"));
+                                                        }
+                                                );
+                                            }
+                                    );
+                                }).toList()
+                        ).build()
+                )
+        );
     }
 }

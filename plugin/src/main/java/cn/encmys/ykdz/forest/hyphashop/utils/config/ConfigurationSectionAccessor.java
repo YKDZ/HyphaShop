@@ -1,7 +1,13 @@
 package cn.encmys.ykdz.forest.hyphashop.utils.config;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.function.Function;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +36,11 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
     @Override
     public @NotNull Optional<String> getString(@NotNull String path) {
         return Optional.ofNullable(config.getString(path));
+    }
+
+    @Override
+    public @NotNull Optional<Component> getComponent(@NotNull String path) {
+        return Optional.ofNullable(config.getComponent(path, MiniMessage.miniMessage()));
     }
 
     @Override
@@ -65,6 +76,11 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull String path) {
         return Optional.ofNullable(config.contains(path) ? config.getDouble(path) : null);
+    }
+
+    @Override
+    public @NotNull Optional<Function> getFunction(@NotNull String path, @NotNull Context ctx) {
+        return Optional.ofNullable(config.contains(path) ? ScriptUtils.evaluate(ctx, new Script(config.getString(path, ""))).getAsFunction() : null);
     }
 
     @Override

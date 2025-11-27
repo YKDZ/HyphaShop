@@ -1,9 +1,12 @@
 package cn.encmys.ykdz.forest.hyphashop.utils.config;
 
+import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.function.Function;
 import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,6 +32,11 @@ public class ScriptObjectAccessor implements ConfigAccessor {
     @Override
     public @NotNull Optional<String> getString(@NotNull String path) {
         return config.findMember(path, String.class);
+    }
+
+    @Override
+    public @NotNull Optional<Component> getComponent(@NotNull String path) {
+        return config.findMember(path, Component.class);
     }
 
     @Override
@@ -70,6 +78,11 @@ public class ScriptObjectAccessor implements ConfigAccessor {
     @Override
     public @NotNull Optional<Double> getDouble(@NotNull String path) {
         return config.findMember(path, Number.class).map(Number::doubleValue);
+    }
+
+    @Override
+    public @NotNull Optional<Function> getFunction(@NotNull String path, @NotNull Context ctx) {
+        return config.findMember(path, Function.class);
     }
 
     @Override

@@ -27,6 +27,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.InvUI;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class HyphaShopImpl extends HyphaShop {
@@ -162,7 +163,9 @@ public final class HyphaShopImpl extends HyphaShop {
         loadInternalObject(new HyphaShopActionObject());
 
         try {
-            ScriptManager.loadAllFrom(Paths.get(getDataFolder() + "/" + "scripts"));
+            Path scriptsPath = Paths.get(getDataFolder() + "/" + "scripts");
+            LogUtils.info("About to load scripts from " + scriptsPath);
+            ScriptManager.loadAllFrom(scriptsPath);
             LogUtils.info("Successfully loaded scripts. Result global context is: ");
             LogUtils.info(InternalObjectManager.GLOBAL_OBJECT.toString());
         } catch (Exception e) {
