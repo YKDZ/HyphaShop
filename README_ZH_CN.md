@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-# 介绍
+## 介绍
 
 一个受 [DailyShop](https://github.com/divios/DailyShop) 启发的 SpigotMC 插件。追求超级可自定性和效率。
 
