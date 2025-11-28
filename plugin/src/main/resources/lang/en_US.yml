@@ -56,7 +56,7 @@ messages:
         global-stock: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. The shop does not have enough stock.
         merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance to buy your items.
         not-listed: <gray>Product <reset>${product_name}<gray> is not listed.
-        money: <gray>You do not have enough money to buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>.
+        money: ""
   settle-result:
     direct:
       sell-to:

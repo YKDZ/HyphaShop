@@ -64,7 +64,7 @@ messages:
           <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name}
           <gray>x <white>${product_amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
         not-listed: <gray>商品 <reset>${product_name}<gray> 未上架.
-        money: <gray>你的余额不足以从商店 <reset>${shop_name}<gray> 购买 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
+        money: ""
   settle-result:
     direct:
       # 商店向玩家出售商品
