@@ -1,4 +1,4 @@
-package cn.encmys.ykdz.forest.hyphashop.script.pack;
+package cn.encmys.ykdz.forest.hyphashop.script.object;
 
 import cn.encmys.ykdz.forest.hyphascript.annotions.Function;
 import cn.encmys.ykdz.forest.hyphascript.annotions.FunctionParas;
@@ -8,6 +8,7 @@ import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
@@ -47,8 +48,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static void addToCart(@NotNull Context ctx) {
         final Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        final Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        final Product product = ContextUtils.getProduct(ctx).orElse(null);
+        final Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        final Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         final int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return;
@@ -80,8 +81,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static void removeFromCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return;
@@ -104,8 +105,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"__player", "__shop", "__product"})
     public static void removeAllFromCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
         if (player == null || shop == null || product == null) return;
 
@@ -122,8 +123,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static @Nullable String sellToDirectly(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) {
@@ -154,8 +155,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__player", "__shop", "__product"})
     public static @Nullable String buyFromDirectly(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) return null;
@@ -184,8 +185,8 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"__player", "__shop", "__product"})
     public static void buyAllFromDirectly(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
         if (player == null || shop == null || product == null) return;
 
@@ -207,7 +208,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("scroll")
     @FunctionParas({"amount", "__gui"})
     public static void scroll(@NotNull Context ctx) {
-        ScrollGui<?> gui = ContextUtils.getScrollGui(ctx).orElse(null);
+        ScrollGui<?> gui = ShopContextUtils.getScrollGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (gui == null) return;
@@ -219,7 +220,7 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("change_page")
     @FunctionParas({"amount", "__gui"})
     public static void changePage(@NotNull Context ctx) {
-        PagedGui<?> gui = ContextUtils.getPagedGui(ctx).orElse(null);
+        PagedGui<?> gui = ShopContextUtils.getPagedGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (gui == null) return;
@@ -271,7 +272,7 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"__player", "__shop"})
     public static void switchShoppingMode(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
 
         if (player == null || shop == null) return;
 
@@ -356,9 +357,9 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__order", "__player", "__product", "__shop"})
     public static void modifyOrderStack(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        ShopOrder order = ContextUtils.getShopOrder(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
+        ShopOrder order = ShopContextUtils.getShopOrder(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || order == null || product == null || shop == null) return;
@@ -373,9 +374,9 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"amount", "__order", "__player", "__product", "__shop"})
     public static void setOrderStack(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        ShopOrder order = ContextUtils.getShopOrder(ctx).orElse(null);
-        Product product = ContextUtils.getProduct(ctx).orElse(null);
-        Shop shop = ContextUtils.getShop(ctx).orElse(null);
+        ShopOrder order = ShopContextUtils.getShopOrder(ctx).orElse(null);
+        Product product = ShopContextUtils.getProduct(ctx).orElse(null);
+        Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || order == null || product == null || shop == null) return;
@@ -454,9 +455,9 @@ public class HyphaShopActionObject extends InternalObject {
     @FunctionParas({"target", "__icon", "__gui_structure", "__gui"})
     public static void updateIcon(@NotNull Context ctx) {
         char target = ContextUtils.getCharacterParam(ctx, "target").orElse('\0');
-        Item icon = ContextUtils.getIcon(ctx).orElse(null);
+        Item icon = ShopContextUtils.getIcon(ctx).orElse(null);
         Reference[] structureRef = (Reference[]) ContextUtils.getMember(ctx, "__gui_structure", Reference[].class).orElse(new Reference[0]);
-        Gui gui = ContextUtils.getGui(ctx).orElse(null);
+        Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
 
         if (icon == null) return;
 

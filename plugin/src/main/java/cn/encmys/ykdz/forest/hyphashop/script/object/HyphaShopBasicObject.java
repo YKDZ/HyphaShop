@@ -1,4 +1,4 @@
-package cn.encmys.ykdz.forest.hyphashop.script.pack;
+package cn.encmys.ykdz.forest.hyphashop.script.object;
 
 import cn.encmys.ykdz.forest.hyphascript.annotions.Function;
 import cn.encmys.ykdz.forest.hyphascript.annotions.FunctionParas;
