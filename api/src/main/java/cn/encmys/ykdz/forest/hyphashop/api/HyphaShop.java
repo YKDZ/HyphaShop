@@ -36,7 +36,6 @@ public abstract class HyphaShop extends JavaPlugin {
     public static Economy ECONOMY;
     public static Metrics METRICS;
     public static final List<String> registeredMembers = new ArrayList<>();
-    protected static boolean isInitialized = false;
 
     public abstract void disable();
 
@@ -50,5 +49,5 @@ public abstract class HyphaShop extends JavaPlugin {
 
     public abstract void setupBStats();
 
-    public abstract void loadScripts();
+    public abstract boolean loadScripts();
 }

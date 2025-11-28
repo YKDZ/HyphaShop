@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop;
 
+import cn.encmys.ykdz.forest.hyphascript.HyphaScript;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.ScriptManager;
@@ -17,7 +18,8 @@ import cn.encmys.ykdz.forest.hyphashop.product.factory.ProductFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.profile.factory.ProfileFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.rarity.factory.RarityFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.ConnTasksImpl;
-import cn.encmys.ykdz.forest.hyphashop.script.pack.*;
+import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopActionObject;
+import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopBasicObject;
 import cn.encmys.ykdz.forest.hyphashop.shop.factory.ShopFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import net.milkbowl.vault.economy.Economy;
@@ -27,25 +29,13 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.InvUI;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Stream;
 
 public final class HyphaShopImpl extends HyphaShop {
-    private static void clearInternalObjects() {
-        registeredMembers.forEach(InternalObjectManager.GLOBAL_OBJECT::deleteMember);
-        registeredMembers.clear();
-    }
-
-    private static void loadInternalObject(@NotNull InternalObject object) {
-        if (!Config.script_unpackInternalObject) {
-            InternalObjectManager.register(object.getName(), object);
-            registeredMembers.add(object.getName());
-        } else object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
-            InternalObjectManager.GLOBAL_OBJECT.declareMember(name, ref);
-            registeredMembers.add(name);
-        });
-    }
-
     @Override
     public void onLoad() {
         INSTANCE = this;
@@ -89,9 +79,13 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void enable() {
+        HyphaScript.init(INSTANCE);
+
         Config.load();
 
-        loadScripts();
+        if (!loadScripts()) {
+            return;
+        }
 
         MessageConfig.load();
         RarityConfig.load();
@@ -104,7 +98,9 @@ public final class HyphaShopImpl extends HyphaShop {
         DATABASE_FACTORY = new DatabaseFactoryImpl();
 
         if (!DATABASE_FACTORY.getProvider().migrate().success) {
+            LogUtils.error("Could not migrate database! Plugin will be disabled!");
             setEnabled(false);
+            return;
         }
 
         PROFILE_FACTORY = new ProfileFactoryImpl();
@@ -118,12 +114,16 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void disable() {
-        PROFILE_FACTORY.unload();
-        SHOP_FACTORY.unload();
-        PRODUCT_FACTORY.unload();
-        NORMAL_GUI_FACTORY.unload();
+        if (PROFILE_FACTORY != null)
+            PROFILE_FACTORY.unload();
+        if (SHOP_FACTORY != null)
+            SHOP_FACTORY.unload();
+        if (PRODUCT_FACTORY != null)
+            PRODUCT_FACTORY.unload();
+        if (NORMAL_GUI_FACTORY != null)
+            NORMAL_GUI_FACTORY.unload();
 
-        ScriptManager.unloadAllScripts();
+        ScriptManager.unloadAllByOwner(INSTANCE.getName());
         clearInternalObjects();
     }
 
@@ -153,25 +153,57 @@ public final class HyphaShopImpl extends HyphaShop {
         METRICS = new Metrics(this, pluginId);
     }
 
-    public void loadScripts() {
-        loadInternalObject(new ConsoleObject());
-        loadInternalObject(new PlaceholderAPIObject());
-        loadInternalObject(new PlayerObject());
-        loadInternalObject(new ServerObject());
-        loadInternalObject(new CommandObject());
+    public boolean loadScripts() {
         loadInternalObject(new HyphaShopBasicObject());
         loadInternalObject(new HyphaShopActionObject());
 
         try {
             Path scriptsPath = Paths.get(getDataFolder() + "/" + "scripts");
             LogUtils.info("About to load scripts from " + scriptsPath);
-            ScriptManager.loadAllFrom(scriptsPath);
+            loadScripsFromHps(scriptsPath);
             LogUtils.info("Successfully loaded scripts. Result global context is: ");
             LogUtils.info(InternalObjectManager.GLOBAL_OBJECT.toString());
+            return true;
         } catch (Exception e) {
             LogUtils.error("Failed to load scripts. HyphaShop will be disabled.");
-            setEnabled(false);
             e.printStackTrace();
+            setEnabled(false);
+            return false;
         }
+    }
+
+    private static void loadScripsFromHps(@NotNull Path folder) throws IOException {
+        if (!Files.exists(folder) || !Files.isDirectory(folder)) {
+            if (!folder.toFile().mkdirs()) {
+                throw new RuntimeException("Error when creating scripts folder.");
+            }
+        }
+
+        try (Stream<Path> paths = Files.walk(folder)) {
+            paths.filter(path -> Files.isRegularFile(path) && path.toString().toLowerCase().endsWith(".hps"))
+                    .forEach(path -> {
+                        try {
+                            ScriptManager.loadScript(path.toFile(), path.startsWith(folder + "/.global"), INSTANCE.getName());
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+        }
+    }
+
+    private static void clearInternalObjects() {
+        registeredMembers.forEach(InternalObjectManager.GLOBAL_OBJECT::deleteMember);
+        registeredMembers.clear();
+    }
+
+    private static void loadInternalObject(@NotNull InternalObject object) {
+        if (!Config.script_unpackInternalObject) {
+            InternalObjectManager.register(object.getName(), object);
+            registeredMembers.add(object.getName());
+        } else
+            object.getAsScriptObject().getExportedMembers().forEach((name, ref) -> {
+                InternalObjectManager.GLOBAL_OBJECT.declareMember(name, ref);
+                registeredMembers.add(name);
+            });
     }
 }
