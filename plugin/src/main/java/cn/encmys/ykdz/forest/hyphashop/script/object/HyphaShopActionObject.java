@@ -38,6 +38,7 @@ import xyz.xenondevs.invui.window.AnvilWindow;
 import xyz.xenondevs.invui.window.Window;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -52,7 +53,8 @@ public class HyphaShopActionObject extends InternalObject {
         final Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         final int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null) return;
+        if (player == null || shop == null || product == null)
+            return;
 
         if (amount <= 0) {
             LogUtils.warn("Amount of add_to_cart must be greater than 0.");
@@ -70,10 +72,15 @@ public class HyphaShopActionObject extends InternalObject {
         newOrder.bill();
         // 在一个限制或情况“可以被玩家解决”的情况下
         // 才允许玩家将商品加入购物车
-        final SettlementResultType result = newOrder.getType() == OrderType.SELL_TO ? newOrder.canSellTo() : newOrder.canBuyFrom();
-        if (result.canBeHandleByPlayer()) cartOrder.combineOrder(newOrder);
+        final SettlementResultType result = newOrder.getType() == OrderType.SELL_TO ? newOrder.canSellTo()
+                : newOrder.canBuyFrom();
+        if (result.canBeHandleByPlayer())
+            cartOrder.combineOrder(newOrder);
 
-        MessageUtils.sendMessage(player, MessageConfig.getActionMessage("add-to-cart." + result.getConfigKey()), new HashMap<>(), shop, product, player);
+
+        MessageUtils.sendMessage(player,
+                MessageConfig.getActionMessage("add-to-cart." + result.getConfigKey(), player.locale()),
+                new HashMap<>(), shop, product, player);
     }
 
     @Static
@@ -85,7 +92,8 @@ public class HyphaShopActionObject extends InternalObject {
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null) return;
+        if (player == null || shop == null || product == null)
+            return;
 
         if (amount <= 0) {
             LogUtils.warn("Amount of remove_from_cart must be greater than 0.");
@@ -108,7 +116,8 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
-        if (player == null || shop == null || product == null) return;
+        if (player == null || shop == null || product == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         ShopOrder cartOrder = profile.getCart().getOrder();
@@ -136,16 +145,14 @@ public class HyphaShopActionObject extends InternalObject {
             return null;
         }
 
-        ShopOrder order =
-                new ShopOrderImpl(player)
-                        .setType(OrderType.SELL_TO)
-                        .setStack(new ProductLocation(shop.getId(), product.getId()), amount);
+        ShopOrder order = new ShopOrderImpl(player)
+                .setType(OrderType.SELL_TO)
+                .setStack(new ProductLocation(shop.getId(), product.getId()), amount);
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT, OrderType.SELL_TO, result.type()), new HashMap<>() {{
-            put("cost", result.price());
-        }}, shop, player, product);
+        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
+                OrderType.SELL_TO, result.type(), player.locale()), Map.of("cost", result.price()), shop, player, product);
 
         return result.toString();
     }
@@ -159,23 +166,26 @@ public class HyphaShopActionObject extends InternalObject {
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null) return null;
+        if (player == null || shop == null || product == null)
+            return null;
 
         if (amount <= 0) {
             LogUtils.warn("Amount of buy_from must be greater than 0.");
             return null;
         }
 
-        ShopOrder order =
-                new ShopOrderImpl(player)
-                        .setType(OrderType.BUY_FROM)
-                        .setStack(new ProductLocation(shop.getId(), product.getId()), amount);
+        ShopOrder order = new ShopOrderImpl(player)
+                .setType(OrderType.BUY_FROM)
+                .setStack(new ProductLocation(shop.getId(), product.getId()), amount);
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT, OrderType.BUY_FROM, result.type()), new HashMap<>() {{
-            put("earned", result.price());
-        }}, shop, player, product);
+        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
+                OrderType.BUY_FROM, result.type(), player.locale()), new HashMap<>() {
+            {
+                put("earned", result.price());
+            }
+        }, shop, player, product);
 
         return result.toString();
     }
@@ -188,20 +198,23 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
-        if (player == null || shop == null || product == null) return;
+        if (player == null || shop == null || product == null)
+            return;
 
         ProductLocation productLoc = new ProductLocation(shop.getId(), product.getId());
-        ShopOrder order =
-                new ShopOrderImpl(player)
-                        .setType(OrderType.BUY_ALL_FROM)
-                        .modifyStack(productLoc, 1);
+        ShopOrder order = new ShopOrderImpl(player)
+                .setType(OrderType.BUY_ALL_FROM)
+                .modifyStack(productLoc, 1);
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT, OrderType.BUY_ALL_FROM, result.type()), new HashMap<>() {{
-            put("earned", result.price());
-            put("stack", order.getOrderedProducts().get(productLoc));
-        }}, shop, player, product);
+        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
+                OrderType.BUY_ALL_FROM, result.type(), player.locale()), new HashMap<>() {
+            {
+                put("earned", result.price());
+                put("stack", order.getOrderedProducts().get(productLoc));
+            }
+        }, shop, player, product);
     }
 
     @Static
@@ -211,7 +224,8 @@ public class HyphaShopActionObject extends InternalObject {
         ScrollGui<?> gui = ShopContextUtils.getScrollGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (gui == null) return;
+        if (gui == null)
+            return;
 
         gui.setLine(gui.getLine() + amount);
     }
@@ -223,7 +237,8 @@ public class HyphaShopActionObject extends InternalObject {
         PagedGui<?> gui = ShopContextUtils.getPagedGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (gui == null) return;
+        if (gui == null)
+            return;
 
         gui.setPage(gui.getPage() + amount);
     }
@@ -235,11 +250,13 @@ public class HyphaShopActionObject extends InternalObject {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         String shopId = ContextUtils.getStringParam(ctx, "shop").orElse(null);
 
-        if (shopId == null) return;
+        if (shopId == null)
+            return;
 
         Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
 
-        if (shop == null || player == null) return;
+        if (shop == null || player == null)
+            return;
 
         shop.getShopGUI().open(player);
     }
@@ -251,7 +268,8 @@ public class HyphaShopActionObject extends InternalObject {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         String id = ContextUtils.getStringParam(ctx, "id").orElse(null);
 
-        if (id == null || player == null || !HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id)) return;
+        if (id == null || player == null || !HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id))
+            return;
 
         HyphaShop.NORMAL_GUI_FACTORY.getGUI(id).open(player);
     }
@@ -262,9 +280,11 @@ public class HyphaShopActionObject extends InternalObject {
     public static void closeGUI(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
-        HyphaShop.PROFILE_FACTORY.getProfile(player).getViewingWindow().ifPresent(window -> Scheduler.runTask((task) -> window.close()));
+        HyphaShop.PROFILE_FACTORY.getProfile(player).getViewingWindow()
+                .ifPresent(window -> Scheduler.runTask((task) -> window.close()));
     }
 
     @Static
@@ -274,7 +294,8 @@ public class HyphaShopActionObject extends InternalObject {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
 
-        if (player == null || shop == null) return;
+        if (player == null || shop == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.setShoppingMode(shop.getId(),
@@ -287,7 +308,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void openCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCartGUI().open(player);
@@ -299,7 +321,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void switchCartMode(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         ShopOrder cartOrder = profile.getCart().getOrder();
@@ -308,8 +331,7 @@ public class HyphaShopActionObject extends InternalObject {
                     case SELL_TO -> OrderType.BUY_FROM;
                     case BUY_FROM -> OrderType.BUY_ALL_FROM;
                     case BUY_ALL_FROM -> OrderType.SELL_TO;
-                }
-        );
+                });
 
         profile.getCartGUI().updateContents(player);
     }
@@ -320,7 +342,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void cleanCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCart().getOrder().clean();
@@ -333,7 +356,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void clearCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCart().getOrder().clear();
@@ -346,7 +370,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void openOrderHistory(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getOrderHistoryGUI().open(player);
@@ -362,7 +387,8 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || order == null || product == null || shop == null) return;
+        if (player == null || order == null || product == null || shop == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         order.modifyStack(new ProductLocation(shop.getId(), product.getId()), amount);
@@ -379,7 +405,8 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || order == null || product == null || shop == null) return;
+        if (player == null || order == null || product == null || shop == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         order.setStack(new ProductLocation(shop.getId(), product.getId()), amount);
@@ -392,7 +419,7 @@ public class HyphaShopActionObject extends InternalObject {
     public static ScriptObject anvilInput(@NotNull Context ctx) {
         ScriptObject wrapper = InternalObjectManager.FUTURE.newInstance();
         CompletableFuture<Reference> future = new CompletableFuture<>();
-        wrapper.forceSetLocalMember("future", new Reference(new Value(future)));
+        wrapper.declareMember("future", new Reference(new Value(future)));
 
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         if (player == null) {
@@ -414,14 +441,13 @@ public class HyphaShopActionObject extends InternalObject {
         return wrapper;
     }
 
-
     @Static
     @Function("show_dialog")
     @FunctionParas({"dialog_config", "__player"})
     public static ScriptObject dialogInput(@NotNull Context ctx) {
         ScriptObject wrapper = InternalObjectManager.FUTURE.newInstance();
         CompletableFuture<Reference> future = new CompletableFuture<>();
-        wrapper.forceSetLocalMember("future", new Reference(new Value(future)));
+        wrapper.declareMember("future", new Reference(new Value(future)));
 
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         if (player == null) {
@@ -442,7 +468,8 @@ public class HyphaShopActionObject extends InternalObject {
     public static void settleCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null) return;
+        if (player == null)
+            return;
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         SettlementResult result = profile.getCart().getOrder().settle();
@@ -456,18 +483,23 @@ public class HyphaShopActionObject extends InternalObject {
     public static void updateIcon(@NotNull Context ctx) {
         char target = ContextUtils.getCharacterParam(ctx, "target").orElse('\0');
         Item icon = ShopContextUtils.getIcon(ctx).orElse(null);
-        Reference[] structureRef = (Reference[]) ContextUtils.getMember(ctx, "__gui_structure", Reference[].class).orElse(new Reference[0]);
+        Reference[] structureRef = (Reference[]) ContextUtils.getMember(ctx, "__gui_structure", Reference[].class)
+                .orElse(new Reference[0]);
         Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
 
-        if (icon == null) return;
+        if (icon == null)
+            return;
 
-        if (target == '\0') icon.notifyWindows();
+        if (target == '\0')
+            icon.notifyWindows();
         else {
-            if (gui == null) return;
+            if (gui == null)
+                return;
             MiscUtils.generatePositionStream(structureRef, target)
                     .forEach(entry -> {
                         Item item = gui.getItem(entry.getKey() * 9 + entry.getValue());
-                        if (item == null) return;
+                        if (item == null)
+                            return;
                         item.notifyWindows();
                     });
         }
@@ -477,7 +509,8 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("back")
     @FunctionParas({"__player"})
     public static void back(@NotNull Context ctx) {
-        ContextUtils.getPlayer(ctx).ifPresent(player -> HyphaShop.PROFILE_FACTORY.getProfile(player).getPreviousGUI().ifPresent(previousGUI -> previousGUI.open(player)));
+        ContextUtils.getPlayer(ctx).ifPresent(player -> HyphaShop.PROFILE_FACTORY.getProfile(player).getPreviousGUI()
+                .ifPresent(previousGUI -> previousGUI.open(player)));
     }
 
     @Static

@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.command.sub;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.CommandUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
@@ -14,8 +15,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.Map;
 
 public class CartCommand {
     public static CommandNode<CommandSourceStack> getCartCommand() {
@@ -33,10 +32,13 @@ public class CartCommand {
                                     final CommandSender sender = ctx.getSource().getSender();
                                     final String cartOwnerName = ctx.getArgument("cart-owner-name", String.class);
                                     final OfflinePlayer cartOwner = Bukkit.getOfflinePlayer(cartOwnerName);
-                                    final Player openFor = ctx.getArgument("open-for", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
+                                    final Player openFor = ctx
+                                            .getArgument("open-for", PlayerSelectorArgumentResolver.class)
+                                            .resolve(ctx.getSource()).getFirst();
 
                                     if (!cartOwner.hasPlayedBefore()) {
-                                        MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_cart_open_failure_invalidOwnerName, Map.of("cart_owner_name", cartOwnerName), sender);
+                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.cart.open.failure.invalid-owner-name", ((Player) sender).locale()))
+                                                .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                         return Command.SINGLE_SUCCESS;
                                     }
 
@@ -47,10 +49,10 @@ public class CartCommand {
                                     }
 
                                     HyphaShop.PROFILE_FACTORY.getProfile(cartOwner).getCartGUI().open(openFor);
-                                    MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_cart_open_success, sender, openFor);
+                                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.cart.open.success", openFor.locale()))
+                                            .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                     return Command.SINGLE_SUCCESS;
-                                }))
-                )
+                                })))
                 .build();
     }
 }

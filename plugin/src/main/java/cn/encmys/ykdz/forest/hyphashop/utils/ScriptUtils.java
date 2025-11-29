@@ -10,7 +10,6 @@ import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -83,7 +82,7 @@ public class ScriptUtils {
         return result.value().getAsBigDecimal().intValue();
     }
 
-    public static @Nullable String evaluateString(@NotNull Context context, @NotNull Script script) {
+    public static @NotNull String evaluateString(@NotNull Context context, @NotNull Script script) {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
@@ -92,13 +91,7 @@ public class ScriptUtils {
             return "";
         }
 
-        if (!result.value().isType(Value.Type.STRING, Value.Type.NULL)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not string or null but " + result.value().getType() + ". Use empty string as fallback value.");
-            return "";
-        }
-
-        if (result.value().isType(Value.Type.STRING)) return result.value().getAsString();
-        else return null;
+        return result.value().getAsString();
     }
 
     public static @NotNull Component evaluateComponent(@NotNull Context context, @NotNull Script script) {

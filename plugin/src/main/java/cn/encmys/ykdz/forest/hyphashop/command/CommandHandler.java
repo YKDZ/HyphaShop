@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.command;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.CartCommand;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.GUICommand;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.OrderHistoryCommand;
@@ -13,6 +14,7 @@ import com.mojang.brigadier.tree.LiteralCommandNode;
 import io.papermc.paper.command.brigadier.CommandSourceStack;
 import io.papermc.paper.command.brigadier.Commands;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class CommandHandler {
     public static LiteralCommandNode<CommandSourceStack> load() {
@@ -31,7 +33,10 @@ public class CommandHandler {
                 .executes((ctx) -> {
                     final CommandSender sender = ctx.getSource().getSender();
                     HyphaShop.INSTANCE.reload();
-                    MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_reload_success, sender);
+
+                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.reload.success", ((Player) sender).locale()))
+                            .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
+
                     return Command.SINGLE_SUCCESS;
                 })
                 .build();
@@ -44,7 +49,10 @@ public class CommandHandler {
                     HyphaShop.PROFILE_FACTORY.save();
                     HyphaShop.PRODUCT_FACTORY.save();
                     HyphaShop.SHOP_FACTORY.save();
-                    MessageUtils.sendMessageWithPrefix(ctx.getSource().getSender(), MessageConfig.messages_command_save_success, sender);
+
+                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.save.success", ((Player) sender).locale()))
+                            .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
+                    
                     return Command.SINGLE_SUCCESS;
                 })
                 .build();

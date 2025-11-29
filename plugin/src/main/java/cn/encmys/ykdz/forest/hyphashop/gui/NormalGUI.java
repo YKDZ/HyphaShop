@@ -65,8 +65,7 @@ public class NormalGUI extends AbstractGUI {
                 final VarInjector injector = new VarInjector()
                         .withTarget(new Context(getParent()))
                         .withArgs(getArgs(player));
-                final Script script = StringUtils.wrapToScriptWithOmit(config.getString("title").orElse(null));
-                assert script != null;
+                final Script script = StringUtils.wrapToScriptWithOmit(config.getString("title").orElse("")).orElse(new Script(""));
                 injector.withRequiredVars(script);
                 return HyphaAdventureUtils.getComponentFromMiniMessage(ScriptUtils.evaluateString(injector.inject(), script));
             };

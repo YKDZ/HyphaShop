@@ -15,10 +15,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.config.OrderHistoryGUIConfig;
-import cn.encmys.ykdz.forest.hyphashop.utils.DecoratorUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.*;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -42,40 +39,42 @@ public class OrderHistoryIconBuilder {
         return Item.builder()
                 .async(ItemProvider.EMPTY, () -> {
                     // 构造内部列表变量
-                    final Map<String, Object> vars = new HashMap<>() {{
-                        final List<Object> orderContentsLines = new ArrayList<>();
-                        for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
-                            final ProductLocation productLoc = entry.getKey();
-                            final Shop shop = productLoc.shop();
+                    final Map<String, Object> vars = MapUtils.buildImmutableMap(
+                            (map) -> {
+                                final List<Object> orderContentsLines = new ArrayList<>();
+                                for (Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
+                                    final ProductLocation productLoc = entry.getKey();
+                                    final Shop shop = productLoc.shop();
 
-                            if (shop == null) continue;
+                                    if (shop == null) continue;
 
-                            final AmountPair amountPair = entry.getValue();
-                            final Product product = productLoc.product();
-                            final Context parent;
-                            if (product == null) {
-                                parent = ContextUtils.linkContext(
-                                        shop.getScriptContext()
-                                );
-                            } else {
-                                parent = ContextUtils.linkContext(
-                                        product.getScriptContext(),
-                                        shop.getScriptContext()
-                                );
+                                    final AmountPair amountPair = entry.getValue();
+                                    final Product product = productLoc.product();
+                                    final Context parent;
+                                    if (product == null) {
+                                        parent = ContextUtils.linkContext(
+                                                shop.getScriptContext()
+                                        );
+                                    } else {
+                                        parent = ContextUtils.linkContext(
+                                                product.getScriptContext(),
+                                                shop.getScriptContext()
+                                        );
+                                    }
+                                    orderContentsLines.add(ScriptUtils.evaluateComponent(new VarInjector()
+                                                    .withRequiredVars(orderContentLine)
+                                                    .withExtraVars(new HashMap<>() {{
+                                                        put("stack", amountPair.stack());
+                                                        put("amount", amountPair.amount());
+                                                    }})
+                                                    .withTarget(new Context(parent))
+                                                    .withArg(product)
+                                                    .inject()
+                                            , orderContentLine));
+                                }
+                                map.put("order_contents", orderContentsLines.toArray());
                             }
-                            orderContentsLines.add(ScriptUtils.evaluateComponent(new VarInjector()
-                                            .withRequiredVars(orderContentLine)
-                                            .withExtraVars(new HashMap<>() {{
-                                                put("stack", amountPair.stack());
-                                                put("amount", amountPair.amount());
-                                            }})
-                                            .withTarget(new Context(parent))
-                                            .withArg(product)
-                                            .inject()
-                                    , orderContentLine));
-                        }
-                        put("order_contents", orderContentsLines.toArray());
-                    }};
+                    );
 
                     // 构建显示物品
 

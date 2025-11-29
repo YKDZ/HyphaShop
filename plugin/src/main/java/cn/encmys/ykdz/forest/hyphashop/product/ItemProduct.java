@@ -22,8 +22,8 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 
 public class ItemProduct extends Product {
@@ -53,9 +53,7 @@ public class ItemProduct extends Product {
 
     @Override
     public void give(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
 
         final ItemStack item = shop.getCachedProductItemOrBuildOne(this, player);
         // 缓存中物品的 getAmount 结果永远是 1
@@ -69,9 +67,7 @@ public class ItemProduct extends Product {
 
     @Override
     public void take(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
 
         final BaseItemDecorator decorator = getProductItemDecorator();
         if (decorator == null) {

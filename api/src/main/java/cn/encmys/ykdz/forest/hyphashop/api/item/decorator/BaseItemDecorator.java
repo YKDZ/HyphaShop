@@ -30,7 +30,7 @@ public class BaseItemDecorator {
         else if (type.getToken().getRawType().isInstance(value)) {
             return (T) type.getToken().getRawType().cast(value);
         }
-        throw new IllegalArgumentException("Invalid type for config key: " + type);
+        throw new IllegalArgumentException("Invalid type for config key: " + type + ". Require " + type.getToken().getRawType() + " but given " + value);
     }
 
     public @NotNull ScriptOrComponentItemName getNameOrUseBaseItemName() {

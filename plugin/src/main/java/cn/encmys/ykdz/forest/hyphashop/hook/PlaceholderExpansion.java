@@ -19,51 +19,64 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
     private static @NotNull String restockTimer(@NotNull String params) {
         final String shopId = params.replace("restock_timer_", "");
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         return TextUtils.parseRestockTimer(shop);
     }
 
-    private static @NotNull String merchantBalance(@NotNull String params) {
+    private static @NotNull String merchantBalance(@Nullable OfflinePlayer player, @NotNull String params) {
+        final Player target = player == null ? null : player.getPlayer();
+        if (target == null)
+            return "Need a player to work.";
+
         final String shopId = params.replace("merchant_balance_", "");
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
-        return MessageConfig.format_decimal.format(shop.getShopCashier().getBalance());
+        return MessageConfig.getDecimalFormat(player.getPlayer().locale()).format(shop.getShopCashier().getBalance());
     }
 
     private static @NotNull String shoppingMode(@Nullable OfflinePlayer player, @NotNull String params) {
         final Player target = player == null ? null : player.getPlayer();
-        if (target == null) return "Need a player to work.";
+        if (target == null)
+            return "Need a player to work.";
 
         final String shopId = params.replace("shopping_mode_", "");
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getTerm(profile.getShoppingMode(shopId));
+        return MessageConfig.getTerm(profile.getShoppingMode(shopId), target.locale());
     }
 
     private static @NotNull String cartMode(@Nullable OfflinePlayer player) {
         final Player target = player == null ? null : player.getPlayer();
-        if (target == null) return "Need a player to work.";
+        if (target == null)
+            return "Need a player to work.";
 
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getTerm(profile.getCart().getOrder().getType());
+        return MessageConfig.getTerm(profile.getCart().getOrder().getType(), target.locale());
     }
 
     private static @NotNull String shopHistoryBoughtAmount(@NotNull String params) {
         // %hyphashop_shop_black_market_history_bought_amount_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_bought_amount_")).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (data.length != 2) return "Invalid params.";
+        final String[] data = Arrays.stream(params.split("shop_|_history_bought_amount_")).filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        if (data.length != 2)
+            return "Invalid params.";
 
         final String shopId = data[0];
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         final String productId = data[1];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
-        if (product == null) return "Product " + productId + " do not exist.";
+        if (product == null)
+            return "Product " + productId + " do not exist.";
 
         final long historyBuy = SettlementLogUtils.getHistoryAmountFromLogs(productId, OrderType.SELL_TO);
         return String.valueOf(historyBuy);
@@ -71,16 +84,20 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
 
     private static @NotNull String shopHistoryBoughtStack(@NotNull String params) {
         // %hyphashop_shop_black_market_history_bought_stack_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_bought_stack_")).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (data.length != 2) return "Invalid params.";
+        final String[] data = Arrays.stream(params.split("shop_|_history_bought_stack_")).filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        if (data.length != 2)
+            return "Invalid params.";
 
         final String shopId = data[0];
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         final String productId = data[1];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
-        if (product == null) return "Product " + productId + " do not exist.";
+        if (product == null)
+            return "Product " + productId + " do not exist.";
 
         final long historyBuy = SettlementLogUtils.getHistoryStackFromLogs(productId, OrderType.SELL_TO);
         return String.valueOf(historyBuy);
@@ -88,35 +105,45 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
 
     private static @NotNull String shopHistorySoldAmount(@NotNull String params) {
         // %hyphashop_shop_black_market_history_sold_amount_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_sold_amount_")).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (data.length != 2) return "Invalid params.";
+        final String[] data = Arrays.stream(params.split("shop_|_history_sold_amount_")).filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        if (data.length != 2)
+            return "Invalid params.";
 
         final String shopId = data[0];
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         final String productId = data[1];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
-        if (product == null) return "Product " + productId + " do not exist.";
+        if (product == null)
+            return "Product " + productId + " do not exist.";
 
-        final long historySell = SettlementLogUtils.getHistoryAmountFromLogs(productId, OrderType.BUY_FROM, OrderType.BUY_ALL_FROM);
+        final long historySell = SettlementLogUtils.getHistoryAmountFromLogs(productId, OrderType.BUY_FROM,
+                OrderType.BUY_ALL_FROM);
         return String.valueOf(historySell);
     }
 
     private static @NotNull String shopHistorySoldStack(@NotNull String params) {
         // %hyphashop_shop_black_market_history_sold_stack_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_sold_stack_")).filter(s -> !s.isEmpty()).toArray(String[]::new);
-        if (data.length != 2) return "Invalid params.";
+        final String[] data = Arrays.stream(params.split("shop_|_history_sold_stack_")).filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
+        if (data.length != 2)
+            return "Invalid params.";
 
         final String shopId = data[0];
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null) return "Shop " + shopId + " do not exist.";
+        if (shop == null)
+            return "Shop " + shopId + " do not exist.";
 
         final String productId = data[1];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
-        if (product == null) return "Product " + productId + " do not exist.";
+        if (product == null)
+            return "Product " + productId + " do not exist.";
 
-        final long historySell = SettlementLogUtils.getHistoryAmountFromLogs(productId, OrderType.BUY_FROM, OrderType.BUY_ALL_FROM);
+        final long historySell = SettlementLogUtils.getHistoryAmountFromLogs(productId, OrderType.BUY_FROM,
+                OrderType.BUY_ALL_FROM);
         return String.valueOf(historySell);
     }
 
@@ -145,7 +172,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         if (params.contains("restock_timer_")) {
             return restockTimer(params);
         } else if (params.contains("merchant_balance_")) {
-            return merchantBalance(params);
+            return merchantBalance(player, params);
         } else if (params.contains("shopping_mode_")) {
             return shoppingMode(player, params);
         } else if (params.contains("cart_mode")) {

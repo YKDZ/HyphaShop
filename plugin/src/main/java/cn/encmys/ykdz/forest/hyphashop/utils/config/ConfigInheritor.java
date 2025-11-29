@@ -6,13 +6,13 @@ import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 public class ConfigInheritor implements ConfigAccessor {
-    private static final @NotNull List<@NotNull String> nonInheritableKeys = new ArrayList<>() {{
-        // 不允许递归子图标
-        add("icons");
-    }};
+    private static final @NotNull List<@NotNull String> nonInheritableKeys = List.of("icons");
 
     private final @NotNull ConfigAccessor parent;
     private final @NotNull ConfigAccessor config;

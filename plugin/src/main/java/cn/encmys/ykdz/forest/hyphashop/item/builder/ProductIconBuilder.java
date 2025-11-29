@@ -12,10 +12,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.config.ShopConfig;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
-import cn.encmys.ykdz.forest.hyphashop.utils.DecoratorUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.*;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
@@ -23,7 +20,10 @@ import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.item.ItemBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class ProductIconBuilder {
     public static @NotNull Item build(@NotNull Shop shop, @NotNull Product product) {
@@ -57,10 +57,10 @@ public class ProductIconBuilder {
                                 if (content == null) {
                                     continue;
                                 }
-                                final Map<String, Object> vars = new HashMap<>() {{
-                                    put("stack", stack);
-                                    put("total_amount", stack * amount);
-                                }};
+                                final Map<String, Object> vars = Map.of(
+                                        "stack", stack,
+                                        "total_amount", stack * amount
+                                );
                                 bundleContentsLore.add(ScriptUtils.evaluateComponent(new VarInjector()
                                         .withArg(content)
                                         .withArg(shop)
@@ -76,11 +76,11 @@ public class ProductIconBuilder {
                     }
 
                     // 额外变量
-                    final Map<String, Object> vars = Collections.unmodifiableMap(new HashMap<>() {{
+                    final Map<String, Object> vars = MapUtils.buildImmutableMap((map) -> {
                         {
                             final List<Script> descLore = productIconDecorator.getProperty(ItemProperty.LORE);
                             if (descLore != null) {
-                                put("desc_lore", descLore.stream()
+                                map.put("desc_lore", descLore.stream()
                                         .map(lore -> ScriptUtils.evaluateComponentList(new VarInjector()
                                                 .withTarget(new Context(parent))
                                                 .withRequiredVars(descLore)
@@ -89,11 +89,11 @@ public class ProductIconBuilder {
                                         .flatMap(List::stream)
                                         .toArray(Component[]::new));
                             } else {
-                                put("desc_lore", new Component[0]);
+                                map.put("desc_lore", new Component[0]);
                             }
                         }
-                        put("bundle_contents_lore", bundleContentsLore.toArray(new Component[0]));
-                    }});
+                        map.put("bundle_contents_lore", bundleContentsLore.toArray(new Component[0]));
+                    });
 
                     final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, parent, shop, product, player);
 

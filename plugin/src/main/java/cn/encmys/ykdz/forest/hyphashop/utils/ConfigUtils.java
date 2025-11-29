@@ -376,7 +376,7 @@ public class ConfigUtils {
         final BaseItem item = BaseItemBuilder.get(base);
 
         return new BaseItemDecorator(item)
-                .setProperty(ItemProperty.NAME, StringUtils.wrapToScriptWithOmit(config.getString("name").orElse(null)))
+                .setProperty(ItemProperty.NAME, StringUtils.wrapToScriptWithOmit(config.getString("name").orElse(null)).orElse(null))
                 .setProperty(ItemProperty.LORE, StringUtils.wrapToScriptWithOmit(config.getStringList("lore").orElse(null)))
                 .setProperty(ItemProperty.AMOUNT, StringUtils.wrapToScript(config.getString("amount").orElse("1")))
                 .setProperty(ItemProperty.UPDATE_PERIOD, TextUtils.parseTimeStringToTicks(config.getString("update-period").orElse(null)))

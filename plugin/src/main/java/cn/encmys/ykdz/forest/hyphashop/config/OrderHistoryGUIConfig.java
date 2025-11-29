@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
@@ -39,7 +40,7 @@ public class OrderHistoryGUIConfig {
     public static void setup() {
         historyIconRecord = new HistoryIconRecord(
                 ConfigUtils.parseDecorator(getGUIConfig().getConfig("history-icon.icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))),
-                StringUtils.wrapToScriptWithOmit(getGUIConfig().getString("history-icon.format.order-content-line").orElse("<red>Order content line not found!")),
+                StringUtils.wrapToScriptWithOmit(getGUIConfig().getString("history-icon.format.order-content-line").orElse("<red>Order content line not found!")).orElse(new Script("`<red>Order content line not found!`")),
                 ConfigUtils.parseDecorator(getGUIConfig().getConfig("history-placeholder-icon.icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())))
         );
     }

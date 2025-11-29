@@ -4,7 +4,6 @@ import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record.ScriptOrComponentItemName;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
@@ -119,12 +118,7 @@ public class TextUtils {
 
     public static @NotNull String parseRestockTimer(@NotNull Shop shop) {
         long timeRemaining = (shop.getShopStocker().getLastRestocking() + shop.getShopStocker().getAutoRestockPeriod() * 50L) - System.currentTimeMillis();
-        if (timeRemaining > 0) {
-            long hours = timeRemaining / (60 * 60 * 1000);
-            long minutes = (timeRemaining % (60 * 60 * 1000)) / (60 * 1000);
-            long seconds = (timeRemaining % (60 * 1000)) / 1000;
-            return String.format(MessageConfig.format_timer, hours, minutes, seconds);
-        }
-        return String.format(MessageConfig.format_timer, 0, 0, 0);
+        // TODO 格式化应该是一个函数
+        return String.valueOf(timeRemaining);
     }
 }

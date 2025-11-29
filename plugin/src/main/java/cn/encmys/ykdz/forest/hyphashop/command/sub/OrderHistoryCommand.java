@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.command.sub;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.CommandUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
@@ -33,18 +34,24 @@ public class OrderHistoryCommand {
                                     final CommandSender sender = ctx.getSource().getSender();
                                     final String historyOwnerName = ctx.getArgument("history-owner-name", String.class);
                                     final OfflinePlayer historyOwner = Bukkit.getOfflinePlayer(historyOwnerName);
-                                    final Player openFor = ctx.getArgument("open-for", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
+                                    final Player openFor = ctx
+                                            .getArgument("open-for", PlayerSelectorArgumentResolver.class)
+                                            .resolve(ctx.getSource()).getFirst();
 
                                     if (!historyOwner.hasPlayedBefore()) {
-                                        MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_history_open_failure_invalidOwnerName, Map.of("history_owner_name", historyOwnerName), sender);
+                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.history.open.failure.invalid-owner-name", ((Player) sender).locale()))
+                                                .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, Map.of("history_owner_name", historyOwnerName), sender));
+
                                         return Command.SINGLE_SUCCESS;
                                     }
 
-                                    HyphaShop.PROFILE_FACTORY.getProfile(historyOwner).getOrderHistoryGUI().open(openFor);
-                                    MessageUtils.sendMessageWithPrefix(sender, MessageConfig.messages_command_history_open_success, sender, openFor);
+                                    HyphaShop.PROFILE_FACTORY.getProfile(historyOwner).getOrderHistoryGUI()
+                                            .open(openFor);
+                                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.history.open.success", ((Player) openFor).locale()))
+                                            .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, openFor));
+
                                     return Command.SINGLE_SUCCESS;
-                                })
-                        ))
+                                })))
                 .build();
     }
 }

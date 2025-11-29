@@ -24,7 +24,6 @@ public class ShopExtractor implements VarExtractor {
         }
 
         ctx.putVar("__gui_structure", () -> shop.getShopGUI().getStructure().toArray());
-
         ctx.putVar("restock_timer", () -> TextUtils.parseRestockTimer(shop));
     }
 }

@@ -14,8 +14,7 @@ import java.io.InputStream;
 public class Config {
     private static final String resourcePath = "config.yml";
     private static final String path = HyphaShop.INSTANCE.getDataFolder() + "/" + resourcePath;
-    public static String language_message;
-    public static String language_minecraftLang;
+    public static String language_defaultMessage;
     public static boolean database_sqlite_enabled;
     public static boolean database_mysql_enabled;
     public static boolean database_mysql_url;
@@ -43,6 +42,9 @@ public class Config {
             HyphaShop.INSTANCE.saveResource("gui/internal/cart.yml", false);
             HyphaShop.INSTANCE.saveResource("gui/internal/order-history.yml", false);
             HyphaShop.INSTANCE.saveResource("scripts/.global/random.hps", false);
+            HyphaShop.INSTANCE.saveResource("scripts/.global/unpack.hps", false);
+            HyphaShop.INSTANCE.saveResource("lang/zh_CN.yml", false);
+            HyphaShop.INSTANCE.saveResource("lang/en_US.yml", false);
         }
 
         try {
@@ -60,8 +62,7 @@ public class Config {
     }
 
     private static void setup() {
-        language_message = config.getString("language.message", "en_US");
-        language_minecraftLang = config.getString("language.minecraft-lang", "en_us").toLowerCase();
+        language_defaultMessage = config.getString("language.message", "en_US");
         period_saveData = TextUtils.parseTimeStringToTicks(config.getString("period.save-data", "5m"));
         period_checkRestocking = TextUtils.parseTimeStringToTicks(config.getString("period.check-restocking", "3s"));
         priceCorrectByDisableSellOrBuy = config.getBoolean("price-correct-by-disable-sell-or-buy", true);

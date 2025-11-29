@@ -19,134 +19,84 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 public class MessageConfig {
-    //
-    private static final @NotNull Map<String, Script> messages_settleResult = new HashMap<>();
-    private static final @NotNull Map<String, Script> messages_action = new HashMap<>();
-    public static DecimalFormat format_decimal;
-    public static String format_timer;
-    public static SimpleDateFormat format_date;
-    //
-    public static String placeholderAPI_cartTotalPrice_notSellToMode;
-    //
-    public static Script messages_prefix;
-    public static Script messages_noPermission;
-    public static Script messages_command_reload_success;
-    public static Script messages_command_save_success;
-    public static Script messages_command_shop_open_success;
-    public static Script messages_command_shop_open_failure_invalidShop;
-    public static Script messages_command_shop_open_failure_invalidPlayer;
-    public static Script messages_command_shop_restock_success;
-    public static Script messages_command_shop_restock_failure_invalidShop;
-    public static Script messages_command_cart_open_success;
-    public static Script messages_command_cart_open_failure_invalidOwnerName;
-    public static Script messages_command_history_open_success;
-    public static Script messages_command_history_open_failure_invalidOwnerName;
-    public static int version;
-    private static YamlConfiguration config = new YamlConfiguration();
+    private static final @NotNull Map<@NotNull String, @NotNull YamlConfiguration> configs = new HashMap<>();
 
     public static void load() {
-        final String resourcePath = "lang/" + Config.language_message + ".yml";
-        final String path = HyphaShop.INSTANCE.getDataFolder() + "/" + resourcePath;
-
-        final File file = new File(path);
-
-        if (!file.exists()) {
-            HyphaShop.INSTANCE.saveResource(resourcePath, false);
+        final File langDir = new File(HyphaShop.INSTANCE.getDataFolder(), "lang");
+        if (!langDir.exists()) {
+            langDir.mkdirs();
         }
 
-        try {
-            config.load(file);
-            InputStream newConfigStream = HyphaShop.INSTANCE.getResource(resourcePath);
-            if (newConfigStream == null) {
-                LogUtils.error("Resource " + resourcePath + " not found");
-                return;
+        final File[] langFiles = langDir.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (langFiles == null) {
+            LogUtils.error("No language files found in lang/ directory");
+            return;
+        }
+
+        for (File file : langFiles) {
+            final String tag = file.getName().replace(".yml", "");
+            YamlConfiguration config = new YamlConfiguration();
+
+            try {
+                config.load(file);
+                InputStream newConfigStream = HyphaShop.INSTANCE.getResource("lang/" + file.getName());
+                if (newConfigStream != null) {
+                    config = HyphaConfigUtils.merge(config, HyphaConfigUtils.loadYamlFromResource(newConfigStream),
+                            file.getPath());
+                }
+                configs.put(tag, config);
+            } catch (IOException | InvalidConfigurationException error) {
+                LogUtils.error("Failed to load language file " + file.getName() + ": " + error.getMessage());
             }
-            config = HyphaConfigUtils.merge(config, HyphaConfigUtils.loadYamlFromResource(newConfigStream), path);
-            setUp();
-        } catch (IOException | InvalidConfigurationException error) {
-            LogUtils.error(error.getMessage());
         }
     }
 
-    private static void setUp() {
-        format_decimal = new DecimalFormat(config.getString("format.decimal", "###,###.##"));
-        format_timer = config.getString("format.timer", "%02dh:%02dm:%02ds");
-        format_date = new SimpleDateFormat(config.getString("format.date.pattern", "MMMM dd, yyyy HH:mm:ss"), HyphaConfigUtils.getLocale(config.getString("format.date.locale", "en_US")));
-
-        placeholderAPI_cartTotalPrice_notSellToMode = config.getString("placeholder-api.cart-total-price.not-sell-to-mode", "Not sell-to mode");
-
-        messages_prefix = StringUtils.wrapToScriptWithOmit(config.getString("messages.prefix", "<gold>HyphaShop <gray>-"));
-        messages_noPermission = StringUtils.wrapToScriptWithOmit(getMessage("messages.no-permission"));
-        messages_command_reload_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.reload.success"));
-        messages_command_save_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.save.success"));
-        messages_command_shop_open_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.shop.open.success"));
-        messages_command_shop_open_failure_invalidShop = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.shop.open.failure.invalid-shop"));
-        messages_command_shop_open_failure_invalidPlayer = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.shop.open.failure.invalid-player"));
-        messages_command_history_open_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.history.open.success"));
-        messages_command_history_open_failure_invalidOwnerName = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.history.open.failure.invalid-owner-name"));
-        messages_command_cart_open_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.cart.open.success"));
-        messages_command_cart_open_failure_invalidOwnerName = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.cart.open.failure.invalid-owner-name"));
-        messages_command_shop_restock_success = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.shop.restock.success"));
-        messages_command_shop_restock_failure_invalidShop = StringUtils.wrapToScriptWithOmit(getMessage("messages.command.shop.restock.failure.invalid-shop"));
-        //
-        putSettleResultMessage("direct.sell-to.success");
-        putSettleResultMessage("direct.sell-to.failure.money");
-        putSettleResultMessage("direct.sell-to.failure.disabled");
-        putSettleResultMessage("direct.sell-to.failure.global-stock");
-        putSettleResultMessage("direct.sell-to.failure.player-stock");
-        putSettleResultMessage("direct.sell-to.failure.inventory-space");
-        putSettleResultMessage("direct.buy-from.success");
-        putSettleResultMessage("direct.buy-from.failure.disabled");
-        putSettleResultMessage("direct.buy-from.failure.product");
-        putSettleResultMessage("direct.buy-from.failure.merchant-balance");
-        putSettleResultMessage("direct.buy-all-from.success");
-        putSettleResultMessage("direct.buy-all-from.failure.disabled");
-        putSettleResultMessage("direct.buy-all-from.failure.product");
-        putSettleResultMessage("direct.buy-all-from.failure.merchant-balance");
-        putSettleResultMessage("cart.sell-to.success");
-        putSettleResultMessage("cart.sell-to.partial-success");
-        putSettleResultMessage("cart.sell-to.failure.empty");
-        putSettleResultMessage("cart.sell-to.failure.not-listed");
-        putSettleResultMessage("cart.sell-to.failure.money");
-        putSettleResultMessage("cart.sell-to.failure.inventory-space");
-        putSettleResultMessage("cart.sell-to.failure.player-stock");
-        putSettleResultMessage("cart.sell-to.failure.global-stock");
-        putSettleResultMessage("cart.buy-from.success");
-        putSettleResultMessage("cart.buy-from.partial-success");
-        putSettleResultMessage("cart.buy-from.failure.empty");
-        putSettleResultMessage("cart.buy-from.failure.not-listed");
-        putSettleResultMessage("cart.buy-from.failure.product");
-        putSettleResultMessage("cart.buy-all-from.success");
-        putSettleResultMessage("cart.buy-all-from.partial-success");
-        putSettleResultMessage("cart.buy-all-from.failure.empty");
-        putSettleResultMessage("cart.buy-all-from.failure.not-listed");
-        putSettleResultMessage("cart.buy-all-from.failure.product");
-        putActionMessage("add-to-cart.success");
-        putActionMessage("add-to-cart.failure.disabled");
-        putActionMessage("add-to-cart.failure.player-stock");
-        putActionMessage("add-to-cart.failure.global-stock");
-        putActionMessage("add-to-cart.failure.merchant-balance");
-        putActionMessage("add-to-cart.failure.not-listed");
-        putActionMessage("add-to-cart.failure.money");
-
-        version = config.getInt("version");
+    public static @NotNull DecimalFormat getDecimalFormat(@NotNull Locale locale) {
+        return getDecimalFormat(locale.toLanguageTag().replace("-", "_"));
     }
 
-    public static YamlConfiguration getConfig() {
-        return config;
+    public static @NotNull DecimalFormat getDecimalFormat(@NotNull String locale) {
+        return new DecimalFormat(getMessage("format.decimal", locale));
     }
 
-    private static String getMessage(String path) {
-        return config.getString(path, "<red>There may be an error in your language file. The related key is: " + path);
+    public static @NotNull SimpleDateFormat getDateFormat(@NotNull Locale locale) {
+        return getDateFormat(locale.toLanguageTag().replace("-", "_"));
     }
 
-    public static @NotNull String getTerm(@NotNull OrderType orderType) {
-        final String path = "terms." + EnumUtils.toConfigName(OrderType.class) + "." + EnumUtils.toConfigName(orderType);
-        if (!config.contains(path)) {
-            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+    public static @NotNull SimpleDateFormat getDateFormat(@NotNull String locale) {
+        return new SimpleDateFormat(getMessage("format.date.pattern", locale), HyphaConfigUtils.getLocale(getMessage("format.date.locale", locale)));
+    }
+
+    public static @NotNull String getMessage(@NotNull String path, @NotNull Locale locale) {
+        return getMessage(path, locale.toLanguageTag().replace("-", "_"));
+    }
+
+    public static @NotNull String getMessage(@NotNull String path, @NotNull String tag) {
+        final YamlConfiguration config = configs.get(tag);
+        if (config == null) {
+            return "<red>There may be an error in " + tag + ".yml (" + path + ")";
+        }
+        return config.getString(path, "<red>There may be an error in " + tag + ".yml (" + path + ")");
+    }
+
+    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode, @NotNull Locale locale) {
+        return getTerm(shoppingMode, locale.toLanguageTag().replace("-", "_"));
+    }
+
+    public static @NotNull String getTerm(@NotNull OrderType orderType, @NotNull Locale locale) {
+        return getTerm(orderType, locale.toLanguageTag().replace("-", "_"));
+    }
+
+    public static @NotNull String getTerm(@NotNull OrderType orderType, @NotNull String tag) {
+        final String path = "terms." + EnumUtils.toConfigName(OrderType.class) + "."
+                + EnumUtils.toConfigName(orderType);
+        final YamlConfiguration config = configs.get(tag);
+        if (config == null || !config.contains(path)) {
+            LogUtils.warn("Message " + path + " not found for tag " + tag + ". Use error message as fallback.");
             return "<red>There may be an error in your language file. The related key is: " + path;
         }
         final String term = config.getString(path);
@@ -154,10 +104,12 @@ public class MessageConfig {
         return term;
     }
 
-    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode) {
-        final String path = "terms." + EnumUtils.toConfigName(ShoppingMode.class) + "." + EnumUtils.toConfigName(shoppingMode);
-        if (!config.contains(path)) {
-            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
+    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode, @NotNull String tag) {
+        final String path = "terms." + EnumUtils.toConfigName(ShoppingMode.class) + "."
+                + EnumUtils.toConfigName(shoppingMode);
+        final YamlConfiguration config = configs.get(tag);
+        if (config == null || !config.contains(path)) {
+            LogUtils.warn("Message " + path + " not found for tag " + tag + ". Use error message as fallback.");
             return "<red>There may be an error in your language file. The related key is: " + path;
         }
         final String term = config.getString(path);
@@ -165,28 +117,26 @@ public class MessageConfig {
         return term;
     }
 
-    private static void putSettleResultMessage(@NotNull String path) {
-        messages_settleResult.put(path, StringUtils.wrapToScriptWithOmit(getMessage("messages.settle-result." + path)));
+    public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode,
+                                                         @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType, @NotNull Locale tag) {
+        return getSettleResultMessage(shoppingMode, orderType, settlementResultType, tag.toLanguageTag().replace("-", "_"));
     }
 
-    private static void putActionMessage(@NotNull String path) {
-        messages_action.put(path, StringUtils.wrapToScriptWithOmit(getMessage("messages.action." + path)));
+    public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode,
+                                                         @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType, @NotNull String tag) {
+        final String path = "messages.settle-result." + shoppingMode.getConfigKey() + "." + orderType.getConfigKey()
+                + "." + settlementResultType.getConfigKey();
+        final String message = getMessage(path, tag);
+        return StringUtils.wrapToScriptWithOmit(message).orElse(new Script("`No message found in " + tag + " (" + path + ")`"));
     }
 
-    public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode, @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType) {
-        final String path = shoppingMode.getConfigKey() + "." + orderType.getConfigKey() + "." + settlementResultType.getConfigKey();
-        if (!messages_settleResult.containsKey(path)) {
-            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
-            return new Script("<red>There may be an error in your language file. The related key is: " + path);
-        }
-        return messages_settleResult.get(path);
+    public static @NotNull Script getActionMessage(@NotNull String path, @NotNull Locale tag) {
+        return getActionMessage(path, tag.toLanguageTag().replace("-", "_"));
     }
 
-    public static @NotNull Script getActionMessage(@NotNull String path) {
-        if (!messages_action.containsKey(path)) {
-            LogUtils.warn("Message " + path + " not found. Use error message as fallback.");
-            return new Script("<red>There may be an error in your language file. The related key is: " + path);
-        }
-        return messages_action.get(path);
+    public static @NotNull Script getActionMessage(@NotNull String path, @NotNull String tag) {
+        final String fullPath = "messages.action." + path;
+        final String message = getMessage(fullPath, tag);
+        return StringUtils.wrapToScriptWithOmit(message).orElse(new Script("`No message found in " + tag + " (" + path + ")`"));
     }
 }

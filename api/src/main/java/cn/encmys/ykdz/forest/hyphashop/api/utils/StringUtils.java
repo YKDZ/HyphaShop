@@ -12,6 +12,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 public class StringUtils {
@@ -46,8 +47,8 @@ public class StringUtils {
                 .toList();
     }
 
-    public static @Nullable Script wrapToScriptWithOmit(@Nullable String scriptStr) {
-        if (scriptStr == null) return null;
+    public static @NotNull Optional<Script> wrapToScriptWithOmit(@Nullable String scriptStr) {
+        if (scriptStr == null) return Optional.empty();
 
         Script script = new Script(handleOmit(scriptStr));
         ParserResult result = script.parse();
@@ -56,7 +57,7 @@ public class StringUtils {
             throw new RuntimeException("Script failed to parse: " + result.resultType());
         }
 
-        return script;
+        return Optional.of(script);
     }
 
     public static @NotNull List<Script> wrapToScriptWithOmit(@Nullable List<String> scriptStrList) {
@@ -64,6 +65,8 @@ public class StringUtils {
 
         return scriptStrList.stream()
                 .map(StringUtils::wrapToScriptWithOmit)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
                 .toList();
     }
 

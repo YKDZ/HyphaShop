@@ -57,9 +57,7 @@ public class BundleProduct extends Product {
 
     @Override
     public void give(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
 
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
             final String contentId = entry.getKey();
@@ -81,9 +79,7 @@ public class BundleProduct extends Product {
 
     @Override
     public void take(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
 
         for (Map.Entry<String, Integer> entry : bundleContents.entrySet()) {
             final String contentId = entry.getKey();

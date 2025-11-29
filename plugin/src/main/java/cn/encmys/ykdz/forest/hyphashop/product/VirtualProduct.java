@@ -16,7 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
+import java.util.Map;
 
 /**
  * 完全由 actions 控制行为的商品，既没有 item 设置，也没有 bundle-contents
@@ -47,9 +47,7 @@ public class VirtualProduct extends Product {
 
     @Override
     public void give(@NotNull Shop shop, @NotNull Inventory inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_GIVE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
     }
 
     @Override
@@ -59,9 +57,7 @@ public class VirtualProduct extends Product {
 
     @Override
     public void take(@NotNull Shop shop, @NotNull Iterable<ItemStack> inv, @NotNull Player player, int stack) {
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), new HashMap<>() {{
-            put("stack", stack);
-        }}, shop, player, this);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_TAKE, getActions(), getScriptContext(), Map.of("stack", stack), shop, player, this);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
@@ -57,7 +58,10 @@ public class ShopConfig {
     private static void setup() {
         configs.keySet().forEach((id) -> productIconRecords.put(id, new ShopProductIconRecord(
                 ConfigUtils.parseDecorator(getShopGUIConfig(id).getConfig("product-icon.icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))),
-                StringUtils.wrapToScriptWithOmit(getShopGUIConfig(id).getString("product-icon.format.bundle-content-line").orElse("<red>Bundle content line not found!"))
+                StringUtils.wrapToScriptWithOmit(
+                        getShopGUIConfig(id).getString("product-icon.format.bundle-content-line")
+                                .orElse("<red>Bundle content line not found!")
+                ).orElse(new Script("`<red>Bundle content line not found!`"))
         )));
     }
 

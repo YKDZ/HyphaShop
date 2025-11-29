@@ -21,7 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.Item;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 
 public class CartProductIconBuilder {
@@ -41,10 +40,10 @@ public class CartProductIconBuilder {
                         return new xyz.xenondevs.invui.item.ItemBuilder(Material.AIR);
                     }
 
-                    final Map<String, Object> vars = new HashMap<>() {{
-                        put("stack", stack);
-                        put("total_price", cart.getOrder().getBilledPrice(productLoc));
-                    }};
+                    final Map<String, Object> vars = Map.of(
+                            "stack", stack,
+                            "total_price", cart.getOrder().getBilledPrice(productLoc)
+                    );
 
                     final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
                             product.getScriptContext().clone(),

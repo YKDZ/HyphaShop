@@ -15,10 +15,8 @@ import org.jetbrains.annotations.Nullable;
 import xyz.xenondevs.invui.item.BoundItem;
 import xyz.xenondevs.invui.item.Item;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.stream.Stream;
 
 public class NormalIconBuilder {
@@ -104,14 +102,14 @@ public class NormalIconBuilder {
             throw new IllegalArgumentException("No amount specified");
         }
 
-        final List<Object> argList = new ArrayList<>(Arrays.asList(args));
-        argList.add(player);
+        final Object[] argArr = Stream.concat(Arrays.stream(args), Stream.of(player))
+                .toArray(Object[]::new);
 
         return new xyz.xenondevs.invui.item.ItemBuilder(
                 new ItemBuilder(decorator.getBaseItem().build(player))
                         .decorate(decorator)
-                        .setDisplayName(TextUtils.parseNameToComponent(decorator.getNameOrUseBaseItemName(), parent, argList.toArray()))
-                        .setLore(TextUtils.parseLoreToComponent(decorator.getProperty(ItemProperty.LORE), parent, argList.toArray()))
+                        .setDisplayName(TextUtils.parseNameToComponent(decorator.getNameOrUseBaseItemName(), parent, argArr))
+                        .setLore(TextUtils.parseLoreToComponent(decorator.getProperty(ItemProperty.LORE), parent, argArr))
                         .build(ScriptUtils.evaluateInt(new VarInjector()
                                 .withTarget(new Context(parent))
                                 .withRequiredVars(amount)
