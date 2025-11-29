@@ -11,8 +11,8 @@ public class ProductShopExtractor implements VarExtractor {
     public void extract(@NotNull VarInjectorContext ctx) {
         if (!ctx.hasAll(Product.class, Shop.class)) return;
 
-        final Product product = ctx.get(Product.class);
-        final Shop shop = ctx.get(Shop.class);
+        final Product product = ctx.get(Product.class).orElse(null);
+        final Shop shop = ctx.get(Shop.class).orElse(null);
 
         assert shop != null;
         assert product != null;

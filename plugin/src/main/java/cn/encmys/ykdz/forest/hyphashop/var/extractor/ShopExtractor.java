@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class ShopExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final Shop shop = ctx.get(Shop.class);
+        final Shop shop = ctx.get(Shop.class).orElse(null);
         if (shop == null) return;
 
         ctx.putVar("__shop", () -> shop);

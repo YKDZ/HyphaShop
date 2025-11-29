@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public class SettlementLogExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final SettlementLog log = ctx.get(SettlementLog.class);
+        final SettlementLog log = ctx.get(SettlementLog.class).orElse(null);
         if (log == null) return;
 
         ctx.putVar("__log", () -> log);

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.NotNull;
 public class SenderExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final CommandSender sender = ctx.get(CommandSender.class);
+        final CommandSender sender = ctx.get(CommandSender.class).orElse(null);
         if (sender == null) return;
 
         ctx.putVar("__command_sender", () -> sender);

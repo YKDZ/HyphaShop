@@ -8,7 +8,7 @@ import xyz.xenondevs.invui.item.Item;
 public class IconExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final Item icon = ctx.get(Item.class);
+        final Item icon = ctx.get(Item.class).orElse(null);
         if (icon == null) return;
 
         ctx.putVar("__icon", () -> icon);

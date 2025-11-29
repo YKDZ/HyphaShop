@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 public class ProductExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final Product product = ctx.get(Product.class);
+        final Product product = ctx.get(Product.class).orElse(null);
         if (product == null) return;
 
         ctx.putVar("__product", () -> product);

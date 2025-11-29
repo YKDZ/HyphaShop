@@ -11,8 +11,8 @@ public class ProductPlayerExtractor implements VarExtractor {
     public void extract(@NotNull VarInjectorContext ctx) {
         if (!ctx.hasAll(Product.class, Player.class)) return;
 
-        final Product product = ctx.get(Product.class);
-        final Player player = ctx.get(Player.class);
+        final Product product = ctx.get(Product.class).orElse(null);
+        final Player player = ctx.get(Player.class).orElse(null);
 
         assert product != null;
         assert player != null;

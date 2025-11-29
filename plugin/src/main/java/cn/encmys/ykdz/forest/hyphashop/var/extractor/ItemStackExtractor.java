@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 public class ItemStackExtractor implements VarExtractor {
     @Override
     public void extract(@NotNull VarInjectorContext ctx) {
-        final ItemStack item = ctx.get(ItemStack.class);
+        final ItemStack item = ctx.get(ItemStack.class).orElse(null);
         if (item == null) return;
 
         ctx.putVar("__item", () -> item);

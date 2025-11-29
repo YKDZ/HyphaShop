@@ -83,7 +83,7 @@ public class VarInjector {
 
         // 用于调试的标记
         if (Config.debug)
-            ctx.getTarget().forceSetLocalMember("__var_injector_context__", new Reference(new Value(ctx.toString()), true));
+            ctx.getTarget().declareMember("__var_injector_context__", new Reference(new Value(ctx.toString()), true));
 
         injectExtraVars();
 

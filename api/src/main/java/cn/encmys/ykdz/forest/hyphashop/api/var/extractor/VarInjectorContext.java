@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.function.Supplier;
 
 public class VarInjectorContext {
-    private final @NotNull List<@NotNull Object> args = new ArrayList<>();
+    private final @NotNull List<@Nullable Object> args = new ArrayList<>();
     private @Nullable Context target;
     private @Nullable Set<@NotNull String> requiredVars;
 
@@ -18,7 +18,7 @@ public class VarInjectorContext {
         return target != null && requiredVars != null;
     }
 
-    public @NotNull List<Object> getArgs() {
+    public @NotNull List<@Nullable Object> getArgs() {
         return args;
     }
 
@@ -40,17 +40,25 @@ public class VarInjectorContext {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> @Nullable T get(@NotNull Class<T> type) {
+    public <T> @NotNull Optional<T> get(@NotNull Class<T> type) {
+        if (!isReady()) return Optional.empty();
+        assert target != null;
+
         for (Object param : args) {
-            if (type.isInstance(param)) {
-                return (T) param;
-            }
+            // 手动提供的对象优先
+            if (type.isInstance(param)) return Optional.of((T) param);
         }
-        return null;
+
+        // 从目标上下文查找
+        return (Optional<T>) target.getLocalMembers().entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith("__") && !entry.getKey().endsWith("__"))
+                .filter(entry -> (type.isInstance(entry.getValue().getReferredValue().getValue())))
+                .map(entry -> entry.getValue().getReferredValue().getValue())
+                .findFirst();
     }
 
     public boolean has(@NotNull Class<?> type) {
-        return get(type) != null;
+        return get(type).isPresent();
     }
 
     public boolean hasAll(Class<?> @NotNull ... types) {
@@ -64,6 +72,7 @@ public class VarInjectorContext {
         if (!isReady()) return;
         assert requiredVars != null;
         assert target != null;
+        // __ 开头的变量默认被注入
         if (name.startsWith("__") || requiredVars.contains(name)) {
             target.declareMember(name, new Reference(new Value(value.get()), true));
         }
