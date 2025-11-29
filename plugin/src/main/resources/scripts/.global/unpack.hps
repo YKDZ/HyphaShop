@@ -1,0 +1,9 @@
+export const Config = {
+  namespace: "unpack",
+  isUnpack: true,
+};
+
+export * from "Server";
+export * from "Command";
+export * from "Player";
+export * from "PlaceholderAPI";
