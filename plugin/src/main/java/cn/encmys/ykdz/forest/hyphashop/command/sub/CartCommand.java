@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.command.sub;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.CommandUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
@@ -37,7 +36,7 @@ public class CartCommand {
                                             .resolve(ctx.getSource()).getFirst();
 
                                     if (!cartOwner.hasPlayedBefore()) {
-                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.cart.open.failure.invalid-owner-name", ((Player) sender).locale()))
+                                        MessageConfig.getMessageScript("messages.command.cart.open.failure.invalid-owner-name", ((Player) sender).locale().toLanguageTag())
                                                 .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                         return Command.SINGLE_SUCCESS;
                                     }
@@ -49,7 +48,7 @@ public class CartCommand {
                                     }
 
                                     HyphaShop.PROFILE_FACTORY.getProfile(cartOwner).getCartGUI().open(openFor);
-                                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.cart.open.success", openFor.locale()))
+                                    MessageConfig.getMessageScript("messages.command.cart.open.success", openFor.locale().toLanguageTag())
                                             .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                     return Command.SINGLE_SUCCESS;
                                 })))

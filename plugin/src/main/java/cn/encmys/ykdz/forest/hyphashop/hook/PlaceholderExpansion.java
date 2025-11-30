@@ -13,16 +13,26 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.Duration;
 import java.util.Arrays;
 
 public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.PlaceholderExpansion {
-    private static @NotNull String restockTimer(@NotNull String params) {
-        final String shopId = params.replace("restock_timer_", "");
+    private static @NotNull String restockTime(@Nullable OfflinePlayer player, @NotNull String params) {
+        final Player target = player == null ? null : player.getPlayer();
+        if (target == null)
+            return "Need a player to work.";
+
+        final String remains = params.replace("restock_time_", "");
+        boolean formatted = remains.contains("formatted_");
+
+        final String shopId = remains.replace("formatted_", "");
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
-        return TextUtils.parseRestockTimer(shop);
+        if (!formatted) return String.valueOf(shop.getMillisUntilRestock(System.currentTimeMillis()));
+        else
+            return TextUtils.formatDuration(Duration.ofMillis(shop.getMillisUntilRestock(System.currentTimeMillis())), target);
     }
 
     private static @NotNull String merchantBalance(@Nullable OfflinePlayer player, @NotNull String params) {
@@ -49,7 +59,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Shop " + shopId + " do not exist.";
 
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getTerm(profile.getShoppingMode(shopId), target.locale());
+        return MessageConfig.getMessageString(MessageConfig.getTermPath(profile.getShoppingMode(shopId)), target.locale().toLanguageTag(), "Term does not exists. Check console for more details");
     }
 
     private static @NotNull String cartMode(@Nullable OfflinePlayer player) {
@@ -58,7 +68,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Need a player to work.";
 
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getTerm(profile.getCart().getOrder().getType(), target.locale());
+        return MessageConfig.getMessageString(MessageConfig.getTermPath(profile.getCart().getOrder().getType()), target.locale().toLanguageTag(), "Term does not exists. Check console for more details");
     }
 
     private static @NotNull String shopHistoryBoughtAmount(@NotNull String params) {
@@ -169,8 +179,8 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
 
     @Override
     public String onRequest(@Nullable OfflinePlayer player, @NotNull String params) {
-        if (params.contains("restock_timer_")) {
-            return restockTimer(params);
+        if (params.contains("restock_time_")) {
+            return restockTime(player, params);
         } else if (params.contains("merchant_balance_")) {
             return merchantBalance(player, params);
         } else if (params.contains("shopping_mode_")) {

@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.command.sub;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.CommandUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
@@ -39,7 +38,7 @@ public class OrderHistoryCommand {
                                             .resolve(ctx.getSource()).getFirst();
 
                                     if (!historyOwner.hasPlayedBefore()) {
-                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.history.open.failure.invalid-owner-name", ((Player) sender).locale()))
+                                        MessageConfig.getMessageScript("messages.command.history.open.failure.invalid-owner-name", ((Player) sender).locale().toLanguageTag())
                                                 .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, Map.of("history_owner_name", historyOwnerName), sender));
 
                                         return Command.SINGLE_SUCCESS;
@@ -47,7 +46,7 @@ public class OrderHistoryCommand {
 
                                     HyphaShop.PROFILE_FACTORY.getProfile(historyOwner).getOrderHistoryGUI()
                                             .open(openFor);
-                                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.history.open.success", ((Player) openFor).locale()))
+                                    MessageConfig.getMessageScript("messages.command.history.open.success", openFor.locale().toLanguageTag())
                                             .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, openFor));
 
                                     return Command.SINGLE_SUCCESS;

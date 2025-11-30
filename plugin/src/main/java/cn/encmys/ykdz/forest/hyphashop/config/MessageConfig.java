@@ -11,16 +11,17 @@ import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 
 public class MessageConfig {
     private static final @NotNull Map<@NotNull String, @NotNull YamlConfiguration> configs = new HashMap<>();
@@ -56,87 +57,81 @@ public class MessageConfig {
     }
 
     public static @NotNull DecimalFormat getDecimalFormat(@NotNull Locale locale) {
-        return getDecimalFormat(locale.toLanguageTag().replace("-", "_"));
+        return getDecimalFormat(locale.toLanguageTag());
     }
 
     public static @NotNull DecimalFormat getDecimalFormat(@NotNull String locale) {
-        return new DecimalFormat(getMessage("format.decimal", locale));
-    }
-
-    public static @NotNull SimpleDateFormat getDateFormat(@NotNull Locale locale) {
-        return getDateFormat(locale.toLanguageTag().replace("-", "_"));
+        return new DecimalFormat(getMessageString("format.decimal", locale, "#######.##"));
     }
 
     public static @NotNull SimpleDateFormat getDateFormat(@NotNull String locale) {
-        return new SimpleDateFormat(getMessage("format.date.pattern", locale), HyphaConfigUtils.getLocale(getMessage("format.date.locale", locale)));
+        return new SimpleDateFormat(getMessageString("format.date.pattern", locale, "MM/dd/yyyy HH:mm:ss"), HyphaConfigUtils.getLocale(getMessageString("format.date.locale", locale, "en_US")));
     }
 
-    public static @NotNull String getMessage(@NotNull String path, @NotNull Locale locale) {
-        return getMessage(path, locale.toLanguageTag().replace("-", "_"));
+    @Contract("_, _, !null -> !null")
+    public static @Nullable String getMessageString(@NotNull String path, @NotNull String locale, @Nullable String fallback) {
+        final YamlConfiguration config = configs.get(locale);
+
+        // 检查指定的配置文件是否存在，并且是否包含路径对应的字符串
+        if (config != null && config.isString(path)) {
+            return config.getString(path, fallback);
+        }
+
+        final YamlConfiguration defaultConfig = configs.get(Config.language_defaultMessage);
+        final String defaultLangTag = Config.language_defaultMessage;
+
+        if (defaultConfig != null && defaultConfig.isString(path)) {
+            LogUtils.warn(
+                    "Message path '%s' not found in language file '%s.yml'. Falling back to value from default message file ('%s.yml')."
+                            .formatted(path, locale, defaultLangTag)
+            );
+            return defaultConfig.getString(path, fallback);
+        }
+
+        String warningMessage;
+
+        if (defaultConfig == null) {
+            warningMessage =
+                    "Message path '%s' not found in language file '%s.yml'. Default message file ('%s.yml') is also missing. Using provided fallback message: '%s'."
+                            .formatted(path, locale, defaultLangTag, fallback);
+        } else {
+            warningMessage =
+                    "Message path '%s' not found in language file '%s.yml'. Although default message file ('%s.yml') exists, it does not define path '%s'. Using provided fallback message: '%s'."
+                            .formatted(path, locale, defaultLangTag, path, fallback);
+        }
+
+        LogUtils.warn(warningMessage + " Please ensure the configuration files are correctly structured.");
+        return fallback;
     }
 
-    public static @NotNull String getMessage(@NotNull String path, @NotNull String tag) {
+    public static @NotNull Optional<Script> getMessageScript(@NotNull String path, @NotNull String locale) {
+        return StringUtils.wrapToScriptWithOmit(getMessageString(path, locale, null));
+    }
+
+    public static @NotNull @Unmodifiable List<String> getMessageList(@NotNull String path, @NotNull String tag) {
         final YamlConfiguration config = configs.get(tag);
         if (config == null) {
-            return "<red>There may be an error in " + tag + ".yml (" + path + ")";
+            return List.of();
         }
-        return config.getString(path, "<red>There may be an error in " + tag + ".yml (" + path + ")");
+        return config.getStringList(path);
     }
 
-    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode, @NotNull Locale locale) {
-        return getTerm(shoppingMode, locale.toLanguageTag().replace("-", "_"));
+    public static @NotNull String getActionMessagePath(@NotNull String path) {
+        return "messages.action." + path;
     }
 
-    public static @NotNull String getTerm(@NotNull OrderType orderType, @NotNull Locale locale) {
-        return getTerm(orderType, locale.toLanguageTag().replace("-", "_"));
-    }
-
-    public static @NotNull String getTerm(@NotNull OrderType orderType, @NotNull String tag) {
-        final String path = "terms." + EnumUtils.toConfigName(OrderType.class) + "."
-                + EnumUtils.toConfigName(orderType);
-        final YamlConfiguration config = configs.get(tag);
-        if (config == null || !config.contains(path)) {
-            LogUtils.warn("Message " + path + " not found for tag " + tag + ". Use error message as fallback.");
-            return "<red>There may be an error in your language file. The related key is: " + path;
-        }
-        final String term = config.getString(path);
-        assert term != null;
-        return term;
-    }
-
-    public static @NotNull String getTerm(@NotNull ShoppingMode shoppingMode, @NotNull String tag) {
-        final String path = "terms." + EnumUtils.toConfigName(ShoppingMode.class) + "."
-                + EnumUtils.toConfigName(shoppingMode);
-        final YamlConfiguration config = configs.get(tag);
-        if (config == null || !config.contains(path)) {
-            LogUtils.warn("Message " + path + " not found for tag " + tag + ". Use error message as fallback.");
-            return "<red>There may be an error in your language file. The related key is: " + path;
-        }
-        final String term = config.getString(path);
-        assert term != null;
-        return term;
-    }
-
-    public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode,
-                                                         @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType, @NotNull Locale tag) {
-        return getSettleResultMessage(shoppingMode, orderType, settlementResultType, tag.toLanguageTag().replace("-", "_"));
-    }
-
-    public static @NotNull Script getSettleResultMessage(@NotNull ShoppingMode shoppingMode,
-                                                         @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType, @NotNull String tag) {
-        final String path = "messages.settle-result." + shoppingMode.getConfigKey() + "." + orderType.getConfigKey()
+    public static @NotNull String getSettleResultMessagePath(@NotNull ShoppingMode shoppingMode, @NotNull OrderType orderType, @NotNull SettlementResultType settlementResultType) {
+        return "messages.settle-result." + shoppingMode.getConfigKey() + "." + orderType.getConfigKey()
                 + "." + settlementResultType.getConfigKey();
-        final String message = getMessage(path, tag);
-        return StringUtils.wrapToScriptWithOmit(message).orElse(new Script("`No message found in " + tag + " (" + path + ")`"));
     }
 
-    public static @NotNull Script getActionMessage(@NotNull String path, @NotNull Locale tag) {
-        return getActionMessage(path, tag.toLanguageTag().replace("-", "_"));
+    public static @NotNull String getTermPath(@NotNull ShoppingMode shoppingMode) {
+        return "terms." + EnumUtils.toConfigName(ShoppingMode.class) + "."
+                + EnumUtils.toConfigName(shoppingMode);
     }
 
-    public static @NotNull Script getActionMessage(@NotNull String path, @NotNull String tag) {
-        final String fullPath = "messages.action." + path;
-        final String message = getMessage(fullPath, tag);
-        return StringUtils.wrapToScriptWithOmit(message).orElse(new Script("`No message found in " + tag + " (" + path + ")`"));
+    public static @NotNull String getTermPath(@NotNull OrderType orderType) {
+        return "terms." + EnumUtils.toConfigName(OrderType.class) + "."
+                + EnumUtils.toConfigName(orderType);
     }
 }

@@ -46,4 +46,6 @@ public interface Shop {
     @NotNull Context getScriptContext();
 
     @NotNull ActionsConfig getActions();
+    
+    long getMillisUntilRestock(long currentTime);
 }

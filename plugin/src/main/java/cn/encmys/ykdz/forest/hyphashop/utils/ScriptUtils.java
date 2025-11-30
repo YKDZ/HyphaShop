@@ -1,20 +1,18 @@
 package cn.encmys.ykdz.forest.hyphashop.utils;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
-import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.EvaluateResult;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
-import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ScriptUtils {
@@ -106,40 +104,26 @@ public class ScriptUtils {
         return result.value().getAsAdventureComponent();
     }
 
-    public static @NotNull List<Component> evaluateComponentList(@NotNull Context context, @NotNull Script script) {
+    public static @NotNull @Unmodifiable List<Component> evaluateComponentList(@NotNull Context context, @NotNull Script script) {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
             LogUtils.warn(result.toString());
-            return Collections.emptyList();
-        }
-
-        if (!result.value().isType(Value.Type.ADVENTURE_COMPONENT, Value.Type.STRING, Value.Type.ARRAY, Value.Type.NULL)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not string or string array but " + result.value().getType() + ". Use empty string list as fallback value.");
             return Collections.emptyList();
         }
 
         if (result.value().isType(Value.Type.NULL)) {
             return Collections.emptyList();
-        } else if (result.value().isType(Value.Type.ADVENTURE_COMPONENT)) {
-            return List.of(result.value().getAsAdventureComponent());
         } else if (result.value().isType(Value.Type.ARRAY)) {
             return Arrays.stream(result.value().getAsArray())
-                    .map((ref) -> {
-                        if (ref.getReferredValue().isType(Value.Type.ADVENTURE_COMPONENT)) {
-                            return ref.getReferredValue().getAsAdventureComponent();
-                        } else {
-                            return HyphaAdventureUtils.getComponentFromMiniMessage(ref.getReferredValue().getAsString());
-                        }
-                    })
+                    .map((ref) -> ref.getReferredValue().getAsAdventureComponent())
                     .collect(Collectors.toList());
-        } else {
-            return List.of(HyphaAdventureUtils.getComponentFromMiniMessage(result.value().getAsString()));
         }
+        return List.of(result.value().getAsAdventureComponent());
     }
 
-    public static @NotNull List<String> evaluateStringList(@NotNull Context context, @NotNull Script script) {
+    public static @NotNull @Unmodifiable List<String> evaluateStringList(@NotNull Context context, @NotNull Script script) {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
@@ -148,20 +132,14 @@ public class ScriptUtils {
             return Collections.emptyList();
         }
 
-        if (!result.value().isType(Value.Type.STRING, Value.Type.ARRAY, Value.Type.NULL)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not string or string array but " + result.value().getType() + ". Use empty string list as fallback value.");
+        if (result.value().isType(Value.Type.NULL)) {
             return Collections.emptyList();
-        }
-
-        if (result.value().isType(Value.Type.STRING)) {
-            return List.of(result.value().getAsString());
-        } else if (result.value().isType(Value.Type.NULL)) {
-            return Collections.emptyList();
-        } else {
+        } else if (result.value().isType(Value.Type.ARRAY)) {
             return Arrays.stream(result.value().getAsArray())
                     .map((ref) -> ref.getReferredValue().getAsString())
                     .collect(Collectors.toList());
         }
+        return List.of(result.value().getAsString());
     }
 
     public static @NotNull Value evaluate(@NotNull Context context, @NotNull Script script) {
@@ -185,11 +163,5 @@ public class ScriptUtils {
                     }
                 })
                 .toArray(Reference[]::new);
-    }
-
-    public static @NotNull ScriptObject convertToScriptObject(@NotNull Map<String, Reference> map) {
-        final ScriptObject result = new ScriptObject();
-        map.forEach(result::declareMember);
-        return result;
     }
 }

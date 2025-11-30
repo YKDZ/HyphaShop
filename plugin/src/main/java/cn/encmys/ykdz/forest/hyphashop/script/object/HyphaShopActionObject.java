@@ -37,7 +37,6 @@ import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.AnvilWindow;
 import xyz.xenondevs.invui.window.Window;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicReference;
@@ -78,9 +77,14 @@ public class HyphaShopActionObject extends InternalObject {
             cartOrder.combineOrder(newOrder);
 
 
-        MessageUtils.sendMessage(player,
-                MessageConfig.getActionMessage("add-to-cart." + result.getConfigKey(), player.locale()),
-                new HashMap<>(), shop, product, player);
+        MessageUtils.sendMessage(
+                player,
+                MessageConfig.getMessageScript(MessageConfig.getActionMessagePath("add-to-cart." + result.getConfigKey()), player.locale().toLanguageTag()).orElse(null),
+                Map.of(),
+                shop,
+                product,
+                player
+        );
     }
 
     @Static
@@ -142,6 +146,7 @@ public class HyphaShopActionObject extends InternalObject {
         }
 
         if (amount <= 0) {
+            LogUtils.warn("call sell_to with amount <= 0 will do nothing");
             return null;
         }
 
@@ -151,8 +156,14 @@ public class HyphaShopActionObject extends InternalObject {
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
-                OrderType.SELL_TO, result.type(), player.locale()), Map.of("cost", result.price()), shop, player, product);
+        MessageUtils.sendMessageWithPrefix(
+                player,
+                MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.SELL_TO, result.type()), player.locale().toLanguageTag()).orElse(null),
+                Map.of("cost", result.price()),
+                shop,
+                player,
+                product
+        );
 
         return result.toString();
     }
@@ -180,12 +191,13 @@ public class HyphaShopActionObject extends InternalObject {
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
-                OrderType.BUY_FROM, result.type(), player.locale()), new HashMap<>() {
-            {
-                put("earned", result.price());
-            }
-        }, shop, player, product);
+        MessageUtils.sendMessageWithPrefix(
+                player,
+                MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.BUY_FROM, result.type()), player.locale().toLanguageTag()).orElse(null),
+                Map.of("earned", result.price()),
+                shop,
+                player,
+                product);
 
         return result.toString();
     }
@@ -208,13 +220,16 @@ public class HyphaShopActionObject extends InternalObject {
 
         SettlementResult result = order.settle();
 
-        MessageUtils.sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.DIRECT,
-                OrderType.BUY_ALL_FROM, result.type(), player.locale()), new HashMap<>() {
-            {
-                put("earned", result.price());
-                put("stack", order.getOrderedProducts().get(productLoc));
-            }
-        }, shop, player, product);
+        MessageUtils.sendMessageWithPrefix(
+                player,
+                MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.BUY_ALL_FROM, result.type()), player.locale().toLanguageTag()).orElse(null),
+                Map.of(
+                        "earned", result.price(),
+                        "stack", order.getOrderedProducts().get(productLoc)
+                ),
+                shop,
+                player,
+                product);
     }
 
     @Static

@@ -3,12 +3,22 @@
 # https://docs.adventure.kyori.net/minimessage/format.html
 format:
   decimal: "#######.##"
-  timer: "%02dh:%02dm:%02ds"
   date:
     # https://docs.oracle.com/javase/8/docs/api/java/text/SimpleDateFormat.html
     pattern: MM/dd/yyyy HH:mm:ss
     # https://docs.oracle.com/javase/8/docs/api/java/util/Locale.html
     locale: en_US
+  duration:
+    format: "%D %H %M %S"
+    unit:
+      day: "%dd"
+      days: "%dd"
+      hour: "%hh"
+      hours: "%hh"
+      minute: "%mm"
+      minutes: "%mm"
+      second: "%ss"
+      seconds: "%ss"
 
 terms:
   order-type:

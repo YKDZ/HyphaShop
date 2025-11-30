@@ -43,8 +43,8 @@ public class Config {
             HyphaShop.INSTANCE.saveResource("gui/internal/order-history.yml", false);
             HyphaShop.INSTANCE.saveResource("scripts/.global/random.hps", false);
             HyphaShop.INSTANCE.saveResource("scripts/.global/unpack.hps", false);
-            HyphaShop.INSTANCE.saveResource("lang/zh_CN.yml", false);
-            HyphaShop.INSTANCE.saveResource("lang/en_US.yml", false);
+            HyphaShop.INSTANCE.saveResource("lang/zh-CN.yml", false);
+            HyphaShop.INSTANCE.saveResource("lang/en-US.yml", false);
         }
 
         try {

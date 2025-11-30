@@ -133,6 +133,11 @@ public class ShopImpl implements Shop {
     }
 
     @Override
+    public long getMillisUntilRestock(long currentTime) {
+        return (getShopStocker().getLastRestocking() + getShopStocker().getAutoRestockPeriod() * 50L) - currentTime;
+    }
+
+    @Override
     public String toString() {
         return "ShopImpl{" +
                 "id='" + id + '\'' +

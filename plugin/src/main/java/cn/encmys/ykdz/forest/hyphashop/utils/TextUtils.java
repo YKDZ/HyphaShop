@@ -3,14 +3,16 @@ package cn.encmys.ykdz.forest.hyphashop.utils;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record.ScriptOrComponentItemName;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import net.kyori.adventure.text.Component;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -25,8 +27,7 @@ public class TextUtils {
             'm', 60 * 20,
             'h', 60 * 60 * 20,
             'd', 24 * 60 * 60 * 20,
-            'w', 7 * 24 * 60 * 60 * 20
-    );
+            'w', 7 * 24 * 60 * 60 * 20);
     private static final @NotNull Pattern SPACE_PATTERN = Pattern.compile("\\s+");
 
     public static @Range(from = 0L, to = Long.MAX_VALUE) int parseTimeStringToTicks(@Nullable String time) {
@@ -68,25 +69,32 @@ public class TextUtils {
                 final double value = Double.parseDouble(valueStr);
                 ticks += (int) Math.round(value * unitTicks);
             } catch (NumberFormatException e) {
-                LogUtils.warn("Fail to parse number: '" + valueStr + "', in experssion'" + part + ". This part will use 0 as fallback.");
+                LogUtils.warn("Fail to parse number: '" + valueStr + "', in experssion'" + part
+                        + ". This part will use 0 as fallback.");
             }
         }
 
         return Math.max(ticks, 0);
     }
 
-    public static @NotNull Component parseNameToComponent(@NotNull ScriptOrComponentItemName displayName, @NotNull Context parent, @Nullable Object... args) {
-        if (displayName.isComponent()) return displayName.componentName();
+    public static @NotNull Component parseNameToComponent(@NotNull ScriptOrComponentItemName displayName,
+                                                          @NotNull Context parent, @Nullable Object... args) {
+        if (displayName.isComponent())
+            return displayName.componentName();
         return parseNameToComponent(displayName.scriptName(), parent, Collections.emptyMap(), args);
     }
 
-    public static @NotNull Component parseNameToComponent(@NotNull ScriptOrComponentItemName displayName, @NotNull Context parent, @NotNull Map<String, Object> vars, @Nullable Object... args) {
-        if (displayName.isComponent()) return displayName.componentName();
+    public static @NotNull Component parseNameToComponent(@NotNull ScriptOrComponentItemName displayName,
+                                                          @NotNull Context parent, @NotNull Map<String, Object> vars, @Nullable Object... args) {
+        if (displayName.isComponent())
+            return displayName.componentName();
         return parseNameToComponent(displayName.scriptName(), parent, vars, args);
     }
 
-    public static @Nullable Component parseNameToComponent(@Nullable Script displayName, @NotNull Context parent, @NotNull Map<String, Object> vars, @Nullable Object... args) {
-        if (displayName == null) return null;
+    public static @Nullable Component parseNameToComponent(@Nullable Script displayName, @NotNull Context parent,
+                                                           @NotNull Map<String, Object> vars, @Nullable Object... args) {
+        if (displayName == null)
+            return null;
 
         return ScriptUtils.evaluateComponent(new VarInjector()
                 .withTarget(new Context(parent))
@@ -96,11 +104,13 @@ public class TextUtils {
                 .inject(), displayName);
     }
 
-    public static @Nullable List<Component> parseLoreToComponent(@Nullable List<Script> lore, @NotNull Context parent, @Nullable Object @NotNull ... args) {
+    public static @Nullable List<Component> parseLoreToComponent(@Nullable List<Script> lore, @NotNull Context parent,
+                                                                 @Nullable Object @NotNull ... args) {
         return parseLoreToComponent(lore, parent, Collections.emptyMap(), args);
     }
 
-    public static @Nullable List<Component> parseLoreToComponent(@Nullable List<Script> lore, @NotNull Context parent, @NotNull Map<String, Object> vars, @Nullable Object... args) {
+    public static @Nullable List<Component> parseLoreToComponent(@Nullable List<Script> lore, @NotNull Context parent,
+                                                                 @NotNull Map<String, Object> vars, @Nullable Object... args) {
         List<Component> result = null;
         if (lore != null) {
             result = lore.stream()
@@ -116,9 +126,41 @@ public class TextUtils {
         return result;
     }
 
-    public static @NotNull String parseRestockTimer(@NotNull Shop shop) {
-        long timeRemaining = (shop.getShopStocker().getLastRestocking() + shop.getShopStocker().getAutoRestockPeriod() * 50L) - System.currentTimeMillis();
-        // TODO 格式化应该是一个函数
-        return String.valueOf(timeRemaining);
+    public static @NotNull String formatDuration(@NotNull Duration duration, @NotNull Player player) {
+        return formatDuration(duration, player.locale().toLanguageTag());
+    }
+
+    public static @NotNull String formatDuration(@NotNull Duration duration, @NotNull String locale) {
+        final long days = duration.toDays();
+        final int hours = duration.toHoursPart();
+        final int minutes = duration.toMinutesPart();
+        final int seconds = duration.toSecondsPart();
+
+        String format = MessageConfig.getMessageString("format.duration.format", locale, "%D %H %M %S");
+
+        format = format.replace("%D", days > 0 ? formatUnit(days, "day", "days", locale) : "")
+                .replace("%H", hours > 0 ? formatUnit(hours, "hour", "hours", locale) : "")
+                .replace("%M", minutes > 0 ? formatUnit(minutes, "minute", "minutes", locale) : "")
+                .replace("%S", seconds > 0 ? formatUnit(seconds, "second", "seconds", locale) : "");
+
+        if (format.trim().isEmpty()) {
+            return formatUnit(0, "second", "seconds", locale);
+        }
+
+        return format.trim().replaceAll(" +", " ");
+    }
+
+    private static String formatUnit(long value, String singularKey, String pluralKey, String locale) {
+        final String key = value == 1 ? singularKey : pluralKey;
+        final String unitFormat = MessageConfig.getMessageString("format.duration.unit." + key, locale, "");
+
+        String placeholder = switch (singularKey) {
+            case "day" -> "%d";
+            case "hour" -> "%h";
+            case "minute" -> "%m";
+            default -> "%s";
+        };
+
+        return unitFormat.replace(placeholder, String.valueOf(value));
     }
 }

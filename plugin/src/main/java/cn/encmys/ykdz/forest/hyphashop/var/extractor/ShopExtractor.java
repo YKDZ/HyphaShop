@@ -3,7 +3,6 @@ package cn.encmys.ykdz.forest.hyphashop.var.extractor;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarExtractor;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarInjectorContext;
-import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ShopExtractor implements VarExtractor {
@@ -24,6 +23,6 @@ public class ShopExtractor implements VarExtractor {
         }
 
         ctx.putVar("__gui_structure", () -> shop.getShopGUI().getStructure().toArray());
-        ctx.putVar("restock_timer", () -> TextUtils.parseRestockTimer(shop));
+        ctx.putVar("restock_time", () -> shop.getMillisUntilRestock(System.currentTimeMillis()));
     }
 }

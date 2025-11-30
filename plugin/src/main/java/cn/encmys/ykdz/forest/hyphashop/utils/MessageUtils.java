@@ -7,7 +7,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.enums.ShoppingMode;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
@@ -28,14 +27,14 @@ public class MessageUtils {
         }
     };
 
-    public static void sendMessage(@NotNull CommandSender sender, @NotNull Script message,
+    public static void sendMessage(@NotNull CommandSender sender, @Nullable Script message,
                                    @Nullable Object @NotNull ... args) {
         sendMessage(sender, message, new HashMap<>(), args);
     }
 
-    public static void sendMessage(@NotNull CommandSender sender, @NotNull Script message,
+    public static void sendMessage(@NotNull CommandSender sender, @Nullable Script message,
                                    @NotNull Map<String, Object> vars, @Nullable Object @NotNull ... args) {
-        if (message.getScript().isBlank() || message.getScript().equals("``") || message.getScript().equals("\"\""))
+        if (message == null || message.getScript().isBlank() || message.getScript().equals("``") || message.getScript().equals("\"\""))
             return;
 
         Scheduler.runAsyncTask((task) -> {
@@ -51,14 +50,14 @@ public class MessageUtils {
         });
     }
 
-    public static void sendMessageWithPrefix(@NotNull CommandSender sender, @NotNull Script message,
+    public static void sendMessageWithPrefix(@NotNull CommandSender sender, @Nullable Script message,
                                              @Nullable Object @NotNull ... args) {
         sendMessageWithPrefix(sender, message, new HashMap<>(), args);
     }
 
-    public static void sendMessageWithPrefix(@NotNull CommandSender sender, @NotNull Script message,
+    public static void sendMessageWithPrefix(@NotNull CommandSender sender, @Nullable Script message,
                                              @NotNull Map<String, Object> vars, @Nullable Object @NotNull ... args) {
-        if (message.getScript().isBlank() || message.getScript().equals("``") || message.getScript().equals("\"\""))
+        if (message == null || message.getScript().isBlank() || message.getScript().equals("``") || message.getScript().equals("\"\""))
             return;
 
         Scheduler.runAsyncTask((task) -> {
@@ -74,25 +73,29 @@ public class MessageUtils {
                     && message.getLexicalScope().flattenToSet().contains("no_prefix")) {
                 HyphaAdventureUtils.sendMessage(sender, msg);
             } else {
-                String prefix = ScriptUtils.evaluateString(context, StringUtils
-                        .wrapToScriptWithOmit(MessageConfig.getMessage("messages.prefix", ((Player) sender).locale())).orElse(new Script("")));
-                HyphaAdventureUtils.sendMessage(sender,
-                        HyphaAdventureUtils.getComponentFromMiniMessage(prefix).append(msg));
+                MessageConfig.getMessageScript("messages.prefix", ((Player) sender).locale().toLanguageTag())
+                        .ifPresent(script -> {
+                            String prefix = ScriptUtils.evaluateString(context, script);
+                            HyphaAdventureUtils.sendMessage(sender,
+                                    HyphaAdventureUtils.getComponentFromMiniMessage(prefix).append(msg));
+                        });
             }
         });
     }
 
     public static void handleSettleCartMessage(@NotNull Player player, @NotNull SettlementResult result) {
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
-        sendMessageWithPrefix(player, MessageConfig.getSettleResultMessage(ShoppingMode.CART,
-                profile.getCart().getOrder().getType(), result.type(), player.locale()), new HashMap<>() {
-            {
-                if (profile.getCart().getOrder().getType() == OrderType.SELL_TO) {
-                    put("cost", result.price());
-                } else {
-                    put("earned", result.price());
-                }
-            }
-        }, player);
+        
+        sendMessageWithPrefix(
+                player,
+                MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.CART, profile.getCart().getOrder().getType(), result.type()), player.locale().toLanguageTag()).orElse(null),
+                MapUtils.buildImmutableMap((map) -> {
+                    if (profile.getCart().getOrder().getType() == OrderType.SELL_TO) {
+                        map.put("cost", result.price());
+                    } else {
+                        map.put("earned", result.price());
+                    }
+                }),
+                player);
     }
 }

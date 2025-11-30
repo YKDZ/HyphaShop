@@ -2,7 +2,6 @@ package cn.encmys.ykdz.forest.hyphashop.command.sub;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
@@ -43,16 +42,16 @@ public class ShopCommand {
                                             .resolve(ctx.getSource()).getFirst();
                                     final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                                     if (!sender.hasPermission("hyphashop.shop.open." + shopId)) {
-                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.no-permission", ((Player) sender).locale()))
+                                        MessageConfig.getMessageScript("messages.no-permission", ((Player) sender).locale().toLanguageTag())
                                                 .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender, shop));
                                         return Command.SINGLE_SUCCESS;
                                     }
                                     if (shop == null) {
-                                        StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.shop.open.failure.invalid-shop", ((Player) sender).locale()))
+                                        MessageConfig.getMessageScript("messages.command.shop.open.failure.invalid-shop", ((Player) sender).locale().toLanguageTag())
                                                 .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                         return Command.SINGLE_SUCCESS;
                                     }
-                                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.shop.open.success", ((Player) sender).locale()))
+                                    MessageConfig.getMessageScript("messages.command.shop.open.success", ((Player) sender).locale().toLanguageTag())
                                             .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                     Scheduler.runAsyncTask((task) -> shop.getShopGUI().open(target));
                                     return Command.SINGLE_SUCCESS;
@@ -75,12 +74,12 @@ public class ShopCommand {
                             final String shopId = ctx.getArgument("shop", String.class);
                             final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
                             if (shop == null) {
-                                StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.shop.restock.failure.invalid-shop", ((Player) sender).locale()))
+                                MessageConfig.getMessageScript("messages.command.shop.restock.failure.invalid-shop", ((Player) sender).locale().toLanguageTag())
                                         .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
                                 return Command.SINGLE_SUCCESS;
                             }
                             shop.getShopStocker().stock();
-                            StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.shop.restock.success", ((Player) sender).locale()))
+                            MessageConfig.getMessageScript("messages.command.shop.restock.success", ((Player) sender).locale().toLanguageTag())
                                     .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender, shop));
                             return Command.SINGLE_SUCCESS;
                         }))

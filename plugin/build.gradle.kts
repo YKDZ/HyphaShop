@@ -36,6 +36,8 @@ dependencies {
 
     compileOnly("org.flywaydb:flyway-core:11.17.1")
 
+    compileOnly("com.github.Zrips:CMI-API:9.7.14.3")
+
     implementation(project(":api"))
 }
 

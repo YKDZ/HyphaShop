@@ -1,7 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.command;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.CartCommand;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.GUICommand;
 import cn.encmys.ykdz.forest.hyphashop.command.sub.OrderHistoryCommand;
@@ -34,7 +33,7 @@ public class CommandHandler {
                     final CommandSender sender = ctx.getSource().getSender();
                     HyphaShop.INSTANCE.reload();
 
-                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.reload.success", ((Player) sender).locale()))
+                    MessageConfig.getMessageScript("messages.command.reload.success", ((Player) sender).locale().toLanguageTag())
                             .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
 
                     return Command.SINGLE_SUCCESS;
@@ -50,9 +49,9 @@ public class CommandHandler {
                     HyphaShop.PRODUCT_FACTORY.save();
                     HyphaShop.SHOP_FACTORY.save();
 
-                    StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage("messages.command.save.success", ((Player) sender).locale()))
+                    MessageConfig.getMessageScript("messages.command.save.success", ((Player) sender).locale().toLanguageTag())
                             .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));
-                    
+
                     return Command.SINGLE_SUCCESS;
                 })
                 .build();

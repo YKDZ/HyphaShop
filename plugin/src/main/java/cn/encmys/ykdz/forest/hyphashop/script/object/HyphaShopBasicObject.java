@@ -16,15 +16,15 @@ import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
+import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.time.Duration;
+import java.util.*;
 import java.util.function.Supplier;
 
 @ObjectName("HyphaShopBasic")
@@ -37,8 +37,7 @@ public class HyphaShopBasicObject extends InternalObject {
         final String locale = ContextUtils.getPlayer(ctx)
                 .map(Player::locale)
                 .map(Locale::toLanguageTag)
-                .map(tag -> tag.replace("-", "_"))
-                .orElse("en_US");
+                .orElse("en-US");
 
         if (!enumId.isType(Value.Type.STRING)) {
             if (Config.debug) {
@@ -51,8 +50,8 @@ public class HyphaShopBasicObject extends InternalObject {
         final String enumIdStr = (String) enumId.getValue();
 
         final List<Supplier<String>> converters = Arrays.asList(
-                () -> MessageConfig.getTerm(OrderType.valueOf(enumIdStr), locale),
-                () -> MessageConfig.getTerm(ShoppingMode.valueOf(enumIdStr), locale));
+                () -> MessageConfig.getMessageString(MessageConfig.getTermPath(OrderType.valueOf(enumIdStr)), locale, "Term does not exists. Check console for more details"),
+                () -> MessageConfig.getMessageString(MessageConfig.getTermPath(ShoppingMode.valueOf(enumIdStr)), locale, "Term does not exists. Check console for more details"));
 
         for (Supplier<String> converter : converters) {
             try {
@@ -77,8 +76,7 @@ public class HyphaShopBasicObject extends InternalObject {
         final String locale = ContextUtils.getPlayer(ctx)
                 .map(Player::locale)
                 .map(Locale::toLanguageTag)
-                .map(tag -> tag.replace("-", "_"))
-                .orElse("en_US");
+                .orElse("en-US");
 
         if (!decimalValue.isType(Value.Type.NUMBER)) {
             if (Config.debug) {
@@ -112,8 +110,7 @@ public class HyphaShopBasicObject extends InternalObject {
         final String locale = ContextUtils.getPlayer(ctx)
                 .map(Player::locale)
                 .map(Locale::toLanguageTag)
-                .map(tag -> tag.replace("-", "_"))
-                .orElse("en_US");
+                .orElse("en-US");
 
         if (!dateValue.isType(Value.Type.JAVA_OBJECT)) {
             if (Config.debug) {
@@ -148,26 +145,53 @@ public class HyphaShopBasicObject extends InternalObject {
     }
 
     @Static
+    @Function("formatDuration")
+    @FunctionParas({"duration", "__player"})
+    public static String formatDuration(@NotNull Context ctx) {
+        final long duration = ctx.findMember("duration").getReferredValue().getAsBigDecimal().longValue();
+        final String locale = ContextUtils.getPlayer(ctx).map(Player::locale).map(Locale::toLanguageTag).orElse("en-US");
+
+        return TextUtils.formatDuration(Duration.ofMillis(duration), locale);
+    }
+
+    @Static
     @Function("lang")
     @FunctionParas({"path", "__player"})
-    public static String lang(@NotNull Context ctx) {
+    public static Component lang(@NotNull Context ctx) {
         final String path = ctx.findMember("path").getReferredValue().getAsString();
 
         if (path.isBlank())
-            return "lang(path)'s path can not be blank";
+            return Component.text("lang(path)'s path can not be blank");
 
-        String locale = ContextUtils.getPlayer(ctx).map(Player::locale).map(Locale::toLanguageTag).orElse("en_US");
+        String locale = ContextUtils.getPlayer(ctx).map(Player::locale).map(Locale::toLanguageTag).orElse("en-US");
 
-        Script script = StringUtils.wrapToScriptWithOmit(MessageConfig.getMessage(path, locale)).orElse(null);
+        Script script = MessageConfig.getMessageScript(path, locale).orElse(new Script("Message does not exists. Check console for more details"));
 
-        if (script == null)
-            return "No message with path: \"" + path + "\" found";
-
-        return ScriptUtils.evaluateString(
+        Value result = ScriptUtils.evaluate(
                 new VarInjector()
                         .withTarget(new Context(ctx))
                         .withRequiredVars(script)
                         .inject(),
                 script);
+
+        return result.getAsAdventureComponent();
+    }
+
+    @Static
+    @Function("langList")
+    @FunctionParas({"path", "__player"})
+    public static Component[] langList(@NotNull Context ctx) {
+        final String path = ctx.findMember("path").getReferredValue().getAsString();
+
+        final String locale = ContextUtils.getPlayer(ctx).map(Player::locale).map(Locale::toLanguageTag).orElse("en-US");
+        final List<Script> scripts = StringUtils.wrapToScriptWithOmit(MessageConfig.getMessageList(path, locale));
+
+        return scripts.stream()
+                .flatMap((line) -> ScriptUtils.evaluateComponentList(new VarInjector()
+                        .withTarget(new Context(ctx))
+                        .withRequiredVars(line)
+                        .inject(), line).stream())
+                .filter(Objects::nonNull)
+                .toArray(Component[]::new);
     }
 }
