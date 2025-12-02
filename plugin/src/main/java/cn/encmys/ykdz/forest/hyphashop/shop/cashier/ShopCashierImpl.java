@@ -2,78 +2,66 @@ package cn.encmys.ykdz.forest.hyphashop.shop.cashier;
 
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.ShopCashier;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
 public class ShopCashierImpl implements ShopCashier {
     private final @NotNull Shop shop;
-    private final double initBalance;
-    private final boolean replenish;
-    private final boolean overflow;
-    private final boolean inherit;
-    private double balance;
+    private final @NotNull Map<@NotNull String, @NotNull MerchantCurrency> currencies;
 
-    public ShopCashierImpl(@NotNull Shop shop, @NotNull MerchantRecord merchant) {
+    public ShopCashierImpl(@NotNull Shop shop, @NotNull Map<String, MerchantRecord> merchant) {
         this.shop = shop;
-        this.initBalance = merchant.initBalance();
-        this.balance = initBalance;
-        this.replenish = merchant.replenish();
-        this.overflow = merchant.overflow();
-        this.inherit = merchant.inherit();
+        this.currencies = merchant.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> new MerchantCurrency(entry.getValue()))
+                );
     }
 
     @Override
-    public void modifyBalance(double value) {
-        if (!isMerchant()) return;
-
-        final double newValue = balance + value;
-        balance = (newValue > initBalance) && !overflow ? initBalance : newValue;
-    }
-
-    @Override
-    public double getInitBalance() {
-        return initBalance;
-    }
-
-    @Override
-    public boolean isReplenish() {
-        return replenish;
-    }
-
-    @Override
-    public boolean isOverflow() {
-        return overflow;
-    }
-
-    @Override
-    public boolean isInherit() {
-        return inherit;
-    }
-
-    @Override
-    public double getBalance() {
-        return balance;
-    }
-
-    @Override
-    public void setBalance(double balance) {
-        this.balance = balance;
+    public void setCurrencies(@NotNull Map<String, MerchantCurrency> currencies) {
+        this.currencies.clear();
+        this.currencies.putAll(currencies);
     }
 
     @Override
     public boolean isMerchant() {
-        return !Double.isNaN(initBalance);
+        return !currencies.isEmpty();
     }
 
     @Override
     public void restockMerchant() {
-        if (isMerchant() && !inherit) {
-            balance = initBalance;
+        if (isMerchant()) {
+            currencies.values().forEach(MerchantCurrency::restock);
         }
     }
 
     @Override
     public @NotNull Shop getShop() {
         return shop;
+    }
+
+    @Override
+    public @NotNull Map<@NotNull String, @NotNull MerchantCurrency> getCurrencies() {
+        return currencies;
+    }
+
+    @Override
+    public @NotNull Map<@NotNull String, @NotNull Double> getBalances() {
+        return currencies.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().getBalance()
+                ));
+    }
+
+    @Override
+    public @NotNull Optional<MerchantCurrency> getCurrency(@NotNull String currency) {
+        return Optional.ofNullable(currencies.get(currency));
     }
 }

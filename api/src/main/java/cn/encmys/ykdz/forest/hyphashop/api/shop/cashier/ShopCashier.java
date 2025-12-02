@@ -1,32 +1,27 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.cashier;
 
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Check and Checkout the ShopOrder.
  */
 public interface ShopCashier {
-    void modifyBalance(double value);
+    void setCurrencies(@NotNull Map<@NotNull String, @NotNull MerchantCurrency> currencies);
 
-    double getInitBalance();
+    @NotNull Map<@NotNull String, @NotNull MerchantCurrency> getCurrencies();
 
-    boolean isReplenish();
+    @NotNull Map<@NotNull String, @NotNull Double> getBalances();
 
-    boolean isOverflow();
-
-    boolean isInherit();
-
-    double getBalance();
-
-    /**
-     * This method is only used to initialize the balance value and does not respect the replenish and overflow settings.
-     * You should use modifyBalance to change the balance value.
-     */
-    void setBalance(double balance);
+    @NotNull Optional<MerchantCurrency> getCurrency(@NotNull String currency);
 
     boolean isMerchant();
 
     void restockMerchant();
 
-    Shop getShop();
+    @NotNull Shop getShop();
 }

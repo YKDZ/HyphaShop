@@ -3,6 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.shop.factory;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopSchema;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.factory.ShopFactory;
 import cn.encmys.ykdz.forest.hyphashop.config.ProductConfig;
 import cn.encmys.ykdz.forest.hyphashop.config.ShopConfig;
@@ -70,7 +71,11 @@ public class ShopFactoryImpl implements ShopFactory {
         // 从数据库加载一系列商店数据
         final ShopSchema schema = HyphaShop.DATABASE_FACTORY.getShopDao().querySchema(shop.getId());
         if (schema != null) {
-            if (shop.getShopCashier().isInherit()) shop.getShopCashier().setBalance(schema.balance());
+            schema.balances().forEach((cur, value) -> {
+                MerchantCurrency currency = shop.getShopCashier().getCurrency(cur).orElse(null);
+                if (currency == null || !currency.isInherit()) return;
+                currency.setBalance(value);
+            });
             shop.getShopCounter().setCachedAmounts(schema.cachedAmounts());
             shop.getShopPricer().setCachedPrices(schema.cachedPrices());
             shop.getShopStocker().setListedProducts(schema.listedProducts());

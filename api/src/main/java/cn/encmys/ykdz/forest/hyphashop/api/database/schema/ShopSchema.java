@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 public record ShopSchema(@NotNull String id,
-                         double balance,
+                         @NotNull Map<String, Double> balances,
                          @NotNull Map<String, Integer> cachedAmounts,
                          @NotNull Map<String, PricePair> cachedPrices,
                          @NotNull List<String> listedProducts,
@@ -17,7 +17,7 @@ public record ShopSchema(@NotNull String id,
     @Contract("_ -> new")
     public static @NotNull ShopSchema of(@NotNull Shop shop) {
         return new ShopSchema(shop.getId(),
-                shop.getShopCashier().getBalance(),
+                shop.getShopCashier().getBalances(),
                 shop.getShopCounter().getCachedAmounts(),
                 shop.getShopPricer().getCachedPrices(),
                 shop.getShopStocker().getListedProducts(),

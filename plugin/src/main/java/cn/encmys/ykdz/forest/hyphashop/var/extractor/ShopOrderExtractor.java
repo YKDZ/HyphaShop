@@ -12,7 +12,7 @@ public class ShopOrderExtractor implements VarExtractor {
         if (order == null) return;
 
         ctx.putVar("__order", () -> order);
-        ctx.putVar("order_total_price", order::getTotalPrice);
+        ctx.putVar("order_total_price", order::getTotalPrices);
         ctx.putVar("order_is_billed", order::isBilled);
     }
 }

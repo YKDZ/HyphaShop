@@ -197,3 +197,16 @@ products:
       lore:
         - "<gray>This is a sword with custom enchantments."
         - "<gray>Product will not carry this lore."
+
+  EXP_BOTTLE:
+    item:
+      base: experience_bottle
+    icon:
+      lore:
+        - "<gray>Pour your experience"
+        - "<gray>into the bottle"
+    buy-price:
+      fixed: 7
+      currency: EXP
+    sell-price:
+      disable: true

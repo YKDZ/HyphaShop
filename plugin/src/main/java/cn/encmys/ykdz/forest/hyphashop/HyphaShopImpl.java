@@ -6,6 +6,7 @@ import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.ScriptManager;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.config.*;
+import cn.encmys.ykdz.forest.hyphashop.currency.manager.CurrencyManagerImpl;
 import cn.encmys.ykdz.forest.hyphashop.database.factory.DatabaseFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.gui.factory.NormalGUIFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.hook.ItemsAdderHook;
@@ -22,10 +23,8 @@ import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopActionObject;
 import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopBasicObject;
 import cn.encmys.ykdz.forest.hyphashop.shop.factory.ShopFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
-import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.InvUI;
 
@@ -61,11 +60,11 @@ public final class HyphaShopImpl extends HyphaShop {
     public void init() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), INSTANCE);
 
-        if (!setupEconomy()) {
-            LogUtils.error("Plugin disabled due to no Vault dependency found!");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }
+//        if (!setupEconomy()) {
+//            LogUtils.error("Plugin disabled due to no Vault dependency found!");
+//            getServer().getPluginManager().disablePlugin(this);
+//            return;
+//        }
 
         PlaceholderAPIHook.load();
         MMOItemsHook.load();
@@ -91,8 +90,14 @@ public final class HyphaShopImpl extends HyphaShop {
         RarityConfig.load();
         ProductConfig.load();
         ShopConfig.load();
-        CartGUIConfig.load();
-        OrderHistoryGUIConfig.load();
+        try {
+            CartGUIConfig.load();
+            OrderHistoryGUIConfig.load();
+        } catch (Exception e) {
+            LogUtils.error("Error when parsing gui. Plugin will be disabled." + e.getMessage());
+            setEnabled(false);
+            return;
+        }
         NormalGUIConfig.load();
 
         DATABASE_FACTORY = new DatabaseFactoryImpl();
@@ -103,6 +108,7 @@ public final class HyphaShopImpl extends HyphaShop {
             return;
         }
 
+        CURRENCY_MANAGER = new CurrencyManagerImpl();
         PROFILE_FACTORY = new ProfileFactoryImpl();
         RARITY_FACTORY = new RarityFactoryImpl();
         PRODUCT_FACTORY = new ProductFactoryImpl();
@@ -131,20 +137,6 @@ public final class HyphaShopImpl extends HyphaShop {
     public void reload() {
         disable();
         enable();
-    }
-
-    @Override
-    public boolean setupEconomy() {
-        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        final RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
-        ECONOMY = rsp.getProvider();
-
-        return true;
     }
 
     @Override

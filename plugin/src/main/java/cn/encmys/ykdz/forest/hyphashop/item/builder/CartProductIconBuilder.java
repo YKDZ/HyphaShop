@@ -8,6 +8,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.cart.Cart;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.config.CartGUIConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.DecoratorUtils;
@@ -20,7 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.item.Item;
 
-import java.util.Collections;
 import java.util.Map;
 
 public class CartProductIconBuilder {
@@ -42,13 +42,19 @@ public class CartProductIconBuilder {
 
                     final Map<String, Object> vars = Map.of(
                             "stack", stack,
-                            "total_price", cart.getOrder().getBilledPrice(productLoc)
+                            "total_price", cart.getOrder().getBilledPrice(productLoc),
+                            "price_mode", cart.getOrder().getType() == OrderType.SELL_TO ?
+                                    product.getBuyPrice().getPriceMode().name().toLowerCase().replace("_", "-")
+                                    : product.getSellPrice().getPriceMode().name().toLowerCase().replace("_", "-"),
+                            "currency_id", cart.getOrder().getType() == OrderType.SELL_TO ?
+                                    product.getBuyPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
+                                    : product.getSellPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
                     );
 
                     final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
                             product.getScriptContext().clone(),
                             shop.getScriptContext().clone()
-                    ), player, shop, product, cart.getOrder());
+                    ), vars, player, shop, product, cart.getOrder());
 
                     // 在商品自己图标的基础上覆盖名称、lore 和 itemFlags
                     return new xyz.xenondevs.invui.item.ItemBuilder(
@@ -71,13 +77,13 @@ public class CartProductIconBuilder {
                     final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(staticIconDecorator, ContextUtils.linkContext(
                             product.getScriptContext().clone(),
                             shop.getScriptContext().clone()
-                    ), player, shop, product, click, item, cart.getOrder());
+                    ), Map.of(), player, shop, product, click, item, cart.getOrder());
                     final ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, ContextUtils.linkContext(
                             product.getScriptContext(),
                             shop.getScriptContext()
-                    ), Collections.emptyMap(), player, shop, product, click, item, cart.getOrder());
+                    ), Map.of(), player, shop, product, click, item, cart.getOrder());
                 });
 
         if (Boolean.TRUE.equals(staticIconDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();

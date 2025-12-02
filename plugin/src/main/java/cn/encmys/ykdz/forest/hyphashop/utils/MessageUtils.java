@@ -85,15 +85,15 @@ public class MessageUtils {
 
     public static void handleSettleCartMessage(@NotNull Player player, @NotNull SettlementResult result) {
         final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
-        
+
         sendMessageWithPrefix(
                 player,
                 MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.CART, profile.getCart().getOrder().getType(), result.type()), player.locale().toLanguageTag()).orElse(null),
                 MapUtils.buildImmutableMap((map) -> {
                     if (profile.getCart().getOrder().getType() == OrderType.SELL_TO) {
-                        map.put("cost", result.price());
+                        map.put("cost", result.prices());
                     } else {
-                        map.put("earned", result.price());
+                        map.put("earned", result.prices());
                     }
                 }),
                 player);

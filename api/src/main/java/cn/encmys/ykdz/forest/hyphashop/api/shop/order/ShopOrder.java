@@ -43,9 +43,11 @@ public interface ShopOrder {
 
     double getBilledPrice(@NotNull ProductLocation productLoc);
 
-    @NotNull ShopOrder setBill(@NotNull @Unmodifiable Map<ProductLocation, Double> bill);
+    @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, Double> bill);
 
-    double getTotalPrice();
+    double getTotalPrice(@NotNull String currencyId);
+
+    @NotNull Map<String, @NotNull Double> getTotalPrices();
 
     boolean isBilled();
 

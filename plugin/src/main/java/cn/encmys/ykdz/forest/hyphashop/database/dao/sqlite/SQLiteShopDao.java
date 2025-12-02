@@ -25,7 +25,8 @@ public class SQLiteShopDao implements ShopDao {
             if (rs.next()) {
                 return new ShopSchema(
                         id,
-                        rs.getDouble("balance"),
+                        HyphaShop.GSON.fromJson(rs.getString("balances"), new TypeToken<Map<String, Double>>() {
+                        }.getType()),
                         HyphaShop.GSON.fromJson(rs.getString("cached_amounts"), new TypeToken<Map<String, Integer>>() {
                         }.getType()),
                         HyphaShop.GSON.fromJson(rs.getString("cached_prices"), new TypeToken<Map<String, PricePairImpl>>() {
@@ -44,9 +45,10 @@ public class SQLiteShopDao implements ShopDao {
     @Override
     public void insertSchema(@NotNull ShopSchema schema) {
         try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            final PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_shop (id, balance, cached_amounts, cached_prices, listed_products, last_restocking) VALUES (?, ?, ?, ?, ?, ?)");
+            final PreparedStatement pStmt = conn.prepareStatement("REPLACE INTO hyphashop_shop (id, balances, cached_amounts, cached_prices, listed_products, last_restocking) VALUES (?, ?, ?, ?, ?, ?)");
             pStmt.setString(1, schema.id());
-            pStmt.setDouble(2, schema.balance());
+            pStmt.setString(2, HyphaShop.GSON.toJson(schema.balances(), new TypeToken<Map<String, Double>>() {
+            }.getType()));
             pStmt.setString(3, HyphaShop.GSON.toJson(schema.cachedAmounts(), new TypeToken<Map<String, Integer>>() {
             }.getType()));
             pStmt.setString(4, HyphaShop.GSON.toJson(schema.cachedPrices(), new TypeToken<Map<String, PricePairImpl>>() {
@@ -63,9 +65,10 @@ public class SQLiteShopDao implements ShopDao {
     @Override
     public void updateSchema(@NotNull ShopSchema schema) {
         try (final Connection conn = HyphaShop.DATABASE_FACTORY.getConnection()) {
-            final PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_shop SET balance = ?, cached_amounts = ?, cached_prices = ?, listed_products = ?, last_restocking = ? WHERE id = ?");
+            final PreparedStatement pStmt = conn.prepareStatement("UPDATE hyphashop_shop SET balances = ?, cached_amounts = ?, cached_prices = ?, listed_products = ?, last_restocking = ? WHERE id = ?");
             pStmt.setString(1, schema.id());
-            pStmt.setDouble(2, schema.balance());
+            pStmt.setString(2, HyphaShop.GSON.toJson(schema.balances(), new TypeToken<Map<String, Double>>() {
+            }.getType()));
             pStmt.setString(3, HyphaShop.GSON.toJson(schema.cachedAmounts(), new TypeToken<Map<String, Integer>>() {
             }.getType()));
             pStmt.setString(4, HyphaShop.GSON.toJson(schema.cachedPrices(), new TypeToken<Map<String, PricePairImpl>>() {

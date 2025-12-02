@@ -67,7 +67,10 @@ public class ShopPricerImpl implements ShopPricer {
         double buy = calculatePrice(product.getBuyPrice(), product, true);
         double sell = calculatePrice(product.getSellPrice(), product, false);
 
-        if (!Double.isNaN(buy) && buy <= sell) {
+        if (!Double.isNaN(buy)
+                // 货币类型相同才有可比性
+                && product.getBuyPrice().getCurrencyProvider().getId().equals(product.getBuyPrice().getCurrencyProvider().getId())
+                && buy <= sell) {
             handlePriceConflict(productId, buy, sell);
             if (Config.priceCorrectByDisableSellOrBuy) sell = Double.NaN;
             else buy = Double.NaN;
@@ -144,11 +147,10 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private void handlePriceConflict(@NotNull String productId, double buy, double sell) {
-        final String msg = String.format(
-                "Buy price (%.2f) <= sell price (%.2f) for %s. Disabling %s.",
-                buy, sell, productId, Config.priceCorrectByDisableSellOrBuy ? "sell" : "buy"
+        LogUtils.warn("""
+                Buy price (%.2f) <= sell price (%.2f) for %s. Disabling %s.
+                """.formatted(buy, sell, productId, Config.priceCorrectByDisableSellOrBuy ? "sell" : "buy")
         );
-        LogUtils.warn(msg);
     }
 
     @Override

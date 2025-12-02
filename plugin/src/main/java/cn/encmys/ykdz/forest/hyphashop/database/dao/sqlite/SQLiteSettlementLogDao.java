@@ -30,7 +30,7 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
             }
 
             final Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>(log.getOrderedProducts());
-            final Map<ProductLocation, Double> bill = new HashMap<>(log.getBill());
+            final Map<ProductLocation, Double> pricePerStack = new HashMap<>(log.getPricePerStack());
 
             if (rs.getString("product_id") != null) {
                 final ProductLocation loc = new ProductLocation(
@@ -42,11 +42,11 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                         rs.getInt("ordered_stack")
                 );
                 orderedProducts.put(loc, pair);
-                bill.put(loc, rs.getDouble("price_per_stack") * pair.stack());
+                pricePerStack.put(loc, rs.getDouble("price_per_stack"));
             }
 
             log.setOrderedProducts(orderedProducts);
-            log.setBill(bill);
+            log.setPricePerStack(pricePerStack);
         }
         return new ArrayList<>(logs.values());
     }
@@ -167,7 +167,7 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                     stmt.setString(3, loc.productId());
                     stmt.setInt(4, pair.amount());
                     stmt.setInt(5, pair.stack());
-                    stmt.setDouble(6, log.getBill().get(loc) / pair.stack());
+                    stmt.setDouble(6, log.getPricePerStack().get(loc));
                     stmt.addBatch();
                 }
                 stmt.executeBatch();

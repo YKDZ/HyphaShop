@@ -20,6 +20,10 @@ format:
       second: "%s秒"
       seconds: "%s秒"
 
+currency:
+  vault: "<#FFD700>◎"
+  exp: "<gradient:#38A169:#50C878>EXP</gradient>"
+
 terms:
   order-type:
     sell-to: 从商店购买

@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api;
 
+import cn.encmys.ykdz.forest.hyphashop.api.currency.manager.CurrencyManager;
 import cn.encmys.ykdz.forest.hyphashop.api.database.factory.DatabaseFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.factory.NormalGUIFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.product.factory.ProductFactory;
@@ -10,7 +11,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.factory.ShopFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import net.milkbowl.vault.economy.Economy;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +33,7 @@ public abstract class HyphaShop extends JavaPlugin {
     public static ConnTasks CONN_TASKS;
     public static DatabaseFactory DATABASE_FACTORY;
     public static NormalGUIFactory NORMAL_GUI_FACTORY;
-    public static Economy ECONOMY;
+    public static CurrencyManager CURRENCY_MANAGER;
     public static Metrics METRICS;
     public static final List<String> registeredMembers = new ArrayList<>();
 
@@ -44,8 +44,6 @@ public abstract class HyphaShop extends JavaPlugin {
     public abstract void init();
 
     public abstract void enable();
-
-    public abstract boolean setupEconomy();
 
     public abstract void setupBStats();
 

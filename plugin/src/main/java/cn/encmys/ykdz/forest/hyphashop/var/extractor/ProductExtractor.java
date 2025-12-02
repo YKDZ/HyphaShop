@@ -40,5 +40,7 @@ public class ProductExtractor implements VarExtractor {
                 product.getId(), OrderType.SELL_TO));
         ctx.putVar("total_history_sold_stack", () -> SettlementLogUtils.getHistoryStackFromLogs(
                 product.getId(), OrderType.BUY_FROM, OrderType.BUY_ALL_FROM));
+        ctx.putVar("buy_currency_id", () -> product.getBuyPrice().getCurrencyProvider().getId().toLowerCase());
+        ctx.putVar("sell_currency_id", () -> product.getSellPrice().getCurrencyProvider().getId().toLowerCase());
     }
 }

@@ -2,8 +2,8 @@ package cn.encmys.ykdz.forest.hyphashop.hook;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
-import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.SettlementLogUtils;
@@ -40,35 +40,18 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         if (target == null)
             return "Need a player to work.";
 
-        final String shopId = params.replace("merchant_balance_", "");
+        final String[] data = params.replace("merchant_balance_", "").split("_");
+        if (data.length != 2) return "Syntax error";
+
+        final String currency = data[0].toUpperCase().replace("-", "_");
+        final String shopId = data[1];
+
         final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
-        return MessageConfig.getDecimalFormat(player.getPlayer().locale()).format(shop.getShopCashier().getBalance());
-    }
-
-    private static @NotNull String shoppingMode(@Nullable OfflinePlayer player, @NotNull String params) {
-        final Player target = player == null ? null : player.getPlayer();
-        if (target == null)
-            return "Need a player to work.";
-
-        final String shopId = params.replace("shopping_mode_", "");
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
-        if (shop == null)
-            return "Shop " + shopId + " do not exist.";
-
-        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getMessageString(MessageConfig.getTermPath(profile.getShoppingMode(shopId)), target.locale().toLanguageTag(), "Term does not exists. Check console for more details");
-    }
-
-    private static @NotNull String cartMode(@Nullable OfflinePlayer player) {
-        final Player target = player == null ? null : player.getPlayer();
-        if (target == null)
-            return "Need a player to work.";
-
-        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(target);
-        return MessageConfig.getMessageString(MessageConfig.getTermPath(profile.getCart().getOrder().getType()), target.locale().toLanguageTag(), "Term does not exists. Check console for more details");
+        return MessageConfig.getDecimalFormat(player.getPlayer().locale())
+                .format(shop.getShopCashier().getCurrency(currency).map(MerchantCurrency::getBalance).orElse(0d));
     }
 
     private static @NotNull String shopHistoryBoughtAmount(@NotNull String params) {
@@ -183,10 +166,6 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return restockTime(player, params);
         } else if (params.contains("merchant_balance_")) {
             return merchantBalance(player, params);
-        } else if (params.contains("shopping_mode_")) {
-            return shoppingMode(player, params);
-        } else if (params.contains("cart_mode")) {
-            return cartMode(player);
         } else if (params.contains("shop_") && params.contains("_history_bought_amount_")) {
             return shopHistoryBoughtAmount(params);
         } else if (params.contains("shop_") && params.contains("_history_sold_amount_")) {

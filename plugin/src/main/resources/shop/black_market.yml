@@ -10,15 +10,16 @@ settings:
     enabled: false
   # The store is seen as a merchant with its own virtual balance, and once the balance is depleted, it will not be able to purchase players' goods
   merchant:
-    # Init balance value
-    balance: 1000
-    # Whether the balance be replenished by the player's purchasing behavior
-    replenish: true
-    # Whether the balance be replenished beyond its initial value.
-    overflow: true
-    # Whether the balance inherited when the store is restocked
-    # If false, each restocking will reset the balance to its initial value
-    inherit: true
+    vault:
+      # Init balance value
+      balance: 1000
+      # Whether the balance be replenished by the player's purchasing behavior
+      replenish: true
+      # Whether the balance be replenished beyond its initial value.
+      overflow: true
+      # Whether the balance inherited when the store is restocked
+      # If false, each restocking will reset the balance to its initial value
+      inherit: true
   # Used to simulate the sequential refresh of titles instead of list style titles,
   # as the store context will be persistently stored
   context: |
@@ -75,7 +76,7 @@ shop-gui:
         - "   <gray>Open Cart"
         - "<dark_gray>✖ <aqua><key:key.mouse.right>"
         - "   <gray>Switch Shopping mode"
-        - "   <gray>Current Mode: <white>${term(shopping_mode_id)}"
+        - '   <gray>Current Mode: <white>${lang("terms.shopping-mode." + shopping_mode_id)}'
         - " "
       actions:
         left:
@@ -97,7 +98,7 @@ shop-gui:
         - "   <gray>Sell all the product in your inventory to the shop"
         - " "
       icons:
-        - condition: shopping_mode_id == "CART"
+        - condition: shopping_mode_id == "cart"
           icon:
             base: book
             lore:
@@ -123,8 +124,8 @@ shop-gui:
       name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
       lore:
         - " "
-        - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
-        - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+        - '?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)} ${lang("currency." + buy_currency_id)}`'
+        - '?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)} ${lang("currency." + sell_currency_id)}`'
         - " "
         - "<gray>Rarity: <reset>${product_rarity_name}"
         - " "
@@ -135,30 +136,31 @@ shop-gui:
       actions:
         left:
           - |
-            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1}
+            shopping_mode_id == "cart" ? add_to_cart{amount=1} : sell_to{amount=1}
           - update_icon()
         right:
           - |
-            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1}
+            shopping_mode_id == "cart" ? remove_from_cart{amount=1} : buy_from{amount=1}
           - update_icon()
         shift-right:
-          - if (shopping_mode_id == "DIRECT") buy_all_from()
+          - if (shopping_mode_id == "direct") buy_all_from()
           - update_icon()
         drop:
-          - if (shopping_mode_id == "CART") remove_all_from_cart()
+          - if (shopping_mode_id == "cart") remove_all_from_cart()
           - update_icon()
+    format:
+      bundle-content-line: " <dark_gray>- <reset>${product_name} <gray>x <white>${total_amount}"
       icons:
         - condition: desc_lore && desc_lore.length() > 0 && product_is_stock
           icon:
             lore:
               - " "
-              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
-              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - '?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)} ${lang("currency." + buy_currency_id)}`'
+              - '?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)} ${lang("currency." + sell_currency_id)}`'
               - " "
               - "<dark_gray>Stock per-player: <white>${current_player_stock}/${initial_player_stock}"
               - " "
-              - |
-                desc_lore;
+              - s:desc_lore
               - " "
               - "<gray>Rarity: <reset>${product_rarity_name}"
               - " "
@@ -166,11 +168,10 @@ shop-gui:
           icon:
             lore:
               - " "
-              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
-              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - '?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)} ${lang("currency." + buy_currency_id)}`'
+              - '?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)} ${lang("currency." + sell_currency_id)}`'
               - " "
-              - |
-                desc_lore;
+              - s:desc_lore
               - " "
               - "<gray>Rarity: <reset>${product_rarity_name}"
               - " "
@@ -178,15 +179,13 @@ shop-gui:
           icon:
             lore:
               - " "
-              - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
-              - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+              - '?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)} ${lang("currency." + buy_currency_id)}`'
+              - '?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)} ${lang("currency." + sell_currency_id)}`'
               - " "
               - "<dark_gray>Stock per-player: <white>${current_player_stock}/${initial_player_stock}"
               - " "
               - "<gray>Rarity: <reset>${product_rarity_name}"
               - " "
-    format:
-      bundle-contents-line: " <dark_gray>- <reset>${product_name} <gray>x <white>${total_amount}"
 
 products:
   - WARM_WELCOME
@@ -204,3 +203,4 @@ products:
   - CUSTOM_FIREWORK
   - CUSTOM_WEAPON
   - ARMOR_WITH_CUSTOM_TRIM
+  - EXP_BOTTLE

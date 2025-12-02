@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.price;
 
+import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +14,12 @@ import java.util.Random;
 public abstract class Price {
     protected static final @NotNull Random random = new SecureRandom();
     protected final @NotNull Map<@NotNull PriceProperty, @Nullable Object> properties = new HashMap<>();
+    protected final @NotNull CurrencyProvider currencyProvider;
     protected @NotNull PriceMode priceMode = PriceMode.DISABLE;
+
+    public Price(@NotNull CurrencyProvider currencyProvider) {
+        this.currencyProvider = currencyProvider;
+    }
 
     public @NotNull Price setProperty(@NotNull PriceProperty type, @Nullable Object value) {
         properties.put(type, value);
@@ -28,6 +34,10 @@ public abstract class Price {
             return (T) type.getToken().getRawType().cast(value);
         }
         throw new IllegalArgumentException("Invalid type for config key: " + type);
+    }
+
+    public @NotNull CurrencyProvider getCurrencyProvider() {
+        return currencyProvider;
     }
 
     public abstract double getNewPrice();

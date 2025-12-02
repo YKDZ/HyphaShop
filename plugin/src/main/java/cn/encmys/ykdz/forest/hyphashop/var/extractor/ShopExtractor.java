@@ -17,10 +17,9 @@ public class ShopExtractor implements VarExtractor {
 
         final boolean isMerchant = shop.getShopCashier().isMerchant();
 
-        ctx.putVar("is_merchant", () -> shop.getShopCashier().isMerchant());
-        if (isMerchant) {
-            ctx.putVar("merchant_balance", () -> shop.getShopCashier().getBalance());
-        }
+        ctx.putVar("is_merchant", () -> isMerchant);
+        if (isMerchant)
+            ctx.putVar("merchant_balances", () -> shop.getShopCashier().getBalances());
 
         ctx.putVar("__gui_structure", () -> shop.getShopGUI().getStructure().toArray());
         ctx.putVar("restock_time", () -> shop.getMillisUntilRestock(System.currentTimeMillis()));

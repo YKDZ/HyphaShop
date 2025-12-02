@@ -16,7 +16,7 @@ public class OfflinePlayerExtractor implements VarExtractor {
         ctx.putVar("player_name", player::getName);
         ctx.putVar("player_uuid", () -> player.getUniqueId().toString());
 
-        ctx.putVar("cart_total_price", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getTotalPrice());
-        ctx.putVar("cart_shopping_mode", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getType().name());
+        ctx.putVar("cart_total_prices", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getTotalPrices());
+        ctx.putVar("cart_shopping_mode", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getType().name().toLowerCase().replace("_", "-"));
     }
 }

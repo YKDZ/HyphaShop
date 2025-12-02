@@ -1,10 +1,12 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.order;
 
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.ShopOrder;
@@ -14,7 +16,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.BalanceUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -22,13 +23,23 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class ShopOrderImpl implements ShopOrder, Cloneable {
+    /**
+     * 商品的交易份数
+     */
     private final @NotNull Map<@NotNull ProductLocation, @NotNull Integer> orderedProducts = new HashMap<>();
-    private final Map<ProductLocation, Double> bill = new HashMap<>();
+    /**
+     * 商品的每份价格
+     */
+    private final Map<ProductLocation, Double> prices = new HashMap<>();
+    /**
+     * 所有商品的每份价格一旦被 {@link #bill()} 固定即视为 isBilled = true，此时总价可以计算得出
+     */
+    private boolean isBilled = false;
     private @NotNull UUID customerUUID;
     private @NotNull OrderType type = OrderType.SELL_TO;
-    private boolean isBilled = false;
 
     public ShopOrderImpl(@NotNull UUID customerUUID) {
         this.customerUUID = customerUUID;
@@ -66,22 +77,29 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     private @NotNull SettlementResult sellTo() {
         final Player customer = Bukkit.getPlayer(customerUUID);
         if (customer == null) {
-            return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
+            return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, Map.of());
         }
 
-        final SettlementResult result = new SettlementResult(canSellTo(), getTotalPrice());
+        final SettlementResult result = new SettlementResult(canSellTo(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-                ProductLocation productLoc = entry.getKey();
-                Product product = productLoc.product();
-                Shop shop = productLoc.shop();
-                int stack = entry.getValue();
+                final ProductLocation productLoc = entry.getKey();
+                final Product product = productLoc.product();
+                final Shop shop = productLoc.shop();
+                final int stack = entry.getValue();
 
                 if (product == null || shop == null) continue;
 
+                final CurrencyProvider currencyProvider = product.getBuyPrice().getCurrencyProvider();
+                final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+
                 // 处理商人模式
-                if (shop.getShopCashier().isMerchant() && (shop.getShopCashier().isReplenish() && getTotalPrice() > 0))
-                    shop.getShopCashier().modifyBalance(getTotalPrice());
+                if (merchant != null
+                        && shop.getShopCashier().isMerchant()
+                        && (shop.getShopCashier().getCurrency(currencyProvider.getId()).map(MerchantCurrency::isReplenish).orElse(false)
+                        && getTotalPrice(currencyProvider.getId()) > 0)
+                )
+                    merchant.modifyBalance(getTotalPrice(currencyProvider.getId()));
 
                 // 处理库存
                 ProductStock stock = product.getProductStock();
@@ -89,7 +107,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                 if (stock.isPlayerStock()) stock.modifyPlayer(this);
 
                 // 处理余额
-                BalanceUtils.removeBalance(customer, getBilledPrice(productLoc));
+                product.getBuyPrice().getCurrencyProvider().withdraw(customer, getBilledPrice(productLoc));
 
                 // 给予商品
                 product.give(shop, customer, stack);
@@ -103,21 +121,24 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     private @NotNull SettlementResult buyFrom() {
         final Player customer = Bukkit.getPlayer(customerUUID);
-        if (customer == null) return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, 0d);
+        if (customer == null) return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, Map.of());
 
-        final SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrice());
+        final SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
-                ProductLocation productLoc = entry.getKey();
-                Product product = productLoc.product();
-                Shop shop = productLoc.shop();
-                int stack = entry.getValue();
+                final ProductLocation productLoc = entry.getKey();
+                final Product product = productLoc.product();
+                final Shop shop = productLoc.shop();
+                final int stack = entry.getValue();
 
                 if (product == null || shop == null) continue;
 
+                final CurrencyProvider currencyProvider = product.getSellPrice().getCurrencyProvider();
+                final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+
                 // 处理商人模式
-                if (shop.getShopCashier().isMerchant())
-                    shop.getShopCashier().modifyBalance(-1 * getTotalPrice());
+                if (merchant != null && shop.getShopCashier().isMerchant())
+                    merchant.modifyBalance(-1 * getTotalPrice(currencyProvider.getId()));
 
                 // 处理库存
                 ProductStock stock = product.getProductStock();
@@ -125,7 +146,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                 if (stock.isPlayerStock() && stock.isGlobalReplenish()) stock.modifyPlayer(this);
 
                 // 处理余额
-                BalanceUtils.addBalance(customer, getBilledPrice(productLoc));
+                product.getSellPrice().getCurrencyProvider().deposit(customer, getBilledPrice(productLoc));
 
                 // 收取商品
                 product.take(shop, customer, stack);
@@ -167,7 +188,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                 return SettlementResultType.TRANSITION_DISABLED;
             }
             // 客户余额不足
-            else if (BalanceUtils.checkBalance(customer) < getBilledPrice(productLoc)) {
+            else if (product.getBuyPrice().getCurrencyProvider().getBalance(customer) < getBilledPrice(productLoc)) {
                 return SettlementResultType.NOT_ENOUGH_MONEY;
             }
             // 商品个人库存不足
@@ -211,6 +232,9 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
             if (product == null || shop == null) continue;
 
+            final CurrencyProvider currencyProvider = product.getSellPrice().getCurrencyProvider();
+            final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+
             // 当前未上架（购物车暂存）
             if (!shop.getShopStocker().isListedProduct(product.getId())) {
                 return SettlementResultType.NOT_LISTED;
@@ -220,7 +244,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                 return SettlementResultType.TRANSITION_DISABLED;
             }
             // 商人模式余额不足
-            else if (shop.getShopCashier().isMerchant() && shop.getShopCashier().getBalance() < getTotalPrice()) {
+            else if (merchant != null && shop.getShopCashier().isMerchant() && merchant.getBalance() < getTotalPrice(currencyProvider.getId())) {
                 return SettlementResultType.NOT_ENOUGH_MERCHANT_BALANCE;
             }
             // 客户没有足够的商品
@@ -236,7 +260,6 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         final Player customer = Bukkit.getPlayer(customerUUID);
         if (customer == null) return false;
 
-
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
@@ -251,30 +274,31 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         return true;
     }
 
+    /**
+     * 查找并固定每个待交易商品的价格
+     */
     @Override
     public void bill() {
         if (isBilled()) return;
 
-        final Map<ProductLocation, Double> bill = new HashMap<>();
+        final Map<ProductLocation, Double> prices = new HashMap<>();
         for (final Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final String productId = productLoc.productId();
             final Shop shop = productLoc.shop();
-            final int stack = entry.getValue();
-            final double price;
 
             if (shop == null) continue;
 
-            if (type == OrderType.SELL_TO) {
-                price = shop.getShopPricer().getBuyPrice(productId) * stack;
-            } else {
-                price = shop.getShopPricer().getSellPrice(productId) * stack;
-            }
+            final double price = type == OrderType.SELL_TO ?
+                    shop.getShopPricer().getBuyPrice(productId)
+                    : shop.getShopPricer().getSellPrice(productId);
 
-            bill.put(productLoc, price);
+            if (Double.isNaN(price)) continue;
+
+            prices.put(productLoc, price);
         }
 
-        setBill(bill);
+        setPrices(prices);
         setBilled(true);
     }
 
@@ -297,7 +321,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
         Scheduler.runAsyncTask((task) -> HyphaShop.DATABASE_FACTORY.getSettlementLogDao().insertLog(log
                 .setOrderedProducts(orderResult)
-                .setBill(bill)
+                .setPricePerStack(prices)
         ));
     }
 
@@ -340,24 +364,53 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         return Collections.unmodifiableMap(orderedProducts);
     }
 
+    /**
+     * 获取商品被 bill 时固定下的价格
+     */
     @Override
     public double getBilledPrice(@NotNull ProductLocation productLoc) {
         if (!isBilled()) bill();
-        return bill.getOrDefault(productLoc, Double.NaN);
+        return prices.getOrDefault(productLoc, Double.NaN) * orderedProducts.get(productLoc);
     }
 
     @Override
-    public @NotNull ShopOrder setBill(@NotNull @Unmodifiable Map<ProductLocation, Double> bill) {
-        this.bill.clear();
-        this.bill.putAll(bill);
+    public @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, Double> prices) {
+        this.prices.clear();
+        this.prices.putAll(prices);
         setBilled(false);
         return this;
     }
 
+    /**
+     * 获取本订单指定货币类型的总金额
+     */
     @Override
-    public double getTotalPrice() {
+    public double getTotalPrice(@NotNull String currencyId) {
         if (!isBilled()) bill();
-        return bill.values().stream().mapToDouble(Double::doubleValue).sum();
+        return getTotalPrices().getOrDefault(currencyId, Double.NaN);
+    }
+
+    /**
+     * 获取本订单所有货币类型的总金额
+     */
+    @Override
+    public @NotNull Map<String, @NotNull Double> getTotalPrices() {
+        if (!isBilled()) bill();
+
+        return prices.entrySet().stream()
+                .filter(entry -> !Double.isNaN(entry.getValue() * orderedProducts.get(entry.getKey())))
+                .collect(Collectors.toMap(
+                        entry -> {
+                            final Product product = entry.getKey().product();
+                            if (product == null) throw new RuntimeException("Product is null");
+
+                            return type == OrderType.SELL_TO ?
+                                    product.getBuyPrice().getCurrencyProvider().getId()
+                                    : product.getSellPrice().getCurrencyProvider().getId();
+                        },
+                        entry -> entry.getValue() * orderedProducts.get(entry.getKey()),
+                        Double::sum
+                ));
     }
 
     @Override
@@ -409,6 +462,14 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                     iterator.remove();
                 }
             }
+            // 不允许购买
+            else if (product.getBuyPrice().getPriceMode() == PriceMode.DISABLE && type == OrderType.SELL_TO) {
+                iterator.remove();
+            }
+            // 不允许收购
+            else if (product.getSellPrice().getPriceMode() == PriceMode.DISABLE && type != OrderType.SELL_TO) {
+                iterator.remove();
+            }
         }
     }
 
@@ -431,7 +492,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             return ((ShopOrder) super.clone())
                     .setCustomerUUID(customerUUID)
                     .setType(type)
-                    .setBill(bill)
+                    .setPrices(prices)
                     .setBilled(isBilled)
                     .setOrderedProducts(orderedProducts);
         } catch (CloneNotSupportedException e) {

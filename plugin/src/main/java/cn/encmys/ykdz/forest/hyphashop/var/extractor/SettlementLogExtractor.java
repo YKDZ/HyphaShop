@@ -13,7 +13,7 @@ public class SettlementLogExtractor implements VarExtractor {
 
         ctx.putVar("__log", () -> log);
         ctx.putVar("log_date", log::getTransitionTime);
-        ctx.putVar("log_type_id", () -> log.getType().name());
-        ctx.putVar("log_total_price", log::getTotalPrice);
+        ctx.putVar("log_type_id", () -> log.getType().name().toLowerCase().replace("_", "-"));
+        ctx.putVar("log_total_prices", log::getTotalPrices);
     }
 }

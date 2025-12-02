@@ -20,6 +20,6 @@ public class PlayerShopShopOrderExtractor implements VarExtractor {
         assert shop != null;
         assert order != null;
 
-        ctx.putVar("order_total_price", order::getTotalPrice);
+        ctx.putVar("order_total_price", order::getTotalPrices);
     }
 }

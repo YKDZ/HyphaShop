@@ -18,7 +18,7 @@ public class PlayerShopExtractor implements VarExtractor {
         assert player != null;
         assert shop != null;
 
-        ctx.putVar("cart_mode_id", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getType().name());
-        ctx.putVar("shopping_mode_id", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getShoppingMode(shop.getId()).name());
+        ctx.putVar("cart_mode_id", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getCart().getOrder().getType().name().toLowerCase().replace("_", "-"));
+        ctx.putVar("shopping_mode_id", () -> HyphaShop.PROFILE_FACTORY.getProfile(player).getShoppingMode(shop.getId()).name().toLowerCase().replace("_", "-"));
     }
 }

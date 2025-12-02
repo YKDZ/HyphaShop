@@ -17,7 +17,7 @@ database:
     enabled: true
 script:
   unpack-internal-object: true
-# The purchase price of a product may be lower than its selling price
+# The purchase price of a product may be lower than its selling price (same currency type)
 # (such as using a random price or accidentally filling in the wrong price),
 # which will allow players to purchase the product without restrictions
 # and sell it back to the store for profit.

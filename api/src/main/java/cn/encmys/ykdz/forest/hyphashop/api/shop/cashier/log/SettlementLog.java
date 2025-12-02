@@ -19,7 +19,7 @@ public interface SettlementLog {
 
     @NotNull SettlementLog setTransitionTime(@NotNull Date transitionTime);
 
-    double getTotalPrice();
+    @NotNull Map<@NotNull String, @NotNull Double> getTotalPrices();
 
     @NotNull UUID getCustomerUUID();
 
@@ -31,9 +31,9 @@ public interface SettlementLog {
 
     @NotNull SettlementLog setOrderedProducts(@NotNull Map<ProductLocation, AmountPair> orderedProducts);
 
+    @NotNull SettlementLog setPricePerStack(@NotNull Map<ProductLocation, Double> pricePerStack);
+
     @NotNull
     @Unmodifiable
-    Map<ProductLocation, Double> getBill();
-
-    @NotNull SettlementLog setBill(@NotNull Map<ProductLocation, Double> bill);
+    Map<ProductLocation, Double> getPricePerStack();
 }

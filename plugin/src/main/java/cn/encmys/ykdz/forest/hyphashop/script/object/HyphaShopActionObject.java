@@ -159,7 +159,7 @@ public class HyphaShopActionObject extends InternalObject {
         MessageUtils.sendMessageWithPrefix(
                 player,
                 MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.SELL_TO, result.type()), player.locale().toLanguageTag()).orElse(null),
-                Map.of("cost", result.price()),
+                Map.of("cost", result.prices()),
                 shop,
                 player,
                 product
@@ -194,7 +194,7 @@ public class HyphaShopActionObject extends InternalObject {
         MessageUtils.sendMessageWithPrefix(
                 player,
                 MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.BUY_FROM, result.type()), player.locale().toLanguageTag()).orElse(null),
-                Map.of("earned", result.price()),
+                Map.of("earned", result.prices()),
                 shop,
                 player,
                 product);
@@ -224,7 +224,7 @@ public class HyphaShopActionObject extends InternalObject {
                 player,
                 MessageConfig.getMessageScript(MessageConfig.getSettleResultMessagePath(ShoppingMode.DIRECT, OrderType.BUY_ALL_FROM, result.type()), player.locale().toLanguageTag()).orElse(null),
                 Map.of(
-                        "earned", result.price(),
+                        "earned", result.prices(),
                         "stack", order.getOrderedProducts().get(productLoc)
                 ),
                 shop,
@@ -518,6 +518,18 @@ public class HyphaShopActionObject extends InternalObject {
                         item.notifyWindows();
                     });
         }
+    }
+
+    @Static
+    @Function("update_gui")
+    @FunctionParas({"__gui"})
+    public static void updateGui(@NotNull Context ctx) {
+        Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
+
+        if (gui == null)
+            return;
+
+        gui.notifyWindows();
     }
 
     @Static

@@ -1,17 +1,28 @@
 package cn.encmys.ykdz.forest.hyphashop.price;
 
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
+import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.currency.manager.CurrencyManagerImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class PriceImpl extends Price {
     public PriceImpl(@NotNull ConfigAccessor defaultConfig, @NotNull ConfigAccessor config) {
+        super(HyphaShop.CURRENCY_MANAGER.getCurrency(
+                                config.getString("currency")
+                                        .orElse(defaultConfig.getString("currency")
+                                                .orElse("VAULT")
+                                        )
+                        )
+                        .orElse(CurrencyManagerImpl.VAULT_CURRENCY)
+        );
+
         if (config.contains("fixed")) {
             priceMode = PriceMode.FIXED;
             this.setProperty(PriceProperty.FIXED, config.getDouble("fixed").orElse(Double.NaN));
@@ -46,6 +57,12 @@ public class PriceImpl extends Price {
         }
     }
 
+    /**
+     * 返回从这个 Price 配置产生的一个新的价格数值<br/>
+     * 若配置出错或本就没有数值（比如 {@link PriceMode#DISABLE} 时）<br/>
+     * 则返回一个 {@link Double#NaN}
+     *
+     */
     @Override
     public double getNewPrice() {
         return switch (priceMode) {
@@ -53,20 +70,29 @@ public class PriceImpl extends Price {
                 Boolean round = getProperty(PriceProperty.ROUND);
                 Double mean = getProperty(PriceProperty.MEAN);
                 Double dev = getProperty(PriceProperty.DEV);
-                if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev))
-                    throw new RuntimeException("Invalid price property: " + properties);
+                if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev)) {
+                    LogUtils.warn("Invalid price property: " + properties + ". Price will be disabled.");
+                    this.priceMode = PriceMode.DISABLE;
+                    yield Double.NaN;
+                }
                 double result = mean + dev * random.nextGaussian();
                 if (result < 0) {
-                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 yield round ? Math.floor(result) : result;
             }
             case FIXED -> {
                 Double fixed = getProperty(PriceProperty.FIXED);
-                if (fixed == null) throw new RuntimeException("Invalid price property: " + properties);
+                if (fixed == null) {
+                    LogUtils.warn("Invalid price property: " + properties + ".");
+                    this.priceMode = PriceMode.DISABLE;
+                    yield Double.NaN;
+                }
                 if (fixed < 0) {
-                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 yield fixed;
@@ -75,11 +101,15 @@ public class PriceImpl extends Price {
                 Double min = getProperty(PriceProperty.MIN);
                 Double max = getProperty(PriceProperty.MAX);
                 Boolean round = getProperty(PriceProperty.ROUND);
-                if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max))
-                    throw new RuntimeException("Invalid price property: " + properties);
+                if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max)) {
+                    LogUtils.warn("Invalid price property: " + properties + ". Price will be disabled.");
+                    this.priceMode = PriceMode.DISABLE;
+                    yield Double.NaN;
+                }
                 double result = min + (max - min) * random.nextDouble();
                 if (result < 0) {
-                    LogUtils.warn("A negative price was detected: " + properties + ". This price will be disabled for safety. Please check your price config.");
+                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 yield round ? Math.floor(result) : result;

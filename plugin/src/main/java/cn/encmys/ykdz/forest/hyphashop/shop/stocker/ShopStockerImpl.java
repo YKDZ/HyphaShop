@@ -71,7 +71,7 @@ public class ShopStockerImpl implements ShopStocker {
 
         Scheduler.runAsyncTask((task) -> shop.getShopGUI().updateContentsForAllViewers());
 
-        MiscUtils.processActions(ActionEvent.SHOP_ON_RESTOCK, shop.getActions(), shop.getScriptContext().clone(), Collections.emptyMap(), shop);
+        MiscUtils.processActions(ActionEvent.SHOP_ON_RESTOCK, shop.getActions(), shop.getScriptContext().clone(), Map.of(), shop);
     }
 
     private @NotNull List<Product> pickProductByWeight(@NotNull Map<String, Product> allProducts) {
@@ -111,8 +111,8 @@ public class ShopStockerImpl implements ShopStocker {
                         shop.getScriptContext().clone(),
                         product.getScriptContext().clone()
                 );
-                List<Value> result = MiscUtils.processActionsWithResult(
-                        ActionEvent.PRODUCT_ON_BEFORE_LIST, product.getActions(), parent, Collections.emptyMap(), shop, product
+                final List<Value> result = MiscUtils.processActionsWithResult(
+                        ActionEvent.PRODUCT_ON_BEFORE_LIST, product.getActions(), parent, Map.of(), shop, product
                 );
                 boolean allPass = result.stream().allMatch(Value::getAsBoolean);
 
@@ -171,7 +171,7 @@ public class ShopStockerImpl implements ShopStocker {
 
         listedProducts.add(productId);
 
-        MiscUtils.processActions(ActionEvent.PRODUCT_ON_AFTER_LIST, product.getActions(), shop.getScriptContext(), Collections.emptyMap(), product, shop);
+        MiscUtils.processActions(ActionEvent.PRODUCT_ON_AFTER_LIST, product.getActions(), shop.getScriptContext(), Map.of(), product, shop);
     }
 
     @Override
