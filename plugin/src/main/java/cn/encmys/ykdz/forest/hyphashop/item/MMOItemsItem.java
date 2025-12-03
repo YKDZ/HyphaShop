@@ -1,9 +1,9 @@
 package cn.encmys.ykdz.forest.hyphashop.item;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaAdventureUtils;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.Type;
@@ -84,7 +84,7 @@ public record MMOItemsItem(@NotNull Type type, @NotNull String id) implements Ba
             try {
                 return future.get();
             } catch (InterruptedException | ExecutionException e) {
-                LogUtils.warn(e.getMessage());
+                HyphaShopImpl.LOGGER.warn(e.getMessage());
                 return new ItemStack(Material.AIR);
             }
         }

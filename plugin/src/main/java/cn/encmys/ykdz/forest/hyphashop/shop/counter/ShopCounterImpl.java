@@ -3,13 +3,13 @@ package cn.encmys.ykdz.forest.hyphashop.shop.counter;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.counter.ShopCounter;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -30,7 +30,7 @@ public class ShopCounterImpl implements ShopCounter {
     public void cacheAmount(@NotNull String productId) {
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null) {
-            LogUtils.warn("Try to cache amount for product " + productId + " which does not exist.");
+            HyphaShopImpl.LOGGER.warn("Try to cache amount for product " + productId + " which does not exist.");
             return;
         }
 
@@ -55,7 +55,7 @@ public class ShopCounterImpl implements ShopCounter {
     @Override
     public int getAmount(@NotNull String productId) {
         if (!cachedAmounts.containsKey(productId)) {
-            LogUtils.warn("Try to get amount for product " + productId + " which does not be cached. The amount will fallback to 1. This could be a plugin issue.");
+            HyphaShopImpl.LOGGER.warn("Try to get amount for product " + productId + " which does not be cached. The amount will fallback to 1. This could be a plugin issue.");
             try {
                 throw new RuntimeException();
             } catch (Exception e) {

@@ -52,8 +52,8 @@ public class VarInjectorContext {
         // 从目标上下文查找
         return (Optional<T>) target.getLocalMembers().entrySet().stream()
                 .filter(entry -> entry.getKey().startsWith("__") && !entry.getKey().endsWith("__"))
-                .filter(entry -> (type.isInstance(entry.getValue().getReferredValue().getValue())))
-                .map(entry -> entry.getValue().getReferredValue().getValue())
+                .filter(entry -> (type.isInstance(entry.getValue().getReferredValue().value())))
+                .map(entry -> entry.getValue().getReferredValue().value())
                 .findFirst();
     }
 

@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
@@ -9,7 +10,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.config.record.gui.ShopProductIconRecord;
 import cn.encmys.ykdz.forest.hyphashop.config.record.shop.ShopSettingsRecord;
 import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class ShopConfig {
     private static final @NotNull String path = HyphaShop.INSTANCE.getDataFolder() + "/shop";
@@ -46,7 +47,7 @@ public class ShopConfig {
                         config.load(file);
                         configs.put(file.getName().replace(".yml", ""), config);
                     } catch (IOException | InvalidConfigurationException error) {
-                        LogUtils.error(error.getMessage());
+                        HyphaShopImpl.LOGGER.error(error.getMessage());
                     }
                 }
             }
@@ -91,14 +92,20 @@ public class ShopConfig {
         return getConfig(shopId).getStringList("products");
     }
 
-    public static @NotNull MerchantRecord getMerchantRecord(@NotNull String shopId) {
-        final ConfigAccessor config = getShopSettingsConfig(shopId);
-        return new MerchantRecord(
-                config.getDouble("merchant.balance").orElse(Double.NaN),
-                config.getBoolean("merchant.replenish").orElse(false),
-                config.getBoolean("merchant.overflow").orElse(false),
-                config.getBoolean("merchant.inherit").orElse(false)
-        );
+    public static @NotNull Map<String, MerchantRecord> getMerchantRecord(@NotNull String shopId) {
+        final ConfigAccessor config = getShopSettingsConfig(shopId).getConfig("merchant").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
+        return config.getLocalMembers().map(map -> map.entrySet()
+                .stream()
+                .collect(Collectors.toMap(
+                                Map.Entry::getKey,
+                                (entry) -> new MerchantRecord(
+                                        entry.getValue().getDouble("balance").orElse(0d),
+                                        entry.getValue().getBoolean("replenish").orElse(false),
+                                        entry.getValue().getBoolean("overflow").orElse(false),
+                                        entry.getValue().getBoolean("inherit").orElse(false)
+                                )
+                        )
+                )).orElse(Map.of());
     }
 
     public static @NotNull ConfigAccessor getShopSettingsConfig(@NotNull String shopId) {

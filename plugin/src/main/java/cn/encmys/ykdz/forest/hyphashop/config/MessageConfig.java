@@ -1,13 +1,13 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.enums.ShoppingMode;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.EnumUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -34,7 +34,7 @@ public class MessageConfig {
 
         final File[] langFiles = langDir.listFiles((dir, name) -> name.endsWith(".yml"));
         if (langFiles == null) {
-            LogUtils.error("No language files found in lang/ directory");
+            HyphaShopImpl.LOGGER.error("No language files found in lang/ directory");
             return;
         }
 
@@ -51,7 +51,7 @@ public class MessageConfig {
                 }
                 configs.put(tag, config);
             } catch (IOException | InvalidConfigurationException error) {
-                LogUtils.error("Failed to load language file " + file.getName() + ": " + error.getMessage());
+                HyphaShopImpl.LOGGER.error("Failed to load language file " + file.getName() + ": " + error.getMessage());
             }
         }
     }
@@ -81,7 +81,7 @@ public class MessageConfig {
         final String defaultLangTag = Config.language_defaultMessage;
 
         if (defaultConfig != null && defaultConfig.isString(path)) {
-            LogUtils.warn(
+            HyphaShopImpl.LOGGER.warn(
                     "Message path '%s' not found in language file '%s.yml'. Falling back to value from default message file ('%s.yml')."
                             .formatted(path, locale, defaultLangTag)
             );
@@ -100,7 +100,7 @@ public class MessageConfig {
                             .formatted(path, locale, defaultLangTag, path, fallback);
         }
 
-        LogUtils.warn(warningMessage + " Please ensure the configuration files are correctly structured.");
+        HyphaShopImpl.LOGGER.warn(warningMessage + " Please ensure the configuration files are correctly structured.");
         return fallback;
     }
 

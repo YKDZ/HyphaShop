@@ -5,6 +5,7 @@ import cn.encmys.ykdz.forest.hyphascript.function.JavaFunction;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.enums.GUIType;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.record.ConditionalIconRecord;
@@ -69,12 +70,12 @@ public class ConfigUtils {
         final String[] parsed = data.split(":");
 
         if (!Key.parseable(parsed[0])) {
-            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + parsed[0] + " in " + data);
             return null;
         }
 
         if (!Key.parseable(parsed[1])) {
-            LogUtils.warn("Invalid namespace config: " + parsed[1] + " in " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + parsed[1] + " in " + data);
             return null;
         }
 
@@ -86,7 +87,7 @@ public class ConfigUtils {
                     patternRegistry.getOrThrow(Key.key(parsed[1]))
             );
         } catch (Throwable ignored) {
-            LogUtils.warn("Format of armor data: " + data + " is invalid. Use diamond:vex as fallback.");
+            HyphaShopImpl.LOGGER.warn("Format of armor data: " + data + " is invalid. Use diamond:vex as fallback.");
             return new ArmorTrim(TrimMaterial.DIAMOND, TrimPattern.VEX);
         }
     }
@@ -114,13 +115,13 @@ public class ConfigUtils {
             try {
                 color = Color.fromRGB(Integer.parseInt(data.substring(1), 16));
             } catch (IllegalArgumentException e) {
-                LogUtils.warn("Invalid color definition: " + data + ". Use green as fallback color.");
+                HyphaShopImpl.LOGGER.warn("Invalid color definition: " + data + ". Use green as fallback color.");
             }
         } else {
             try {
                 return (Color) Color.class.getField(data).get(null);
             } catch (NoSuchFieldException | IllegalAccessException ignored) {
-                LogUtils.warn("Invalid color definition: " + data + ". Use green as fallback color.");
+                HyphaShopImpl.LOGGER.warn("Invalid color definition: " + data + ". Use green as fallback color.");
             }
         }
         return color;
@@ -146,7 +147,7 @@ public class ConfigUtils {
         final String[] parsed = data.split(":");
 
         if (!Key.parseable(parsed[0])) {
-            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + parsed[0] + " in " + data);
             return null;
         }
 
@@ -161,7 +162,7 @@ public class ConfigUtils {
                     Boolean.parseBoolean(parsed[5])
             );
         } catch (Throwable ignored) {
-            LogUtils.warn("Potion effect data: " + data + " is invalid. Use night_vision:100:1:true:true:true as fallback.");
+            HyphaShopImpl.LOGGER.warn("Potion effect data: " + data + " is invalid. Use night_vision:100:1:true:true:true as fallback.");
             return new PotionEffect(PotionEffectType.NIGHT_VISION, 100, 1, true, true, true);
         }
     }
@@ -190,7 +191,7 @@ public class ConfigUtils {
         final String[] parsed = data.split(":");
 
         if (!Key.parseable(parsed[0])) {
-            LogUtils.warn("Invalid namespace config: " + parsed[0] + " in " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + parsed[0] + " in " + data);
             return Map.entry(Enchantment.SHARPNESS, 5);
         }
 
@@ -201,7 +202,7 @@ public class ConfigUtils {
 
             return Map.entry(enchantment, level);
         } catch (Throwable ignored) {
-            LogUtils.warn("Enchantment data: " + data + " is invalid. Use sharpness:5 as fallback");
+            HyphaShopImpl.LOGGER.warn("Enchantment data: " + data + " is invalid. Use sharpness:5 as fallback");
             return Map.entry(Enchantment.SHARPNESS, 5);
         }
     }
@@ -232,7 +233,7 @@ public class ConfigUtils {
         final String[] parsed = data.split(":");
 
         if (!Key.parseable(parsed[1])) {
-            LogUtils.warn("Invalid namespace config: " + parsed[1] + " in " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + parsed[1] + " in " + data);
             return Map.entry(PatternType.BRICKS, DyeColor.YELLOW);
         }
 
@@ -243,7 +244,7 @@ public class ConfigUtils {
 
             return Map.entry(type, color);
         } catch (NoSuchElementException | InvalidKeyException e) {
-            LogUtils.warn("Banner pattern data: " + data + " is invalid. Use YELLOW:bricks as fallback");
+            HyphaShopImpl.LOGGER.warn("Banner pattern data: " + data + " is invalid. Use YELLOW:bricks as fallback");
             return Map.entry(PatternType.BRICKS, DyeColor.YELLOW);
         }
     }
@@ -274,7 +275,7 @@ public class ConfigUtils {
             final boolean isAdd = !data.startsWith("-");
             return Map.entry(flag, isAdd);
         } catch (IllegalArgumentException e) {
-            LogUtils.warn("Banner pattern data: " + data + " is invalid. Use HIDE_ADDITIONAL_TOOLTIP as fallback");
+            HyphaShopImpl.LOGGER.warn("Banner pattern data: " + data + " is invalid. Use HIDE_ADDITIONAL_TOOLTIP as fallback");
             return Map.entry(ItemFlag.HIDE_DYE, true);
         }
     }
@@ -335,7 +336,7 @@ public class ConfigUtils {
         if (data == null) return null;
 
         if (!Key.parseable(data)) {
-            LogUtils.warn("Invalid namespace config: " + data);
+            HyphaShopImpl.LOGGER.warn("Invalid namespace config: " + data);
             return null;
         }
 
@@ -345,7 +346,7 @@ public class ConfigUtils {
         try {
             type = registry.getOrThrow(Key.key(data));
         } catch (NoSuchElementException | InvalidKeyException ignored) {
-            LogUtils.warn("Invalid potion type data: " + data + ". Use HEALING as fallback");
+            HyphaShopImpl.LOGGER.warn("Invalid potion type data: " + data + ". Use HEALING as fallback");
         }
 
         return type;

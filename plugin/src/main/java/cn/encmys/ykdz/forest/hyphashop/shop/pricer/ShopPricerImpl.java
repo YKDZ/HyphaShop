@@ -6,6 +6,7 @@ import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
@@ -18,7 +19,6 @@ import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.price.PricePairImpl;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
 import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +50,7 @@ public class ShopPricerImpl implements ShopPricer {
     private double getPrice(@NotNull String productId, @NotNull Function<PricePair, Double> extractor, @NotNull String priceType) {
         final PricePair pricePair = cachedPrices.get(productId);
         if (pricePair == null) {
-            LogUtils.warn("Product " + productId + " do not have " + priceType + "-price cached. This is likely a bug.");
+            HyphaShopImpl.LOGGER.warn("Product " + productId + " do not have " + priceType + "-price cached. This is likely a bug.");
             return Double.NaN;
         }
         return extractor.apply(pricePair);
@@ -60,7 +60,7 @@ public class ShopPricerImpl implements ShopPricer {
     public boolean cachePrice(@NotNull String productId) {
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null) {
-            LogUtils.warn("Try to cache price for product " + productId + " which does not exist.");
+            HyphaShopImpl.LOGGER.warn("Try to cache price for product " + productId + " which does not exist.");
             return false;
         }
 
@@ -77,7 +77,7 @@ public class ShopPricerImpl implements ShopPricer {
         }
 
         if (Double.isNaN(buy) && Double.isNaN(sell)) {
-            LogUtils.warn("Price cache for " + productId + " failed cause both buy and sell are invalid.");
+            HyphaShopImpl.LOGGER.warn("Price cache for " + productId + " failed cause both buy and sell are invalid.");
             return false;
         }
 
@@ -100,7 +100,7 @@ public class ShopPricerImpl implements ShopPricer {
         final Script formula = price.getProperty(PriceProperty.FORMULA);
 
         if (formula == null) {
-            LogUtils.warn("Formula for " + product.getId() + " is null");
+            HyphaShopImpl.LOGGER.warn("Formula for " + product.getId() + " is null");
             return Double.NaN;
         }
 
@@ -128,7 +128,7 @@ public class ShopPricerImpl implements ShopPricer {
             final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
             if (content == null) {
                 if (isBuy) return Double.NaN;
-                LogUtils.warn("Bundle product " + product.getId() + " has invalid content " + contentId);
+                HyphaShopImpl.LOGGER.warn("Bundle product " + product.getId() + " has invalid content " + contentId);
                 continue;
             }
             final Price contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
@@ -147,7 +147,7 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private void handlePriceConflict(@NotNull String productId, double buy, double sell) {
-        LogUtils.warn("""
+        HyphaShopImpl.LOGGER.warn("""
                 Buy price (%.2f) <= sell price (%.2f) for %s. Disabling %s.
                 """.formatted(buy, sell, productId, Config.priceCorrectByDisableSellOrBuy ? "sell" : "buy")
         );

@@ -3,6 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.shop.stocker;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionEvent;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
@@ -11,7 +12,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.stocker.ShopStocker;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -139,7 +139,7 @@ public class ShopStockerImpl implements ShopStocker {
         // 所有商品数量都提前被缓存过了
         // 此处不再缓存
         if (!shop.getShopPricer().cachePrice(productId)) {
-            LogUtils.warn("Fail to list product: " + productId + " cause the price is incorrect.");
+            HyphaShopImpl.LOGGER.warn("Fail to list product: " + productId + " cause the price is incorrect.");
             return;
         }
         if (product.isProductItemCacheable() && !shop.isProductItemCached(productId)) {
@@ -154,7 +154,7 @@ public class ShopStockerImpl implements ShopStocker {
                 if (content != null) {
                     shop.getShopCounter().cacheAmount(contentId);
                     if (!shop.getShopPricer().cachePrice(contentId)) {
-                        LogUtils.warn("Fail to list content " + contentId + " of bundle product " + productId + " cause the price is incorrect.");
+                        HyphaShopImpl.LOGGER.warn("Fail to list content " + contentId + " of bundle product " + productId + " cause the price is incorrect.");
                         return;
                     }
                     if (content.isProductItemCacheable() && !shop.isProductItemCached(contentId)) {

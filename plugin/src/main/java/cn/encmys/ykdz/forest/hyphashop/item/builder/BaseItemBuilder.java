@@ -1,10 +1,10 @@
 package cn.encmys.ykdz.forest.hyphashop.item.builder;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.parser.BaseItemParser;
 import cn.encmys.ykdz.forest.hyphashop.item.VanillaItem;
 import cn.encmys.ykdz.forest.hyphashop.item.parser.*;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +27,7 @@ public class BaseItemBuilder {
         for (final BaseItemParser parser : parserRegistry) {
             if (parser.canParse(base)) return parser.parse(base);
         }
-        LogUtils.warn("Can not parse base: " + base + ". Please check your config. A dirt will be used as fallback.");
+        HyphaShopImpl.LOGGER.warn("Can not parse base: " + base + ". Please check your config. A dirt will be used as fallback.");
         return new VanillaItem(Material.DIRT);
     }
 

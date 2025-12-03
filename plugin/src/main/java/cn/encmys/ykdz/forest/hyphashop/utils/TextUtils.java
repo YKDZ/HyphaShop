@@ -2,6 +2,7 @@ package cn.encmys.ykdz.forest.hyphashop.utils;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.record.ScriptOrComponentItemName;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
@@ -49,7 +50,7 @@ public class TextUtils {
         for (final String part : parts) {
             // 检查基本格式
             if (part.length() < 2) {
-                LogUtils.warn("Invalid time format: '" + part + "', should format like '5s'");
+                HyphaShopImpl.LOGGER.warn("Invalid time format: '" + part + "', should format like '5s'");
                 return 0; // 任何部分格式错误立即返回 0
             }
 
@@ -60,7 +61,7 @@ public class TextUtils {
             // 获取时间单位对应的 ticks
             Integer unitTicks = TIME_UNITS.get(unit);
             if (unitTicks == null) {
-                LogUtils.warn("Invalid time unit: '" + unit + "', in expression'" + part + "'. Use 's' as fallback.");
+                HyphaShopImpl.LOGGER.warn("Invalid time unit: '" + unit + "', in expression'" + part + "'. Use 's' as fallback.");
                 unitTicks = TIME_UNITS.get('s'); // 使用秒作为 fallback
             }
 
@@ -69,7 +70,7 @@ public class TextUtils {
                 final double value = Double.parseDouble(valueStr);
                 ticks += (int) Math.round(value * unitTicks);
             } catch (NumberFormatException e) {
-                LogUtils.warn("Fail to parse number: '" + valueStr + "', in experssion'" + part
+                HyphaShopImpl.LOGGER.warn("Fail to parse number: '" + valueStr + "', in experssion'" + part
                         + ". This part will use 0 as fallback.");
             }
         }

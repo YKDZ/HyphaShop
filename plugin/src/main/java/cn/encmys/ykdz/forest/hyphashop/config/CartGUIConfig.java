@@ -1,10 +1,10 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.config.record.gui.CartProductIconRecord;
 import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -29,7 +29,7 @@ public class CartGUIConfig {
         try {
             cartGUIConfig.load(file);
         } catch (IOException | InvalidConfigurationException error) {
-            LogUtils.error(error.getMessage());
+            HyphaShopImpl.LOGGER.error(error.getMessage());
         }
 
         setup();

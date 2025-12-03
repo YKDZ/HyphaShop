@@ -1,7 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import cn.encmys.ykdz.forest.hyphautils.utils.HyphaConfigUtils;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -51,13 +51,13 @@ public class Config {
             config.load(file);
             final InputStream newConfigStream = HyphaShop.INSTANCE.getResource(resourcePath);
             if (newConfigStream == null) {
-                LogUtils.error("Resource " + resourcePath + " not found");
+                HyphaShopImpl.LOGGER.error("Resource " + resourcePath + " not found");
                 return;
             }
             config = HyphaConfigUtils.merge(config, HyphaConfigUtils.loadYamlFromResource(newConfigStream), path);
             setup();
         } catch (IOException | InvalidConfigurationException error) {
-            LogUtils.error(error.getMessage());
+            HyphaShopImpl.LOGGER.error(error.getMessage());
         }
     }
 

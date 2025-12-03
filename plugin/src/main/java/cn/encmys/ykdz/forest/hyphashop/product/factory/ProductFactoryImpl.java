@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.product.factory;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.database.dao.ProductDao;
@@ -20,7 +21,6 @@ import cn.encmys.ykdz.forest.hyphashop.product.ItemProduct;
 import cn.encmys.ykdz.forest.hyphashop.product.VirtualProduct;
 import cn.encmys.ykdz.forest.hyphashop.product.stock.ProductStockImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigInheritor;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
@@ -74,7 +74,7 @@ public class ProductFactoryImpl implements ProductFactory {
     @Override
     public void buildProduct(@NotNull String id, @NotNull ConfigAccessor productConfig, @NotNull ConfigAccessor defaultSettings) {
         if (containsProduct(id)) {
-            LogUtils.warn("Product id \"" + id + "\" is duplicated. Ignore this product.");
+            HyphaShopImpl.LOGGER.warn("Product id \"" + id + "\" is duplicated. Ignore this product.");
             return;
         }
 
@@ -101,7 +101,7 @@ public class ProductFactoryImpl implements ProductFactory {
         Rarity rarity = HyphaShop.RARITY_FACTORY.getRarity(rarityId);
 
         if (rarity == null) {
-            LogUtils.warn("Product " + id + " has invalid rarity config: " + rarityId + ". Use default rarity: " + RarityConfig.getAllId().getFirst());
+            HyphaShopImpl.LOGGER.warn("Product " + id + " has invalid rarity config: " + rarityId + ". Use default rarity: " + RarityConfig.getAllId().getFirst());
             rarity = HyphaShop.RARITY_FACTORY.getRarity(RarityConfig.getAllId().getFirst());
         }
         assert rarity != null;
@@ -163,14 +163,14 @@ public class ProductFactoryImpl implements ProductFactory {
                 } else if (parsedContentData.length == 2) {
                     bundleContents.put(parsedContentData[0], Integer.parseInt(parsedContentData[1]));
                 } else {
-                    LogUtils.warn("Product \"" + id + "\" has invalid bundle-contents. The invalid line is: " + contentData + ".");
+                    HyphaShopImpl.LOGGER.warn("Product \"" + id + "\" has invalid bundle-contents. The invalid line is: " + contentData + ".");
                     continue;
                 }
                 // 检查捆绑包内容商品是否存在
                 // 需确保捆绑包商品在所有商品之后加载
                 final Product content = products.get(parsedContentData[0]);
                 if (content == null) {
-                    LogUtils.warn("Bundle product \"" + id + "\" has invalid content " + contentData + ". Please check and fix it in your product config.");
+                    HyphaShopImpl.LOGGER.warn("Bundle product \"" + id + "\" has invalid content " + contentData + ". Please check and fix it in your product config.");
                     bundleContents.remove(parsedContentData[0]);
                 }
             }
@@ -181,7 +181,7 @@ public class ProductFactoryImpl implements ProductFactory {
                     new ItemProduct(id, buyPrice, sellPrice, rarity, iconDecorator, itemDecorator, stock, ctx, actions, isCacheable));
         } else {
             if (actions.isEmpty())
-                LogUtils.warn("Product \"" + id + "\" has neither bundle-contents, item nor actions, which is meaningless. This product will still be loaded but will do nothing when being bought or sold. Please check your product config.");
+                HyphaShopImpl.LOGGER.warn("Product \"" + id + "\" has neither bundle-contents, item nor actions, which is meaningless. This product will still be loaded but will do nothing when being bought or sold. Please check your product config.");
             products.put(id,
                     new VirtualProduct(id, buyPrice, sellPrice, rarity, iconDecorator, stock, ctx, actions, isCacheable));
         }

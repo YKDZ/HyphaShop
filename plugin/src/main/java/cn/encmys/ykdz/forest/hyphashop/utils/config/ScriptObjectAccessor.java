@@ -116,7 +116,7 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<Object> get(@NotNull String path) {
-        return Optional.ofNullable(config.findMember(path).getReferredValue().getValue());
+        return Optional.ofNullable(config.findMember(path).getReferredValue().value());
     }
 
     @Override

@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.order;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
@@ -16,7 +17,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -52,11 +52,11 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     @Override
     public void combineOrder(@NotNull ShopOrder newOrder) {
         if (!customerUUID.equals(newOrder.getCustomerUUID())) {
-            LogUtils.warn("Try to combine orders with different customer.");
+            HyphaShopImpl.LOGGER.warn("Try to combine orders with different customer.");
             return;
         }
         if (type != newOrder.getType()) {
-            LogUtils.warn("Try to combine orders with different order types.");
+            HyphaShopImpl.LOGGER.warn("Try to combine orders with different order types.");
             return;
         }
         // 新定单合并到本定单

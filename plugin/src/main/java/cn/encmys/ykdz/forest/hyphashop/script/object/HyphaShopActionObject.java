@@ -11,6 +11,7 @@ import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
@@ -24,7 +25,10 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.order.ShopOrderImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.*;
+import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.MessageUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.MiscUtils;
+import cn.encmys.ykdz.forest.hyphashop.utils.ShopContextUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ScriptObjectAccessor;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.entity.Player;
@@ -56,7 +60,7 @@ public class HyphaShopActionObject extends InternalObject {
             return;
 
         if (amount <= 0) {
-            LogUtils.warn("Amount of add_to_cart must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of add_to_cart must be greater than 0.");
             return;
         }
 
@@ -100,7 +104,7 @@ public class HyphaShopActionObject extends InternalObject {
             return;
 
         if (amount <= 0) {
-            LogUtils.warn("Amount of remove_from_cart must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of remove_from_cart must be greater than 0.");
             return;
         }
 
@@ -141,12 +145,12 @@ public class HyphaShopActionObject extends InternalObject {
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) {
-            LogUtils.warn("Player: " + player + " | Shop: " + shop + " | Product: " + product + " | Amount: " + amount);
+            HyphaShopImpl.LOGGER.warn("Player: " + player + " | Shop: " + shop + " | Product: " + product + " | Amount: " + amount);
             return null;
         }
 
         if (amount <= 0) {
-            LogUtils.warn("call sell_to with amount <= 0 will do nothing");
+            HyphaShopImpl.LOGGER.warn("call sell_to with amount <= 0 will do nothing");
             return null;
         }
 
@@ -181,7 +185,7 @@ public class HyphaShopActionObject extends InternalObject {
             return null;
 
         if (amount <= 0) {
-            LogUtils.warn("Amount of buy_from must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of buy_from must be greater than 0.");
             return null;
         }
 

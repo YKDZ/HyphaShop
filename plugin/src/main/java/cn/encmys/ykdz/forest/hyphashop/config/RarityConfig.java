@@ -1,7 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -26,7 +26,7 @@ public class RarityConfig {
         try {
             config.load(file);
         } catch (IOException | InvalidConfigurationException error) {
-            LogUtils.error(error.getMessage());
+            HyphaShopImpl.LOGGER.error(error.getMessage());
         }
     }
 

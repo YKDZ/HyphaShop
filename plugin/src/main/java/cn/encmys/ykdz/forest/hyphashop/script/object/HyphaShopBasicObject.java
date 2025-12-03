@@ -9,12 +9,12 @@ import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObject;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.enums.ShoppingMode;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.config.Config;
 import cn.encmys.ykdz.forest.hyphashop.config.MessageConfig;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
@@ -41,13 +41,13 @@ public class HyphaShopBasicObject extends InternalObject {
 
         if (!enumId.isType(Value.Type.STRING)) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.term: enum_name is not a string");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.term: enum_name is not a string");
                 return "<red>ERROR: enum_name must be a string";
             } else {
                 return null;
             }
         }
-        final String enumIdStr = (String) enumId.getValue();
+        final String enumIdStr = (String) enumId.value();
 
         final List<Supplier<String>> converters = Arrays.asList(
                 () -> MessageConfig.getMessageString(MessageConfig.getTermPath(OrderType.valueOf(enumIdStr)), locale, "Term does not exists. Check console for more details"),
@@ -61,7 +61,7 @@ public class HyphaShopBasicObject extends InternalObject {
         }
 
         if (Config.debug) {
-            LogUtils.warn("HyphaShopBasic.term: invalid enum value: " + enumIdStr);
+            HyphaShopImpl.LOGGER.warn("HyphaShopBasic.term: invalid enum value: " + enumIdStr);
             return "<red>ERROR: invalid enum value: " + enumIdStr;
         } else {
             return null;
@@ -80,7 +80,7 @@ public class HyphaShopBasicObject extends InternalObject {
 
         if (!decimalValue.isType(Value.Type.NUMBER)) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.formatDecimal: decimal is not a number");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.formatDecimal: decimal is not a number");
                 return "<red>ERROR: decimal must be a number";
             } else {
                 return null;
@@ -93,7 +93,7 @@ public class HyphaShopBasicObject extends InternalObject {
             return MessageConfig.getDecimalFormat(locale).format(decimal);
         } catch (Exception e) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.formatDecimal: error formatting decimal");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.formatDecimal: error formatting decimal");
                 return "<red>ERROR: decimal formatting error";
             } else {
                 return null;
@@ -114,18 +114,18 @@ public class HyphaShopBasicObject extends InternalObject {
 
         if (!dateValue.isType(Value.Type.JAVA_OBJECT)) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.formatDate: date is not a Java object");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.formatDate: date is not a Java object");
                 return "<red>ERROR: date must be a Java object";
             } else {
                 return null;
             }
         }
 
-        final Object dateObj = dateValue.getValue();
+        final Object dateObj = dateValue.value();
 
         if (!(dateObj instanceof Date)) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.formatDate: date is not a Date instance");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.formatDate: date is not a Date instance");
                 return "<red>ERROR: date must be a Date instance";
             } else {
                 return null;
@@ -136,7 +136,7 @@ public class HyphaShopBasicObject extends InternalObject {
             return MessageConfig.getDateFormat(locale).format(dateObj);
         } catch (Exception e) {
             if (Config.debug) {
-                LogUtils.warn("HyphaShopBasic.formatDate: error formatting date");
+                HyphaShopImpl.LOGGER.warn("HyphaShopBasic.formatDate: error formatting date");
                 return "<red>ERROR: date formatting error";
             } else {
                 return null;

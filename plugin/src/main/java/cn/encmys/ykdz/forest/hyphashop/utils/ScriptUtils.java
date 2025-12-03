@@ -6,6 +6,7 @@ import cn.encmys.ykdz.forest.hyphascript.script.EvaluateResult;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
@@ -21,8 +22,8 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(new Context());
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when extracting context from script. Use global context as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when extracting context from script. Use global context as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return InternalObjectManager.GLOBAL_OBJECT;
         }
 
@@ -33,13 +34,13 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use false as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use false as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return false;
         }
 
         if (!result.value().isType(Value.Type.BOOLEAN)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not boolean but " + result.value().getType() + ". Use false as fallback value.");
+            HyphaShopImpl.LOGGER.warn("Result of script: " + script.getScript() + " is not boolean but " + result.value().type() + ". Use false as fallback value.");
             return false;
         }
 
@@ -50,13 +51,13 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use NaN as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use NaN as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return Double.NaN;
         }
 
         if (!result.value().isType(Value.Type.NUMBER)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not double but " + result.value().getType() + ". Use -1 as fallback value.");
+            HyphaShopImpl.LOGGER.warn("Result of script: " + script.getScript() + " is not double but " + result.value().type() + ". Use -1 as fallback value.");
             return Double.NaN;
         }
 
@@ -67,13 +68,13 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use Integer.MIN_VALUE as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use Integer.MIN_VALUE as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return Integer.MIN_VALUE;
         }
 
         if (!result.value().isType(Value.Type.NUMBER)) {
-            LogUtils.warn("Result of script: " + script.getScript() + " is not int but " + result.value().getType() + ". Use -1 as fallback value.");
+            HyphaShopImpl.LOGGER.warn("Result of script: " + script.getScript() + " is not int but " + result.value().type() + ". Use -1 as fallback value.");
             return Integer.MIN_VALUE;
         }
 
@@ -84,8 +85,8 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use empty string as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return "";
         }
 
@@ -96,8 +97,8 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use empty string as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use empty string as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return Component.empty();
         }
 
@@ -108,15 +109,15 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use empty string list as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return Collections.emptyList();
         }
 
         if (result.value().isType(Value.Type.NULL)) {
             return Collections.emptyList();
         } else if (result.value().isType(Value.Type.ARRAY)) {
-            return Arrays.stream(result.value().getAsArray())
+            return result.value().getAsArray().values().stream()
                     .map((ref) -> ref.getReferredValue().getAsAdventureComponent())
                     .collect(Collectors.toList());
         }
@@ -127,15 +128,15 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script. Use empty string list as fallback value.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use empty string list as fallback value.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
             return Collections.emptyList();
         }
 
         if (result.value().isType(Value.Type.NULL)) {
             return Collections.emptyList();
         } else if (result.value().isType(Value.Type.ARRAY)) {
-            return Arrays.stream(result.value().getAsArray())
+            return result.value().getAsArray().values().stream()
                     .map((ref) -> ref.getReferredValue().getAsString())
                     .collect(Collectors.toList());
         }
@@ -146,8 +147,8 @@ public class ScriptUtils {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
-            LogUtils.warn("Error when evaluating script.");
-            LogUtils.warn(result.toString());
+            HyphaShopImpl.LOGGER.warn("Error when evaluating script.");
+            HyphaShopImpl.LOGGER.warn(result.toString());
         }
 
         return result.value();

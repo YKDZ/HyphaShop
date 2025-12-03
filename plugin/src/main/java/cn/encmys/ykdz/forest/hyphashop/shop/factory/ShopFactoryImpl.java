@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.factory;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.database.schema.ShopSchema;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
@@ -8,7 +9,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.factory.ShopFactory;
 import cn.encmys.ykdz.forest.hyphashop.config.ProductConfig;
 import cn.encmys.ykdz.forest.hyphashop.config.ShopConfig;
 import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -46,7 +46,7 @@ public class ShopFactoryImpl implements ShopFactory {
                         final String packId = productId.substring(5);
                         final List<String> packProducts = ProductConfig.getAllProductId(packId);
                         if (packProducts == null) {
-                            LogUtils.warn("Product pack " + packId + ".yml in shop " + id + " not found.");
+                            HyphaShopImpl.LOGGER.warn("Product pack " + packId + ".yml in shop " + id + " not found.");
                             return Stream.empty();
                         }
                         return packProducts.stream();
@@ -55,7 +55,7 @@ public class ShopFactoryImpl implements ShopFactory {
                 })
                 .filter(productId -> {
                     if (!HyphaShop.PRODUCT_FACTORY.containsProduct(productId)) {
-                        LogUtils.warn("Product " + productId + " in shop " + id + " not exist.");
+                        HyphaShopImpl.LOGGER.warn("Product " + productId + " in shop " + id + " not exist.");
                         return false;
                     }
                     return true;
@@ -87,7 +87,7 @@ public class ShopFactoryImpl implements ShopFactory {
         // 加载完成
 
         shops.put(id, shop);
-        LogUtils.info("Successfully load shop " + id + " with " + productIds.size() + " product.");
+        HyphaShopImpl.LOGGER.info("Successfully load shop " + id + " with " + productIds.size() + " product.");
         return shop;
     }
 

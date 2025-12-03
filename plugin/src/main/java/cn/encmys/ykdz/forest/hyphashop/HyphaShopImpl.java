@@ -15,6 +15,7 @@ import cn.encmys.ykdz.forest.hyphashop.hook.MythicMobsHook;
 import cn.encmys.ykdz.forest.hyphashop.hook.PlaceholderAPIHook;
 import cn.encmys.ykdz.forest.hyphashop.listener.ItemsAdderListener;
 import cn.encmys.ykdz.forest.hyphashop.listener.PlayerListener;
+import cn.encmys.ykdz.forest.hyphashop.logger.Logger;
 import cn.encmys.ykdz.forest.hyphashop.product.factory.ProductFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.profile.factory.ProfileFactoryImpl;
 import cn.encmys.ykdz.forest.hyphashop.rarity.factory.RarityFactoryImpl;
@@ -22,7 +23,6 @@ import cn.encmys.ykdz.forest.hyphashop.scheduler.ConnTasksImpl;
 import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopActionObject;
 import cn.encmys.ykdz.forest.hyphashop.script.object.HyphaShopBasicObject;
 import cn.encmys.ykdz.forest.hyphashop.shop.factory.ShopFactoryImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.jetbrains.annotations.NotNull;
@@ -35,6 +35,8 @@ import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 public final class HyphaShopImpl extends HyphaShop {
+    public static final @NotNull Logger LOGGER = new Logger();
+
     @Override
     public void onLoad() {
         INSTANCE = this;
@@ -78,7 +80,7 @@ public final class HyphaShopImpl extends HyphaShop {
 
     @Override
     public void enable() {
-        HyphaScript.init(INSTANCE);
+        HyphaScript.init(INSTANCE, LOGGER);
 
         Config.load();
 
@@ -94,7 +96,7 @@ public final class HyphaShopImpl extends HyphaShop {
             CartGUIConfig.load();
             OrderHistoryGUIConfig.load();
         } catch (Exception e) {
-            LogUtils.error("Error when parsing gui. Plugin will be disabled." + e.getMessage());
+            LOGGER.error("Error when parsing gui. Plugin will be disabled." + e.getMessage());
             setEnabled(false);
             return;
         }
@@ -103,7 +105,7 @@ public final class HyphaShopImpl extends HyphaShop {
         DATABASE_FACTORY = new DatabaseFactoryImpl();
 
         if (!DATABASE_FACTORY.getProvider().migrate().success) {
-            LogUtils.error("Could not migrate database! Plugin will be disabled!");
+            LOGGER.error("Could not migrate database! Plugin will be disabled!");
             setEnabled(false);
             return;
         }
@@ -151,13 +153,13 @@ public final class HyphaShopImpl extends HyphaShop {
 
         try {
             Path scriptsPath = Paths.get(getDataFolder() + "/" + "scripts");
-            LogUtils.info("About to load scripts from " + scriptsPath);
+            LOGGER.info("About to load scripts from " + scriptsPath);
             loadScripsFromHps(scriptsPath);
-            LogUtils.info("Successfully loaded scripts. Result global context is: ");
-            LogUtils.info(InternalObjectManager.GLOBAL_OBJECT.toString());
+            LOGGER.info("Successfully loaded scripts. Result global context is: ");
+            LOGGER.info(InternalObjectManager.GLOBAL_OBJECT.toString());
             return true;
         } catch (Exception e) {
-            LogUtils.error("Failed to load scripts. HyphaShop will be disabled.");
+            LOGGER.error("Failed to load scripts. HyphaShop will be disabled.");
             e.printStackTrace();
             setEnabled(false);
             return false;

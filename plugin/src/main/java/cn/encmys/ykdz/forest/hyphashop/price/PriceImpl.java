@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.price;
 
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
@@ -8,7 +9,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.currency.manager.CurrencyManagerImpl;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,7 +43,7 @@ public class PriceImpl extends Price {
 
             if (formula == null) {
                 priceMode = PriceMode.DISABLE;
-                LogUtils.warn("Invalid price setting: " + config + ". The price will be disabled.");
+                HyphaShopImpl.LOGGER.warn("Invalid price setting: " + config + ". The price will be disabled.");
                 return;
             }
 
@@ -71,13 +71,13 @@ public class PriceImpl extends Price {
                 Double mean = getProperty(PriceProperty.MEAN);
                 Double dev = getProperty(PriceProperty.DEV);
                 if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev)) {
-                    LogUtils.warn("Invalid price property: " + properties + ". Price will be disabled.");
+                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 double result = mean + dev * random.nextGaussian();
                 if (result < 0) {
-                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
@@ -86,12 +86,12 @@ public class PriceImpl extends Price {
             case FIXED -> {
                 Double fixed = getProperty(PriceProperty.FIXED);
                 if (fixed == null) {
-                    LogUtils.warn("Invalid price property: " + properties + ".");
+                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ".");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 if (fixed < 0) {
-                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
@@ -102,13 +102,13 @@ public class PriceImpl extends Price {
                 Double max = getProperty(PriceProperty.MAX);
                 Boolean round = getProperty(PriceProperty.ROUND);
                 if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max)) {
-                    LogUtils.warn("Invalid price property: " + properties + ". Price will be disabled.");
+                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }
                 double result = min + (max - min) * random.nextDouble();
                 if (result < 0) {
-                    LogUtils.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
+                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
                     yield Double.NaN;
                 }

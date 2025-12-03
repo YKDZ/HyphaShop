@@ -1,12 +1,12 @@
 package cn.encmys.ykdz.forest.hyphashop.currency.manager;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.exception.CurrencyInitException;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.manager.CurrencyManager;
 import cn.encmys.ykdz.forest.hyphashop.currency.ExpCurrency;
 import cn.encmys.ykdz.forest.hyphashop.currency.VaultCurrency;
-import cn.encmys.ykdz.forest.hyphashop.utils.LogUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
@@ -24,7 +24,7 @@ public class CurrencyManagerImpl implements CurrencyManager {
         try {
             VAULT_CURRENCY.init(HyphaShop.INSTANCE);
         } catch (CurrencyInitException e) {
-            LogUtils.warn("Error when init Vault currency provider. Vault will not available in HyphaShop, which means every product should have currency type provided");
+            HyphaShopImpl.LOGGER.warn("Error when init Vault currency provider. Vault will not available in HyphaShop, which means every product should have currency type provided");
         }
     }
 
@@ -47,7 +47,7 @@ public class CurrencyManagerImpl implements CurrencyManager {
         try {
             provider.init(HyphaShop.INSTANCE);
         } catch (CurrencyInitException e) {
-            LogUtils.error("""
+            HyphaShopImpl.LOGGER.error("""
                     Error when init currency provider %s, this currency will not available in HyphaShop.
                     """.formatted(provider.getId()));
         }
