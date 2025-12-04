@@ -9,10 +9,12 @@ import org.jetbrains.annotations.Nullable;
 import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Random;
 
 public abstract class Price {
     protected static final @NotNull Random random = new SecureRandom();
+    
     protected final @NotNull Map<@NotNull PriceProperty, @Nullable Object> properties = new HashMap<>();
     protected final @NotNull CurrencyProvider currencyProvider;
     protected @NotNull PriceMode priceMode = PriceMode.DISABLE;
@@ -40,7 +42,7 @@ public abstract class Price {
         return currencyProvider;
     }
 
-    public abstract double getNewPrice();
+    public abstract @NotNull Optional<Double> getNewPrice();
 
     public abstract @NotNull PriceMode getPriceMode();
 }

@@ -94,61 +94,60 @@ cart:
         left:
           - back()
   cart-product-icon:
-    icon:
-      name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
-      lore:
-        - " "
-        - "<gray>Stack: <white>${stack}"
-        - "<gray>Total Price: <white>${format_decimal(total_price)}"
-        - " "
-        - "<dark_gray>✖ <aqua><key:key.mouse.left>"
-        - "   <gray>Add 1 stack"
-        - "<dark_gray>✖ <aqua><key:key.mouse.right>"
-        - "   <gray>Remove 1 stack"
-        - "<dark_gray>✖ <aqua><key:key.drop>"
-        - "   <gray>Remove this product"
-        - "<dark_gray>✖ <aqua>Shift + <key:key.mouse.left>"
-        - "   <gray>Input any amount as stack"
-        - " "
-      actions:
-        left:
-          - modify_order_stack{amount=1}
-          - update_icon()
-        right:
-          - modify_order_stack{amount=-1}
-          - update_icon()
-        drop:
-          - set_order_stack{amount=0}
-          - update_icon()
-        shift-left:
-          - |
-            show_dialog({
-              title: "Input Amount",
-              inputs: [
-                {
-                  type: "number-range",
-                  key: "stack",
-                  label: "Stack Amount",
-                  labelFormat: "%s: %s",
-                  width: 256,
-                  start: 1,
-                  end: 1024,
-                  initial: 1,
-                  step: 1
-                }
-              ],
-              actions: [
-                {
-                  label: "Confirm",
-                  width: 256,
-                  click: {
-                    type: "custom",
-                    onClick: () => {
-                      const stack = getFloat("stack")
-                      set_order_stack{amount=stack}
-                      open_cart()
-                    }
+    name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
+    lore:
+      - " "
+      - "<gray>Stack: <white>${stack}"
+      - "<gray>Total Price: <white>${format_decimal(total_price)}"
+      - " "
+      - "<dark_gray>✖ <aqua><key:key.mouse.left>"
+      - "   <gray>Add 1 stack"
+      - "<dark_gray>✖ <aqua><key:key.mouse.right>"
+      - "   <gray>Remove 1 stack"
+      - "<dark_gray>✖ <aqua><key:key.drop>"
+      - "   <gray>Remove this product"
+      - "<dark_gray>✖ <aqua>Shift + <key:key.mouse.left>"
+      - "   <gray>Input any amount as stack"
+      - " "
+    actions:
+      left:
+        - modify_order_stack{amount=1}
+        - update_icon()
+      right:
+        - modify_order_stack{amount=-1}
+        - update_icon()
+      drop:
+        - set_order_stack{amount=0}
+        - update_icon()
+      shift-left:
+        - |
+          show_dialog({
+            title: "Input Amount",
+            inputs: [
+              {
+                type: "number-range",
+                key: "stack",
+                label: "Stack Amount",
+                labelFormat: "%s: %s",
+                width: 256,
+                start: 1,
+                end: 1024,
+                initial: 1,
+                step: 1
+              }
+            ],
+            actions: [
+              {
+                label: "Confirm",
+                width: 256,
+                click: {
+                  type: "custom",
+                  onClick: () => {
+                    const stack = getFloat("stack")
+                    set_order_stack{amount=stack}
+                    open_cart()
                   }
                 }
-              ]
-            })
+              }
+            ]
+          })

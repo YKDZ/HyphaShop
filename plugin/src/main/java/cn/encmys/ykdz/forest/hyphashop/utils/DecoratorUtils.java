@@ -11,9 +11,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DecoratorUtils {
-    public static @NotNull BaseItemDecorator selectDecoratorByCondition(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object... args) {
+    public static @NotNull BaseItemDecorator selectDecoratorByCondition(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @NotNull Map<String, Object> vars, @Nullable Object... args) {
         final List<ConditionalIconRecord> conditionalIcons = staticDecorator.getProperty(ItemProperty.CONDITIONAL_ICONS);
         if (conditionalIcons == null) return staticDecorator;
 
@@ -25,6 +26,7 @@ public class DecoratorUtils {
                     final Script condition = icon.condition();
                     return ScriptUtils.evaluateBoolean(new VarInjector()
                             .withArgs(args)
+                            .withExtraVars(vars)
                             .withTarget(new Context(parent))
                             .withRequiredVars(condition)
                             .inject(), condition);

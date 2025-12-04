@@ -354,7 +354,18 @@ public class ConfigUtils {
 
     public static @NotNull Map<Character, BaseItemDecorator> parseIconDecorators(@NotNull ConfigAccessor config) {
         final Map<Character, BaseItemDecorator> icons = new HashMap<>();
-        config.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> icons.put(key.charAt(0), parseDecorator(childConfig)));
+        config.getLocalMembers().stream()
+                .flatMap(members -> members.entrySet().stream())
+                .forEach(entry -> {
+                    char iconKey = entry.getKey().charAt(0);
+                    parseDecorator(entry.getValue())
+                            .ifPresentOrElse(
+                                    decorator -> icons.put(iconKey, decorator),
+                                    () -> HyphaShopImpl.LOGGER.warn(
+                                            "Can not parse icon decorator for icon %s. This icon will be skipped.".formatted(iconKey)
+                                    )
+                            );
+                });
         return icons;
     }
 
@@ -367,16 +378,47 @@ public class ConfigUtils {
         final Gui.Builder<?, ?> builder = Gui.builder()
                 .setStructure(structure);
 
-        icons.getLocalMembers().orElse(new HashMap<>()).forEach((key, childConfig) -> builder.addIngredient(key.charAt(0), NormalIconBuilder.build(parseDecorator(childConfig), GUIType.NORMAL, InternalObjectManager.GLOBAL_OBJECT)));
+        icons.getLocalMembers().orElse(Map.of())
+                .forEach((key, childConfig) -> parseDecorator(childConfig)
+                        .ifPresentOrElse(decorator ->
+                                        builder.addIngredient(key.charAt(0), NormalIconBuilder.build(decorator, GUIType.NORMAL, InternalObjectManager.GLOBAL_OBJECT)),
+                                () -> HyphaShopImpl.LOGGER.warn("""
+                                        Error when parsing icon %s. This icon will be skipped.
+                                        """.formatted(key.charAt(0)))
+                        )
+                );
 
         return builder.build();
     }
 
-    public static @NotNull BaseItemDecorator parseDecorator(@NotNull ConfigAccessor config) {
-        final String base = config.getString("base").orElse("dirt");
-        final BaseItem item = BaseItemBuilder.get(base);
+    /**
+     * 当传入一个 null config 时返回空<br/>
+     * 当解析 base item 失败时用 DIRT 做回退
+     *
+     */
+    public static @NotNull Optional<BaseItemDecorator> parseDecoratorOrDirt(@Nullable ConfigAccessor config) {
+        if (config == null) return Optional.empty();
 
-        return new BaseItemDecorator(item)
+        return config.getString("base")
+                .flatMap(BaseItemBuilder::get)
+                .or(() -> BaseItemBuilder.get("dirt"))
+                .flatMap(base -> parseDecorator(config, base));
+    }
+
+    /**
+     * 当从 base 解析 BaseItem 失败或传入一个 null config 时返回空
+     *
+     */
+    public static @NotNull Optional<BaseItemDecorator> parseDecorator(@Nullable ConfigAccessor config) {
+        if (config == null) return Optional.empty();
+
+        return config.getString("base")
+                .flatMap(BaseItemBuilder::get)
+                .flatMap(base -> parseDecorator(config, base));
+    }
+
+    private static @NotNull Optional<BaseItemDecorator> parseDecorator(@NotNull ConfigAccessor config, @NotNull BaseItem item) {
+        return Optional.of(new BaseItemDecorator(item)
                 .setProperty(ItemProperty.NAME, StringUtils.wrapToScriptWithOmit(config.getString("name").orElse(null)).orElse(null))
                 .setProperty(ItemProperty.LORE, StringUtils.wrapToScriptWithOmit(config.getStringList("lore").orElse(null)))
                 .setProperty(ItemProperty.AMOUNT, StringUtils.wrapToScript(config.getString("amount").orElse("1")))
@@ -402,7 +444,7 @@ public class ConfigUtils {
                 .setProperty(ItemProperty.CUSTOM_MODEL_DATA_STRINGS, config.getStringList("custom-model-data.strings").orElse(null))
                 .setProperty(ItemProperty.TOOLTIP_DISPLAY_HIDE_TOOLTIP, config.getBoolean("tooltip-display.hide-tooltip").orElse(null))
                 .setProperty(ItemProperty.CONDITIONAL_ICONS, parseConditionIconRecords(config.getConfigList("icons").orElse(new ArrayList<>()), config))
-                .setProperty(ItemProperty.ACTIONS, ActionsConfig.of(config.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))));
+                .setProperty(ItemProperty.ACTIONS, ActionsConfig.of(config.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())))));
     }
 
     public static @NotNull List<ConditionalIconRecord> parseConditionIconRecords(@NotNull List<? extends ConfigAccessor> configList, @NotNull ConfigAccessor parent) {
@@ -412,34 +454,49 @@ public class ConfigUtils {
             final ConfigAccessor config = configList.get(i);
 
             final String conditionStr = config.getString("condition").orElse(null);
-            if (conditionStr == null) return;
+            if (conditionStr == null) {
+                HyphaShopImpl.LOGGER.warn("""
+                        Every conditional icon should have condition specified. This icon will be skipped.
+                        """);
+                return;
+            }
 
             final Script condition = StringUtils.wrapToScript(conditionStr);
 
-            if (condition == null) return;
-
             ConfigAccessor icon = config.getConfig("icon").orElse(null);
-            if (icon == null) return;
+            if (icon == null) {
+                HyphaShopImpl.LOGGER.warn("""
+                        Conditional icon "%s" do not have "icon" section specified. This icon will be skipped.
+                        """.formatted(conditionStr));
+                return;
+            }
 
             final ActionsConfig parentActions = ActionsConfig.of(parent.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
             final ActionsConfig actions = ActionsConfig.of(icon.getConfig("actions").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())));
 
             if (config.getBoolean("inherit").orElse(true)) {
-                // 手动继承 actions
+                // 用预定义规则继承 actions
                 actions.inherit(parentActions);
+                // 继承其他属性
                 icon = new ConfigInheritor(parent, icon);
             }
 
             // 索引小的优先级高
             final int priority = config.getInt("priority").orElse(configList.size() - i);
 
-            final BaseItemDecorator iconDecorator = parseDecorator(icon)
-                    .setProperty(ItemProperty.ACTIONS, actions);
+            final BaseItemDecorator iconDecorator = parseDecoratorOrDirt(icon).orElse(null);
+
+            if (iconDecorator == null) {
+                HyphaShopImpl.LOGGER.warn("""
+                        Error when parsing conditional icon "%s". This icon will be skipped.
+                        """.formatted(conditionStr));
+                return;
+            }
 
             conditionIcons.add(new ConditionalIconRecord(
                     condition,
                     priority,
-                    iconDecorator
+                    iconDecorator.setProperty(ItemProperty.ACTIONS, actions)
             ));
         });
 

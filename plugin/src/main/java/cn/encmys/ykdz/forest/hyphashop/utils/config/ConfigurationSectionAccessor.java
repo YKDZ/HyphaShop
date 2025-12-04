@@ -16,9 +16,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ConfigurationSectionAccessor implements ConfigAccessor {
-    private final @NotNull ConfigurationSection config;
-
+public record ConfigurationSectionAccessor(@NotNull ConfigurationSection config) implements ConfigAccessor {
     public ConfigurationSectionAccessor(@Nullable ConfigurationSection config) {
         this.config = config == null ? new YamlConfiguration() : config;
     }
@@ -130,12 +128,5 @@ public class ConfigurationSectionAccessor implements ConfigAccessor {
     @Override
     public boolean contains(@NotNull String path) {
         return config.contains(path);
-    }
-
-    @Override
-    public String toString() {
-        return "ConfigurationSectionAccessor{" +
-                "config=" + config.getKeys(true) +
-                '}';
     }
 }

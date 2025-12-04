@@ -1,14 +1,12 @@
 package cn.encmys.ykdz.forest.hyphashop.item.builder;
 
-import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.parser.BaseItemParser;
-import cn.encmys.ykdz.forest.hyphashop.item.VanillaItem;
 import cn.encmys.ykdz.forest.hyphashop.item.parser.*;
-import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class BaseItemBuilder {
@@ -23,12 +21,11 @@ public class BaseItemBuilder {
         register(new VanillaParser());
     }
 
-    public static @NotNull BaseItem get(@NotNull String base) {
+    public static @NotNull Optional<BaseItem> get(@NotNull String base) {
         for (final BaseItemParser parser : parserRegistry) {
-            if (parser.canParse(base)) return parser.parse(base);
+            if (parser.canParse(base)) return Optional.of(parser.parse(base));
         }
-        HyphaShopImpl.LOGGER.warn("Can not parse base: " + base + ". Please check your config. A dirt will be used as fallback.");
-        return new VanillaItem(Material.DIRT);
+        return Optional.empty();
     }
 
     public static void register(@NotNull BaseItemParser parser) {

@@ -34,9 +34,6 @@ public class GUICommand {
                                     final CommandSender sender = ctx.getSource().getSender();
                                     final String id = ctx.getArgument("gui", String.class);
                                     final Player target = ctx.getArgument("target", PlayerSelectorArgumentResolver.class).resolve(ctx.getSource()).getFirst();
-                                    if (target == null) {
-                                        return Command.SINGLE_SUCCESS;
-                                    }
                                     if (!sender.hasPermission("hyphashop.gui.open." + id)) {
                                         return Command.SINGLE_SUCCESS;
                                     }

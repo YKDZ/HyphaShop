@@ -26,7 +26,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         boolean formatted = remains.contains("formatted_");
 
         final String shopId = remains.replace("formatted_", "");
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
@@ -46,7 +46,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         final String currency = data[0].toUpperCase().replace("-", "_");
         final String shopId = data[1];
 
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
@@ -62,7 +62,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Invalid params.";
 
         final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
@@ -83,7 +83,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Invalid params.";
 
         final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
@@ -104,7 +104,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Invalid params.";
 
         final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 
@@ -126,7 +126,7 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return "Invalid params.";
 
         final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
         if (shop == null)
             return "Shop " + shopId + " do not exist.";
 

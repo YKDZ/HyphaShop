@@ -40,7 +40,7 @@ public class ShopCommand {
                                     final Player target = ctx
                                             .getArgument("target", PlayerSelectorArgumentResolver.class)
                                             .resolve(ctx.getSource()).getFirst();
-                                    final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+                                    final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
                                     if (!sender.hasPermission("hyphashop.shop.open." + shopId)) {
                                         MessageConfig.getMessageScript("messages.no-permission", ((Player) sender).locale().toLanguageTag())
                                                 .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender, shop));
@@ -72,7 +72,7 @@ public class ShopCommand {
                         .executes((ctx) -> {
                             final CommandSender sender = ctx.getSource().getSender();
                             final String shopId = ctx.getArgument("shop", String.class);
-                            final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+                            final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
                             if (shop == null) {
                                 MessageConfig.getMessageScript("messages.command.shop.restock.failure.invalid-shop", ((Player) sender).locale().toLanguageTag())
                                         .ifPresent(msg -> MessageUtils.sendMessageWithPrefix(sender, msg, sender));

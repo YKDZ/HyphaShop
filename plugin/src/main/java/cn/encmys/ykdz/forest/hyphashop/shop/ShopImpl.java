@@ -40,7 +40,7 @@ public class ShopImpl implements Shop {
     public ShopImpl(@NotNull String id, @NotNull ShopSettingsRecord settings, @NotNull List<String> allProductsId) {
         this.id = id;
         this.name = settings.name();
-        this.shopGUI = new ShopGUI(ShopConfig.getShopGUIConfig(id), this);
+        this.shopGUI = new ShopGUI(this, ShopConfig.getShopGUIConfig(id));
         this.shopPricer = new ShopPricerImpl(this);
         this.shopCashier = new ShopCashierImpl(this, settings.merchant());
         this.shopStocker = new ShopStockerImpl(this, settings.size(), settings.autoRestockEnabled(), settings.autoRestockPeriod(), allProductsId);

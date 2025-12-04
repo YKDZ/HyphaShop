@@ -27,6 +27,8 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
 public class ShopPricerImpl implements ShopPricer {
@@ -64,19 +66,21 @@ public class ShopPricerImpl implements ShopPricer {
             return false;
         }
 
-        double buy = calculatePrice(product.getBuyPrice(), product, true);
-        double sell = calculatePrice(product.getSellPrice(), product, false);
+        final @NotNull Optional<Double> buyPrice = calculatePrice(product.getBuyPrice(), product, true);
+        final @NotNull Optional<Double> sellPrice = calculatePrice(product.getSellPrice(), product, false);
+        double buy = buyPrice.orElse(Double.NaN);
+        double sell = sellPrice.orElse(Double.NaN);
 
-        if (!Double.isNaN(buy)
+        if (buyPrice.isPresent() && sellPrice.isPresent()
                 // 货币类型相同才有可比性
                 && product.getBuyPrice().getCurrencyProvider().getId().equals(product.getBuyPrice().getCurrencyProvider().getId())
-                && buy <= sell) {
-            handlePriceConflict(productId, buy, sell);
+                && buyPrice.get() <= sellPrice.get()) {
+            handlePriceConflict(productId, buyPrice.get(), sellPrice.get());
             if (Config.priceCorrectByDisableSellOrBuy) sell = Double.NaN;
             else buy = Double.NaN;
         }
 
-        if (Double.isNaN(buy) && Double.isNaN(sell)) {
+        if (buyPrice.isEmpty() && sellPrice.isEmpty()) {
             HyphaShopImpl.LOGGER.warn("Price cache for " + productId + " failed cause both buy and sell are invalid.");
             return false;
         }
@@ -85,8 +89,8 @@ public class ShopPricerImpl implements ShopPricer {
         return true;
     }
 
-    private double calculatePrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
-        if (price.getPriceMode() == PriceMode.FORMULA) return evaluateFormulaPrice(price, product, isBuy);
+    private @NotNull Optional<Double> calculatePrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
+        if (price.getPriceMode() == PriceMode.FORMULA) return Optional.of(evaluateFormulaPrice(price, product, isBuy));
         else return price.getNewPrice();
     }
 
@@ -121,7 +125,7 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private double calculateBundleAutoNewPrice(@NotNull Product product, boolean isBuy) {
-        double total = 0;
+        AtomicReference<Double> total = new AtomicReference<>(0d);
         final BundleProduct bundle = (BundleProduct) product;
         for (final Map.Entry<String, Integer> entry : bundle.getBundleContents().entrySet()) {
             final String contentId = entry.getKey();
@@ -132,9 +136,12 @@ public class ShopPricerImpl implements ShopPricer {
                 continue;
             }
             final Price contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
-            total += contentPrice.getNewPrice() * entry.getValue();
+
+            contentPrice.getNewPrice().ifPresent(newPrice ->
+                    total.updateAndGet(v -> v + newPrice * entry.getValue())
+            );
         }
-        return total;
+        return total.get();
     }
 
     private double calculateBundleAutoReusePrice(@NotNull Product product, boolean isBuy) {

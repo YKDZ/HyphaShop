@@ -56,11 +56,16 @@ public class HyphaShopActionObject extends InternalObject {
         final Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         final int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null)
+        if (player == null || shop == null || product == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    add_to_cart(amount, __player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         if (amount <= 0) {
-            HyphaShopImpl.LOGGER.warn("Amount of add_to_cart must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of add_to_cart(amount, __player, __shop, __product) must be greater than 0.");
             return;
         }
 
@@ -79,7 +84,6 @@ public class HyphaShopActionObject extends InternalObject {
                 : newOrder.canBuyFrom();
         if (result.canBeHandleByPlayer())
             cartOrder.combineOrder(newOrder);
-
 
         MessageUtils.sendMessage(
                 player,
@@ -100,11 +104,16 @@ public class HyphaShopActionObject extends InternalObject {
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null)
+        if (player == null || shop == null || product == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    remove_from_cart(amount, __player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         if (amount <= 0) {
-            HyphaShopImpl.LOGGER.warn("Amount of remove_from_cart must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of remove_from_cart(amount, __player, __shop, __product) must be greater than 0.");
             return;
         }
 
@@ -124,8 +133,13 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
-        if (player == null || shop == null || product == null)
+        if (player == null || shop == null || product == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    remove_all_from_cart(__player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         ShopOrder cartOrder = profile.getCart().getOrder();
@@ -145,12 +159,15 @@ public class HyphaShopActionObject extends InternalObject {
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
         if (player == null || shop == null || product == null) {
-            HyphaShopImpl.LOGGER.warn("Player: " + player + " | Shop: " + shop + " | Product: " + product + " | Amount: " + amount);
+            HyphaShopImpl.LOGGER.warn("""
+                    sell_to(amount, __player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return null;
         }
 
         if (amount <= 0) {
-            HyphaShopImpl.LOGGER.warn("call sell_to with amount <= 0 will do nothing");
+            HyphaShopImpl.LOGGER.warn("call sell_to(amount, __player, __shop, __product) with amount <= 0 will do nothing");
             return null;
         }
 
@@ -181,11 +198,16 @@ public class HyphaShopActionObject extends InternalObject {
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || shop == null || product == null)
+        if (player == null || shop == null || product == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    buy_from(amount, __player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return null;
+        }
 
         if (amount <= 0) {
-            HyphaShopImpl.LOGGER.warn("Amount of buy_from must be greater than 0.");
+            HyphaShopImpl.LOGGER.warn("Amount of buy_from(amount, __player, __shop, __product) must be greater than 0.");
             return null;
         }
 
@@ -214,8 +236,13 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         Product product = ShopContextUtils.getProduct(ctx).orElse(null);
 
-        if (player == null || shop == null || product == null)
+        if (player == null || shop == null || product == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    buy_all_from(__player, __shop, __product) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         ProductLocation productLoc = new ProductLocation(shop.getId(), product.getId());
         ShopOrder order = new ShopOrderImpl(player)
@@ -243,8 +270,13 @@ public class HyphaShopActionObject extends InternalObject {
         ScrollGui<?> gui = ShopContextUtils.getScrollGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (gui == null)
+        if (gui == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    scroll(amount, __gui) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         gui.setLine(gui.getLine() + amount);
     }
@@ -256,26 +288,41 @@ public class HyphaShopActionObject extends InternalObject {
         PagedGui<?> gui = ShopContextUtils.getPagedGui(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (gui == null)
+        if (gui == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    change_page(amount, __gui) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         gui.setPage(gui.getPage() + amount);
     }
 
     @Static
     @Function("open_shop")
-    @FunctionParas({"shop", "__player"})
+    @FunctionParas({"shopId", "__player"})
     public static void openShop(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        String shopId = ContextUtils.getStringParam(ctx, "shop").orElse(null);
+        String shopId = ContextUtils.getStringParam(ctx, "shopId").orElse(null);
 
-        if (shopId == null)
+        if (shopId == null || player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    open_shop(shopId, __player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
-        Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId);
+        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
 
-        if (shop == null || player == null)
+        if (shop == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    Can not parse find shop with id "%s" in open_shop(shopId, __player).
+                    Related context: %s
+                    """.formatted(shopId, ctx));
             return;
+        }
 
         shop.getShopGUI().open(player);
     }
@@ -287,8 +334,19 @@ public class HyphaShopActionObject extends InternalObject {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         String id = ContextUtils.getStringParam(ctx, "id").orElse(null);
 
-        if (id == null || player == null || !HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id))
+        if (id == null || player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    open_gui(id, __player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        } else if (HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id)) {
+            HyphaShopImpl.LOGGER.warn("""
+                    Can not find gui with id "%s" in open_gui(id, __player).
+                    Related context: %s
+                    """.formatted(id, ctx));
+            return;
+        }
 
         HyphaShop.NORMAL_GUI_FACTORY.getGUI(id).open(player);
     }
@@ -297,10 +355,15 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("close_gui")
     @FunctionParas({"__player"})
     public static void closeGUI(@NotNull Context ctx) {
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    close_gui(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         HyphaShop.PROFILE_FACTORY.getProfile(player).getViewingWindow()
                 .ifPresent(window -> Scheduler.runTask((task) -> window.close()));
@@ -313,8 +376,13 @@ public class HyphaShopActionObject extends InternalObject {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
 
-        if (player == null || shop == null)
+        if (player == null || shop == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    switch_shopping_mode(__player, __shop) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.setShoppingMode(shop.getId(),
@@ -327,8 +395,13 @@ public class HyphaShopActionObject extends InternalObject {
     public static void openCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    open_cart(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCartGUI().open(player);
@@ -338,13 +411,18 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("switch_cart_mode")
     @FunctionParas({"__player"})
     public static void switchCartMode(@NotNull Context ctx) {
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    switch_cart_mode(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
-        Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
-        ShopOrder cartOrder = profile.getCart().getOrder();
+        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
+        final ShopOrder cartOrder = profile.getCart().getOrder();
         cartOrder.setType(
                 switch (cartOrder.getType()) {
                     case SELL_TO -> OrderType.BUY_FROM;
@@ -359,12 +437,17 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("clean_cart")
     @FunctionParas({"__player"})
     public static void cleanCart(@NotNull Context ctx) {
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    clean_cart(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
-        Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
+        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCart().getOrder().clean();
         profile.getCartGUI().updateContents(player);
     }
@@ -373,12 +456,17 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("clear_cart")
     @FunctionParas({"__player"})
     public static void clearCart(@NotNull Context ctx) {
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    clean_cart(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
-        Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
+        final Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         profile.getCart().getOrder().clear();
         profile.getCartGUI().updateContents(player);
     }
@@ -406,8 +494,13 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || order == null || product == null || shop == null)
+        if (player == null || order == null || product == null || shop == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    modify_order_stack(amount, __order, __player, __product, __shop) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         order.modifyStack(new ProductLocation(shop.getId(), product.getId()), amount);
@@ -424,8 +517,13 @@ public class HyphaShopActionObject extends InternalObject {
         Shop shop = ShopContextUtils.getShop(ctx).orElse(null);
         int amount = ContextUtils.getIntParam(ctx, "amount").orElse(0);
 
-        if (player == null || order == null || product == null || shop == null)
+        if (player == null || order == null || product == null || shop == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    set_order_stack(amount, __order, __player, __product, __shop) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         order.setStack(new ProductLocation(shop.getId(), product.getId()), amount);
@@ -442,6 +540,10 @@ public class HyphaShopActionObject extends InternalObject {
 
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
         if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    anvil_input(gui_config, __player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             future.complete(new Reference(new Value("")));
             return wrapper;
         }
@@ -463,22 +565,27 @@ public class HyphaShopActionObject extends InternalObject {
     @Static
     @Function("show_dialog")
     @FunctionParas({"dialog_config", "__player"})
-    public static ScriptObject dialogInput(@NotNull Context ctx) {
-        ScriptObject wrapper = InternalObjectManager.FUTURE.newInstance();
-        CompletableFuture<Reference> future = new CompletableFuture<>();
-        wrapper.declareMember("future", new Reference(new Value(future)));
+    public static void showDialog(@NotNull Context ctx) {
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
         if (player == null) {
-            future.complete(new Reference(new Value("")));
-            return wrapper;
+            HyphaShopImpl.LOGGER.warn("""
+                    show_dialog(dialog_config, __player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
+            return;
         }
 
-        ScriptObject dialogConfig = ContextUtils.getScriptObjectParam(ctx, "dialog_config").orElse(new ScriptObject());
-
-        player.showDialog(ConfigUtils.parseDialog(new ScriptObjectAccessor(dialogConfig)));
-
-        return wrapper;
+        ContextUtils.getScriptObjectParam(ctx, "dialog_config")
+                .map(ScriptObjectAccessor::new)
+                .map(ConfigUtils::parseDialog)
+                .ifPresentOrElse(
+                        player::showDialog,
+                        () -> HyphaShopImpl.LOGGER.warn("""
+                                Can not parse dialog from dialog_config given to show_dialog(dialog_config, __player).
+                                Related context: %s
+                                """.formatted(ctx))
+                );
     }
 
     @Static
@@ -487,8 +594,13 @@ public class HyphaShopActionObject extends InternalObject {
     public static void settleCart(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
 
-        if (player == null)
+        if (player == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    settle_cart(__player) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         Profile profile = HyphaShop.PROFILE_FACTORY.getProfile(player);
         SettlementResult result = profile.getCart().getOrder().settle();
@@ -506,14 +618,24 @@ public class HyphaShopActionObject extends InternalObject {
                 .orElse(new Reference[0]);
         Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
 
-        if (icon == null)
+        if (icon == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    update_icon(target, __icon, __gui_structure, __gui) should have __icon parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         if (target == '\0')
             icon.notifyWindows();
         else {
-            if (gui == null)
+            if (gui == null) {
+                HyphaShopImpl.LOGGER.warn("""
+                        update_icon(target, __icon, __gui_structure, __gui) should have __gui parameters non-null when target is not provided or is '\\0'.
+                        Related context: %s
+                        """.formatted(ctx));
                 return;
+            }
             MiscUtils.generatePositionStream(structureRef, target)
                     .forEach(entry -> {
                         Item item = gui.getItem(entry.getKey() * 9 + entry.getValue());
@@ -528,10 +650,15 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("update_gui")
     @FunctionParas({"__gui"})
     public static void updateGui(@NotNull Context ctx) {
-        Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
+        final Gui gui = ShopContextUtils.getGui(ctx).orElse(null);
 
-        if (gui == null)
+        if (gui == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    update_gui(__gui) should have all parameters non-null.
+                    Related context: %s
+                    """.formatted(ctx));
             return;
+        }
 
         gui.notifyWindows();
     }

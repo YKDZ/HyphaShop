@@ -13,7 +13,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import xyz.xenondevs.invui.gui.*;
 import xyz.xenondevs.invui.item.Item;
 import xyz.xenondevs.invui.window.Window;
@@ -166,7 +165,7 @@ public abstract class AbstractGUI implements GUI {
 
     public abstract @NotNull BiConsumer<@NotNull Gui, @NotNull Player> getBuiltGuiHandler();
 
-    public abstract @Nullable Window getWindow(@NotNull Player player);
+    public abstract @NotNull Optional<Window> getWindow(@NotNull Player player);
 
     public abstract @NotNull BiConsumer<@NotNull Integer, @NotNull Integer> getScrollHandler();
 

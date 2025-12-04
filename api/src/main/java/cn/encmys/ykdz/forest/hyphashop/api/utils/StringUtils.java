@@ -25,7 +25,7 @@ public class StringUtils {
         return object;
     }
 
-    @Contract("null -> null")
+    @Contract("null -> null; !null -> !null")
     public static @Nullable Script wrapToScript(@Nullable String scriptStr) {
         if (scriptStr == null)
             return null;

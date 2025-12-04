@@ -19,7 +19,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import xyz.xenondevs.invui.gui.Gui;
 import xyz.xenondevs.invui.gui.Marker;
 import xyz.xenondevs.invui.gui.Markers;
@@ -33,10 +32,10 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class NormalGUI extends AbstractGUI {
-    private static final @NotNull Map<String, Window> windows = new HashMap<>();
-    private static final @NotNull Map<String, Gui> guis = new HashMap<>();
+    private static final @NotNull Map<UUID, Window> windows = new HashMap<>();
+    private static final @NotNull Map<UUID, Gui> guis = new HashMap<>();
 
-    private final @NotNull ConfigAccessor config;
+    protected final @NotNull ConfigAccessor config;
 
     public NormalGUI(@NotNull ConfigAccessor config) {
         this.config = config;
@@ -44,7 +43,7 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @NotNull Optional<Gui> getGUI(@NotNull Player player) {
-        return Optional.ofNullable(guis.get(player.getName()));
+        return Optional.ofNullable(guis.get(player.getUniqueId()));
     }
 
     @Override
@@ -81,12 +80,12 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @NotNull Optional<Marker> getScrollMode() {
-        return config.getComponent("scroll-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
+        return config.getString("scroll-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override
     public @NotNull Optional<Marker> getPageMode() {
-        return config.getComponent("page-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
+        return config.getString("page-mode").map(mode -> mode.equals("HORIZONTAL") ? Markers.CONTENT_LIST_SLOT_HORIZONTAL : Markers.CONTENT_LIST_SLOT_VERTICAL);
     }
 
     @Override
@@ -121,17 +120,17 @@ public class NormalGUI extends AbstractGUI {
 
     @Override
     public @NotNull Consumer<InventoryCloseEvent.Reason> getCloseHandler(@NotNull Player player) {
-        return (reason) -> windows.remove(player.getUniqueId().toString());
+        return (reason) -> windows.remove(player.getUniqueId());
     }
 
     @Override
     public @NotNull BiConsumer<@NotNull Window, @NotNull Player> getOpenedWindowHandler() {
-        return (window, player) -> windows.put(player.getUniqueId().toString(), window);
+        return (window, player) -> windows.put(player.getUniqueId(), window);
     }
 
     @Override
     public @NotNull BiConsumer<@NotNull Gui, @NotNull Player> getBuiltGuiHandler() {
-        return (gui, player) -> guis.put(player.getUniqueId().toString(), gui);
+        return (gui, player) -> guis.put(player.getUniqueId(), gui);
     }
 
     @Override
@@ -144,8 +143,8 @@ public class NormalGUI extends AbstractGUI {
     }
 
     @Override
-    public @Nullable Window getWindow(@NotNull Player player) {
-        return windows.get(player.getUniqueId().toString());
+    public @NotNull Optional<Window> getWindow(@NotNull Player player) {
+        return Optional.ofNullable(windows.get(player.getUniqueId()));
     }
 
     @Override

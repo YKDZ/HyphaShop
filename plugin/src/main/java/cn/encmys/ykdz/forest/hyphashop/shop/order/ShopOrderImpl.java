@@ -85,7 +85,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 final ProductLocation productLoc = entry.getKey();
                 final Product product = productLoc.product();
-                final Shop shop = productLoc.shop();
+                final Shop shop = productLoc.shop().orElse(null);
                 final int stack = entry.getValue();
 
                 if (product == null || shop == null) continue;
@@ -128,7 +128,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 final ProductLocation productLoc = entry.getKey();
                 final Product product = productLoc.product();
-                final Shop shop = productLoc.shop();
+                final Shop shop = productLoc.shop().orElse(null);
                 final int stack = entry.getValue();
 
                 if (product == null || shop == null) continue;
@@ -174,7 +174,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
@@ -227,7 +227,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
@@ -263,7 +263,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
@@ -285,7 +285,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         for (final Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final String productId = productLoc.productId();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
 
             if (shop == null) continue;
 
@@ -309,7 +309,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
             if (product == null || shop == null) continue;
@@ -439,7 +439,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             final ProductLocation productLoc = entry.getKey();
             final String productId = productLoc.productId();
             final Product product = productLoc.product();
-            final Shop shop = productLoc.shop();
+            final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
             // 商品 / 商店不存在

@@ -12,9 +12,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Optional;
 
 public record ProductLocation(@NotNull @Expose String shopId, @NotNull @Expose String productId) {
-    public @Nullable Shop shop() {
+    public @NotNull Optional<Shop> shop() {
         return HyphaShop.SHOP_FACTORY.getShop(shopId);
     }
 

@@ -4,6 +4,7 @@ import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.value.Reference;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionableKey;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
@@ -25,7 +26,12 @@ public class MiscUtils {
             @NotNull Map<String, Object> extraVars,
             @Nullable Object... args
     ) {
-        if (actions == null || !actions.hasAction(key)) return;
+        if (actions == null || !actions.hasAction(key)) {
+            HyphaShopImpl.LOGGER.debug("""
+                    No actions provided or actions is empty. Will do nothing
+                    """);
+            return;
+        }
         final List<Script> actionList = actions.getActions(key);
 
         Scheduler.runAsyncTask((task) -> {
@@ -38,7 +44,16 @@ public class MiscUtils {
                                 .withArgs(args)
                                 .withExtraVars(extraVars)
                                 .inject(), action)
-                );
+                ).exceptionally(throwable -> {
+                    HyphaShopImpl.LOGGER.error("""
+                            Error when evaluate action script.
+                            %s
+                            """.formatted(TextUtils.getStackTrace(throwable)));
+                    HyphaShopImpl.LOGGER.debug("""
+                            Related parent context: %s
+                            """.formatted(parent));
+                    return null;
+                });
             }
         });
     }

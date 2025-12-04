@@ -39,7 +39,14 @@ public record MMOItemsItem(@NotNull Type type, @NotNull String id) implements Ba
 
         for (var stat : mmoItem.getStats()) {
             if (stat.getId().equals("NAME")) {
-                final String name = HyphaAdventureUtils.legacyToMiniMessage(((NameData) mmoItem.getData(stat)).getMainName());
+                final var data = ((NameData) mmoItem.getData(stat));
+                if (data == null) {
+                    HyphaShopImpl.LOGGER.debug("""
+                            MMOItem %s:%s has no NAME stat. Can not get its display name.
+                            """.formatted(type().getId(), id()));
+                    continue;
+                }
+                final String name = HyphaAdventureUtils.legacyToMiniMessage(data.getMainName());
                 return HyphaAdventureUtils.getComponentFromMiniMessage(name);
             }
         }

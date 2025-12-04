@@ -1,15 +1,11 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
-import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
-import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
-import cn.encmys.ykdz.forest.hyphashop.config.record.gui.ShopProductIconRecord;
 import cn.encmys.ykdz.forest.hyphashop.config.record.shop.ShopSettingsRecord;
-import cn.encmys.ykdz.forest.hyphashop.utils.ConfigUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.config.ConfigurationSectionAccessor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -28,8 +24,6 @@ import java.util.stream.Collectors;
 public class ShopConfig {
     private static final @NotNull String path = HyphaShop.INSTANCE.getDataFolder() + "/shop";
     private static final @NotNull Map<@NotNull String, @NotNull YamlConfiguration> configs = new HashMap<>();
-
-    private static final @NotNull Map<@NotNull String, @NotNull ShopProductIconRecord> productIconRecords = new HashMap<>();
 
     public static void load() {
         final File directory = new File(path);
@@ -52,18 +46,6 @@ public class ShopConfig {
                 }
             }
         }
-
-        setup();
-    }
-
-    private static void setup() {
-        configs.keySet().forEach((id) -> productIconRecords.put(id, new ShopProductIconRecord(
-                ConfigUtils.parseDecorator(getShopGUIConfig(id).getConfig("product-icon.icon").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()))),
-                StringUtils.wrapToScriptWithOmit(
-                        getShopGUIConfig(id).getString("product-icon.format.bundle-content-line")
-                                .orElse("<red>Bundle content line not found!")
-                ).orElse(new Script("`<red>Bundle content line not found!`"))
-        )));
     }
 
     public static @NotNull YamlConfiguration getConfig(@NotNull String shopId) {
@@ -109,21 +91,10 @@ public class ShopConfig {
     }
 
     public static @NotNull ConfigAccessor getShopSettingsConfig(@NotNull String shopId) {
-        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
         return new ConfigurationSectionAccessor(getConfig(shopId).getConfigurationSection("settings"));
     }
 
     public static @NotNull ConfigAccessor getShopGUIConfig(@NotNull String shopId) {
-        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
         return new ConfigurationSectionAccessor(getConfig(shopId).getConfigurationSection("shop-gui"));
-    }
-
-    public static @NotNull ShopProductIconRecord getShopProductIconRecord(@NotNull String shopId) {
-        if (!hasShop(shopId)) throw new RuntimeException("Shop " + shopId + " doesn't exist");
-        return productIconRecords.get(shopId);
-    }
-
-    public static boolean hasShop(@NotNull String shopId) {
-        return configs.containsKey(shopId);
     }
 }

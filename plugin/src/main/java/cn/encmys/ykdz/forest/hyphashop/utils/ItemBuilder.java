@@ -30,6 +30,9 @@ public class ItemBuilder {
         this.raw = raw;
     }
 
+    /**
+     * 用给定装饰器装饰当前物品
+     */
     public @NotNull ItemBuilder decorate(@NotNull BaseItemDecorator decorator) {
         return this
                 .setItemFlags(decorator.getProperty(ItemProperty.ITEM_FLAGS))

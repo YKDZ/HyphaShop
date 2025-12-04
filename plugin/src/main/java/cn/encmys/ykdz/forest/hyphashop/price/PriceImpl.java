@@ -12,6 +12,8 @@ import cn.encmys.ykdz.forest.hyphashop.currency.manager.CurrencyManagerImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Optional;
+
 public class PriceImpl extends Price {
     public PriceImpl(@NotNull ConfigAccessor defaultConfig, @NotNull ConfigAccessor config) {
         super(HyphaShop.CURRENCY_MANAGER.getCurrency(
@@ -64,7 +66,7 @@ public class PriceImpl extends Price {
      *
      */
     @Override
-    public double getNewPrice() {
+    public @NotNull Optional<Double> getNewPrice() {
         return switch (priceMode) {
             case GAUSSIAN -> {
                 Boolean round = getProperty(PriceProperty.ROUND);
@@ -73,29 +75,29 @@ public class PriceImpl extends Price {
                 if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev)) {
                     HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
                 double result = mean + dev * random.nextGaussian();
                 if (result < 0) {
                     HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
-                yield round ? Math.floor(result) : result;
+                yield Optional.of(round ? Math.floor(result) : result);
             }
             case FIXED -> {
                 Double fixed = getProperty(PriceProperty.FIXED);
                 if (fixed == null) {
                     HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ".");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
                 if (fixed < 0) {
                     HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
-                yield fixed;
+                yield Optional.of(fixed);
             }
             case MINMAX -> {
                 Double min = getProperty(PriceProperty.MIN);
@@ -104,17 +106,17 @@ public class PriceImpl extends Price {
                 if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max)) {
                     HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
                 double result = min + (max - min) * random.nextDouble();
                 if (result < 0) {
                     HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
                     this.priceMode = PriceMode.DISABLE;
-                    yield Double.NaN;
+                    yield Optional.empty();
                 }
-                yield round ? Math.floor(result) : result;
+                yield Optional.of(round ? Math.floor(result) : result);
             }
-            default -> Double.NaN;
+            default -> Optional.empty();
         };
     }
 

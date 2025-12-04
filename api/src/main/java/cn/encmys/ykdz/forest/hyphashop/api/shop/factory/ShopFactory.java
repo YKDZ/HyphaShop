@@ -6,13 +6,14 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Map;
+import java.util.Optional;
 
 public interface ShopFactory {
     void load();
 
     @Nullable Shop buildShop(@NotNull String id);
 
-    @Nullable Shop getShop(@NotNull String id);
+    @NotNull Optional<Shop> getShop(@NotNull String id);
 
     @NotNull
     @Unmodifiable

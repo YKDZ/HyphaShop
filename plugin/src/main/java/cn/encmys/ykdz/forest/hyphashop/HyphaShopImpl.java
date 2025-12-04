@@ -62,12 +62,6 @@ public final class HyphaShopImpl extends HyphaShop {
     public void init() {
         Bukkit.getPluginManager().registerEvents(new PlayerListener(), INSTANCE);
 
-//        if (!setupEconomy()) {
-//            LogUtils.error("Plugin disabled due to no Vault dependency found!");
-//            getServer().getPluginManager().disablePlugin(this);
-//            return;
-//        }
-
         PlaceholderAPIHook.load();
         MMOItemsHook.load();
         ItemsAdderHook.load();

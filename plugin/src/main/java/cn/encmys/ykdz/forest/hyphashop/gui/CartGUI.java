@@ -1,14 +1,26 @@
 package cn.encmys.ykdz.forest.hyphashop.gui;
 
+import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
+import cn.encmys.ykdz.forest.hyphashop.api.config.action.enums.ActionClickType;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
+import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.enums.ItemProperty;
+import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.cart.Cart;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
-import cn.encmys.ykdz.forest.hyphashop.item.builder.CartProductIconBuilder;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
+import cn.encmys.ykdz.forest.hyphashop.utils.*;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import xyz.xenondevs.invui.gui.Gui;
 import xyz.xenondevs.invui.item.Item;
@@ -19,14 +31,21 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public class CartGUI extends NormalGUI {
-    protected final static @NotNull Map<String, Window> windows = new HashMap<>();
-    protected final @NotNull Map<String, Gui> guis = new HashMap<>();
+    protected final static @NotNull Map<UUID, Window> windows = new HashMap<>();
+    protected final @NotNull Map<UUID, Gui> guis = new HashMap<>();
 
+    private final @NotNull BaseItemDecorator productIcon;
     private final @NotNull OfflinePlayer owner;
 
     public CartGUI(@NotNull OfflinePlayer owner, @NotNull ConfigAccessor config) {
         super(config);
         this.owner = owner;
+
+        this.productIcon = ConfigUtils.parseDecoratorOrDirt(config.getConfig("cart-product-icon")
+                        .orElse(null))
+                .orElseThrow(() -> new RuntimeException("""
+                        Can not parse product-icon decorator from gui/internal/cart.yml. This should be an issue. Please report it.
+                        """));
     }
 
     @Override
@@ -42,7 +61,7 @@ public class CartGUI extends NormalGUI {
         Cart cart = profile.getCart();
 
         cart.getOrder().getOrderedProducts().keySet().stream()
-                .map(productLoc -> CartProductIconBuilder.build(cart, productLoc))
+                .map(productLoc -> build(cart, productLoc))
                 .forEach(contents::add);
 
         return contents;
@@ -55,21 +74,90 @@ public class CartGUI extends NormalGUI {
 
     @Override
     public @NotNull BiConsumer<@NotNull Window, @NotNull Player> getOpenedWindowHandler() {
-        return (window, player) -> windows.put(player.getUniqueId().toString(), window);
+        return (window, player) -> windows.put(player.getUniqueId(), window);
     }
 
     @Override
     public @NotNull BiConsumer<@NotNull Gui, @NotNull Player> getBuiltGuiHandler() {
-        return (gui, player) -> guis.put(player.getUniqueId().toString(), gui);
+        return (gui, player) -> guis.put(player.getUniqueId(), gui);
     }
 
     @Override
     public @NotNull Optional<Gui> getGUI(@NotNull Player player) {
-        return Optional.ofNullable(guis.get(player.getName()));
+        return Optional.ofNullable(guis.get(player.getUniqueId()));
     }
 
     @Override
     public @NotNull Consumer<InventoryCloseEvent.Reason> getCloseHandler(@NotNull Player player) {
-        return (reason) -> windows.remove(player.getUniqueId().toString());
+        return (reason) -> windows.remove(player.getUniqueId());
+    }
+
+    private @NotNull Item build(@NotNull Cart cart, @NotNull ProductLocation productLoc) {
+        final Product product = productLoc.product();
+        final Shop shop = productLoc.shop().orElse(null);
+
+        if (product == null || shop == null) return Item.simple(new ItemStack(Material.AIR));
+
+        var builder = Item.builder()
+                .setItemProvider((player) -> {
+                    final int stack = cart.getOrder().getOrderedProducts().getOrDefault(productLoc, 0);
+                    if (stack <= 0) {
+                        return new xyz.xenondevs.invui.item.ItemBuilder(Material.AIR);
+                    }
+
+                    final Map<String, Object> vars = Map.of(
+                            "stack", stack,
+                            "total_price", cart.getOrder().getBilledPrice(productLoc),
+                            "price_mode", cart.getOrder().getType() == OrderType.SELL_TO ?
+                                    product.getBuyPrice().getPriceMode().name().toLowerCase().replace("_", "-")
+                                    : product.getSellPrice().getPriceMode().name().toLowerCase().replace("_", "-"),
+                            "currency_id", cart.getOrder().getType() == OrderType.SELL_TO ?
+                                    product.getBuyPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
+                                    : product.getSellPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
+                    );
+
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(productIcon, ContextUtils.linkContext(
+                            product.getScriptContext().clone(),
+                            shop.getScriptContext().clone()
+                    ), vars, player, shop, product, cart.getOrder());
+
+                    // 在商品自己图标的基础上覆盖名称、lore 和 itemFlags
+                    return new xyz.xenondevs.invui.item.ItemBuilder(
+                            new ItemBuilder(product.getIconDecorator().getBaseItem().build(player))
+                                    .decorate(product.getIconDecorator())
+                                    .setDisplayName(TextUtils.parseNameToComponent(iconDecorator.getNameOrUseBaseItemName(), ContextUtils.linkContext(
+                                            product.getScriptContext().clone(),
+                                            shop.getScriptContext().clone()
+                                    ), vars, player, shop, product, cart.getOrder()))
+                                    .setLore(TextUtils.parseLoreToComponent(iconDecorator.getProperty(ItemProperty.LORE), ContextUtils.linkContext(
+                                            product.getScriptContext().clone(),
+                                            shop.getScriptContext().clone()
+                                    ), vars, player, shop, product, cart.getOrder()))
+                                    .build(stack)
+                    );
+                })
+                .addClickHandler((item, click) -> {
+                    final Player player = click.player();
+
+                    final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(productIcon, ContextUtils.linkContext(
+                            product.getScriptContext().clone(),
+                            shop.getScriptContext().clone()
+                    ), Map.of(), player, shop, product, click, item, cart.getOrder());
+                    final ActionsConfig actions = iconDecorator.getProperty(ItemProperty.ACTIONS);
+
+                    HyphaShopImpl.LOGGER.debug("""
+                            About to handle click of cart product icon. Click: %s, Player: %s, Actions: %s
+                            """.formatted(click, player.getUniqueId(), actions));
+
+                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, ContextUtils.linkContext(
+                            product.getScriptContext(),
+                            shop.getScriptContext()
+                    ), Map.of(), player, shop, product, click, item, cart.getOrder());
+                });
+
+        if (Boolean.TRUE.equals(productIcon.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
+        final Integer period = productIcon.getProperty(ItemProperty.UPDATE_PERIOD);
+        if (period != null) builder.updatePeriodically(period);
+        return builder.build();
     }
 }

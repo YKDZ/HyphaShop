@@ -113,7 +113,14 @@ public class ProductFactoryImpl implements ProductFactory {
         BaseItemDecorator itemDecorator = null;
         // 具有 item.base 配置键的商品即被视为 ItemProduct
         if (inheritedProductConfig.contains("item") && inheritedProductConfig.getConfig("item").orElse(new ConfigurationSectionAccessor(new YamlConfiguration())).contains("base")) {
-            itemDecorator = ConfigUtils.parseDecorator(itemConfig);
+            var optionalDecorator = ConfigUtils.parseDecorator(itemConfig);
+            if (optionalDecorator.isEmpty()) {
+                HyphaShopImpl.LOGGER.warn("""
+                        Product %s has item.base specified but can not parse to any base item. This product will be skipped.
+                        """.formatted(id));
+                return;
+            }
+            itemDecorator = optionalDecorator.get();
         }
 
         // 库存（可指定默认值）
@@ -148,7 +155,14 @@ public class ProductFactoryImpl implements ProductFactory {
         actions.inherit(ActionsConfig.of(defaultActionsConfig));
 
         // IconDecorator
-        final BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(inheritedIconConfig);
+        final BaseItemDecorator iconDecorator = ConfigUtils.parseDecorator(inheritedIconConfig).orElse(null);
+
+        if (iconDecorator == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    Can not parse to any base item from "icon.base" in product config of %s. This product will be skipped.
+                    """.formatted(id));
+            return;
+        }
 
         // 脚本用上下文
         final Context ctx = ScriptUtils.extractContext(inheritedProductConfig.getString("context").orElse(""));

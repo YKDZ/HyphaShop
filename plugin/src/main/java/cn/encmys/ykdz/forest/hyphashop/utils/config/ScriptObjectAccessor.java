@@ -3,7 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.utils.config;
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.function.Function;
 import cn.encmys.ykdz.forest.hyphascript.oop.ScriptObject;
-import cn.encmys.ykdz.forest.hyphascript.value.Reference;
+import cn.encmys.ykdz.forest.hyphascript.value.ScriptArray;
 import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import net.kyori.adventure.text.Component;
@@ -12,9 +12,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-public class ScriptObjectAccessor implements ConfigAccessor {
-    private final @NotNull ScriptObject config;
-
+public record ScriptObjectAccessor(@NotNull ScriptObject config) implements ConfigAccessor {
     public ScriptObjectAccessor(@Nullable ScriptObject config) {
         this.config = config == null ? new ScriptObject() : config;
     }
@@ -46,8 +44,8 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<List<Boolean>> getBooleanList(@NotNull String path) {
-        return config.findMember(path, Reference[].class)
-                .map(refs -> Arrays.stream(refs)
+        return config.findMember(path, ScriptArray.class)
+                .map(array -> array.values().stream()
                         .map(ref -> ref.getReferredValue().getAsBoolean())
                         .toList());
     }
@@ -59,8 +57,8 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<List<Float>> getFloatList(@NotNull String path) {
-        return config.findMember(path, Reference[].class)
-                .map(refs -> Arrays.stream(refs)
+        return config.findMember(path, ScriptArray.class)
+                .map(array -> array.values().stream()
                         .map(ref -> ref.getReferredValue().getAsBigDecimal().floatValue())
                         .toList());
     }
@@ -87,8 +85,8 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<List<String>> getStringList(@NotNull String path) {
-        return config.findMember(path, Reference[].class)
-                .map(refs -> Arrays.stream(refs)
+        return config.findMember(path, ScriptArray.class)
+                .map(array -> array.values().stream()
                         .map(ref -> ref.getReferredValue().getAsString())
                         .toList());
     }
@@ -100,8 +98,8 @@ public class ScriptObjectAccessor implements ConfigAccessor {
 
     @Override
     public @NotNull Optional<List<? extends ConfigAccessor>> getConfigList(@NotNull String path) {
-        return config.findMember(path, Reference[].class)
-                .map(refs -> Arrays.stream(refs)
+        return config.findMember(path, ScriptArray.class)
+                .map(array -> array.values().stream()
                         .map(ref -> ref.getReferredValue().getAsScriptObject())
                         .map(ScriptObjectAccessor::new)
                         .toList());
@@ -127,12 +125,5 @@ public class ScriptObjectAccessor implements ConfigAccessor {
     @Override
     public boolean contains(@NotNull String path) {
         return config.hasLocalMember(path);
-    }
-
-    @Override
-    public String toString() {
-        return "ScriptObjectAccessor{" +
-                "config=" + config +
-                '}';
     }
 }

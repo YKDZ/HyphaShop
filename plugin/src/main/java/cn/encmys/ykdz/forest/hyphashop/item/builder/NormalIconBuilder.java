@@ -12,11 +12,15 @@ import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import xyz.xenondevs.invui.Click;
+import xyz.xenondevs.invui.gui.Gui;
 import xyz.xenondevs.invui.item.BoundItem;
 import xyz.xenondevs.invui.item.Item;
+import xyz.xenondevs.invui.util.TriConsumer;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Map;
 import java.util.stream.Stream;
 
 public class NormalIconBuilder {
@@ -38,13 +42,13 @@ public class NormalIconBuilder {
         final var builder = Item.builder()
                 .setItemProvider((player) -> {
                     final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(
-                            staticDecorator, parent, player
+                            staticDecorator, parent, Map.of(), player
                     );
                     return itemFromDecorator(decorator, player, parent, args);
                 })
                 .addClickHandler((item, click) -> {
                     final Player player = click.player();
-                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, player, click, item);
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Map.of(), player, click, item);
                     final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
 
                     MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item)).toArray());
@@ -58,17 +62,10 @@ public class NormalIconBuilder {
     private static @NotNull Item buildScrollIcon(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
         final var builder = BoundItem.scrollBuilder()
                 .setItemProvider((player, gui) -> {
-                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Map.of(), Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
                     return itemFromDecorator(decorator, player, parent, Stream.concat(Arrays.stream(args), Stream.of(gui)).toArray());
                 })
-                .addClickHandler((item, gui, click) -> {
-                    final Player player = click.player();
-
-                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                    final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
-
-                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                });
+                .addClickHandler(controlItemClickHandler(staticDecorator, parent, args));
         if (Boolean.TRUE.equals(staticDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
         final Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
@@ -78,17 +75,10 @@ public class NormalIconBuilder {
     private static @NotNull Item buildPageIcon(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
         final var builder = BoundItem.pagedBuilder()
                 .setItemProvider((player, gui) -> {
-                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
+                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Map.of(), Stream.concat(Arrays.stream(args), Stream.of(player, gui)).toArray());
                     return itemFromDecorator(decorator, player, parent, Stream.concat(Arrays.stream(args), Stream.of(gui)).toArray());
                 })
-                .addClickHandler((item, gui, click) -> {
-                    final Player player = click.player();
-
-                    final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                    final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
-
-                    MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
-                });
+                .addClickHandler(controlItemClickHandler(staticDecorator, parent, args));
         if (Boolean.TRUE.equals(staticDecorator.getProperty(ItemProperty.UPDATE_ON_CLICK))) builder.updateOnClick();
         final Integer period = staticDecorator.getProperty(ItemProperty.UPDATE_PERIOD);
         if (period != null) builder.updatePeriodically(period);
@@ -117,5 +107,16 @@ public class NormalIconBuilder {
                                 .withArg(player)
                                 .inject(), amount))
         );
+    }
+
+    private static TriConsumer<? super Item, ? super Gui, ? super Click> controlItemClickHandler(@NotNull BaseItemDecorator staticDecorator, @NotNull Context parent, @Nullable Object @NotNull ... args) {
+        return (item, gui, click) -> {
+            final Player player = click.player();
+
+            final BaseItemDecorator decorator = DecoratorUtils.selectDecoratorByCondition(staticDecorator, parent, Map.of(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
+            final ActionsConfig actions = decorator.getProperty(ItemProperty.ACTIONS);
+
+            MiscUtils.processActions(ActionClickType.fromClickType(click.clickType()), actions, parent, Collections.emptyMap(), Stream.concat(Arrays.stream(args), Stream.of(player, click, item, gui)).toArray());
+        };
     }
 }

@@ -12,10 +12,7 @@ import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class ShopFactoryImpl implements ShopFactory {
@@ -92,8 +89,8 @@ public class ShopFactoryImpl implements ShopFactory {
     }
 
     @Override
-    public @NotNull Shop getShop(@NotNull String id) {
-        return shops.get(id);
+    public @NotNull Optional<Shop> getShop(@NotNull String id) {
+        return Optional.ofNullable(shops.get(id));
     }
 
     @Override

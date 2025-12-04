@@ -13,6 +13,8 @@ import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
@@ -163,5 +165,13 @@ public class TextUtils {
         };
 
         return unitFormat.replace(placeholder, String.valueOf(value));
+    }
+
+    public static @NotNull String getStackTrace(@NotNull Throwable throwable) {
+        StringWriter sw = new StringWriter();
+        PrintWriter pw = new PrintWriter(sw);
+        throwable.printStackTrace(pw);
+        pw.flush();
+        return sw.toString();
     }
 }
