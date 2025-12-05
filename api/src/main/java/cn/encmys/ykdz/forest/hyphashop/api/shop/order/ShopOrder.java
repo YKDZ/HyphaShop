@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.order;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
@@ -41,9 +42,9 @@ public interface ShopOrder {
 
     @NotNull ShopOrder setOrderedProducts(@NotNull Map<ProductLocation, Integer> orderedProducts);
 
-    double getBilledPrice(@NotNull ProductLocation productLoc);
+    @NotNull Map<@NotNull String, @NotNull Double> getBilledPrice(@NotNull ProductLocation productLoc);
 
-    @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, Double> bill);
+    @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, PriceInstance> bill);
 
     double getTotalPrice(@NotNull String currencyId);
 

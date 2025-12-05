@@ -4,7 +4,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.exception.CurrencyInitException;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.checkerframework.checker.index.qual.Positive;
@@ -32,16 +32,16 @@ public class VaultCurrency implements CurrencyProvider {
         economy = rsp.getProvider();
     }
 
-    public boolean deposit(@NotNull Player player, @Positive double amount) {
-        return getEconomy().map(economy -> economy.depositPlayer(player, amount).transactionSuccess()).orElse(false);
+    public boolean deposit(@NotNull OfflinePlayer offlinePlayer, @Positive double amount) {
+        return getEconomy().map(economy -> economy.depositPlayer(offlinePlayer, amount).transactionSuccess()).orElse(false);
     }
 
-    public boolean withdraw(@NotNull Player player, @Positive double amount) {
-        return getEconomy().map(economy -> economy.withdrawPlayer(player, amount).transactionSuccess()).orElse(false);
+    public boolean withdraw(@NotNull OfflinePlayer offlinePlayer, @Positive double amount) {
+        return getEconomy().map(economy -> economy.withdrawPlayer(offlinePlayer, amount).transactionSuccess()).orElse(false);
     }
 
-    public double getBalance(@NotNull Player player) {
-        return getEconomy().map(economy -> economy.getBalance(player)).orElse(0d);
+    public double getBalance(@NotNull OfflinePlayer offlinePlayer) {
+        return getEconomy().map(economy -> economy.getBalance(offlinePlayer)).orElse(0d);
     }
 
     private @NotNull Optional<Economy> getEconomy() {

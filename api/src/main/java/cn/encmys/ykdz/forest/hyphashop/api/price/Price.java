@@ -14,10 +14,10 @@ import java.util.Random;
 
 public abstract class Price {
     protected static final @NotNull Random random = new SecureRandom();
-    
+
     protected final @NotNull Map<@NotNull PriceProperty, @Nullable Object> properties = new HashMap<>();
     protected final @NotNull CurrencyProvider currencyProvider;
-    protected @NotNull PriceMode priceMode = PriceMode.DISABLE;
+    protected @NotNull PriceMode priceMode = PriceMode.FIXED;
 
     public Price(@NotNull CurrencyProvider currencyProvider) {
         this.currencyProvider = currencyProvider;

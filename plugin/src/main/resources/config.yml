@@ -17,11 +17,12 @@ database:
     enabled: true
 script:
   unpack-internal-object: true
-# The purchase price of a product may be lower than its selling price (same currency type)
-# (such as using a random price or accidentally filling in the wrong price),
-# which will allow players to purchase the product without restrictions
-# and sell it back to the store for profit.
-# We will disable sell (set to true) or buy (set to false) at this time to avoid this issue.
+# The sell-price of a product may,
+# for various reasons, mistakenly be higher than its buy-price,
+# including random price configurations that overlap price ranges,
+# or simply due to carelessness.
+# This configuration determines whether the plugin should automatically
+# disable sell or buy in such cases to prevent duplication issues.
 price-correct-by-disable-sell-or-buy: true
 # Whether to print Debug messages on the console
 debug: false

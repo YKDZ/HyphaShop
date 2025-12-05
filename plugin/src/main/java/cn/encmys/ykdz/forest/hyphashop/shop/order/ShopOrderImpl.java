@@ -3,11 +3,11 @@ package cn.encmys.ykdz.forest.hyphashop.shop.order;
 import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.currency.CurrencyProvider;
-import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
+import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.ShopCashier;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.ShopOrder;
@@ -15,6 +15,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
+import cn.encmys.ykdz.forest.hyphashop.price.PriceInstanceImpl;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
 import org.bukkit.Bukkit;
@@ -23,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ShopOrderImpl implements ShopOrder, Cloneable {
     /**
@@ -33,7 +33,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     /**
      * 商品的每份价格
      */
-    private final Map<ProductLocation, Double> prices = new HashMap<>();
+    private final Map<ProductLocation, PriceInstance> pricePerStack = new HashMap<>();
     /**
      * 所有商品的每份价格一旦被 {@link #bill()} 固定即视为 isBilled = true，此时总价可以计算得出
      */
@@ -82,34 +82,51 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
         final SettlementResult result = new SettlementResult(canSellTo(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
+            final PriceInstance totalPrice = new PriceInstanceImpl();
+            final Map<Shop, PriceInstance> shopPrices = new HashMap<>();
+
+            // 聚合价格
+            for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+                final ProductLocation productLoc = entry.getKey();
+                final Shop shop = productLoc.shop().orElse(null);
+                if (productLoc.product() == null || shop == null)
+                    continue;
+
+                final Map<String, Double> price = getBilledPrice(productLoc);
+                totalPrice.merge(price);
+                shopPrices.computeIfAbsent(shop, k -> new PriceInstanceImpl()).merge(price);
+            }
+
+            // 扣除玩家余额
+            if (!totalPrice.withdraw(customer)) {
+                throw new RuntimeException("""
+                        Customer can not handle this price. This is a bug. Please report it.
+                        """);
+            }
+
+            // 处理商家存款
+            shopPrices.forEach((shop, price) -> {
+                if (shop.getShopCashier().isMerchant()) {
+                    shop.getShopCashier().handleDeposit(price);
+                }
+            });
+
+            // 处理库存与发货
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 final ProductLocation productLoc = entry.getKey();
                 final Product product = productLoc.product();
                 final Shop shop = productLoc.shop().orElse(null);
                 final int stack = entry.getValue();
 
-                if (product == null || shop == null) continue;
+                if (product == null || shop == null)
+                    continue;
 
-                final CurrencyProvider currencyProvider = product.getBuyPrice().getCurrencyProvider();
-                final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+                final ProductStock stock = product.getProductStock();
+                if (stock.isGlobalStock())
+                    stock.modifyGlobal(this);
+                if (stock.isPlayerStock())
+                    stock.modifyPlayer(this);
 
-                // 处理商人模式
-                if (merchant != null
-                        && shop.getShopCashier().isMerchant()
-                        && (shop.getShopCashier().getCurrency(currencyProvider.getId()).map(MerchantCurrency::isReplenish).orElse(false)
-                        && getTotalPrice(currencyProvider.getId()) > 0)
-                )
-                    merchant.modifyBalance(getTotalPrice(currencyProvider.getId()));
-
-                // 处理库存
-                ProductStock stock = product.getProductStock();
-                if (stock.isGlobalStock()) stock.modifyGlobal(this);
-                if (stock.isPlayerStock()) stock.modifyPlayer(this);
-
-                // 处理余额
-                product.getBuyPrice().getCurrencyProvider().withdraw(customer, getBilledPrice(productLoc));
-
-                // 给予商品
                 product.give(shop, customer, stack);
             }
 
@@ -121,34 +138,62 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
     private @NotNull SettlementResult buyFrom() {
         final Player customer = Bukkit.getPlayer(customerUUID);
-        if (customer == null) return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, Map.of());
+        if (customer == null)
+            return new SettlementResult(SettlementResultType.INVALID_CUSTOMER, Map.of());
 
         final SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
+            final PriceInstance totalPrice = new PriceInstanceImpl();
+            final Map<Shop, PriceInstance> shopPrices = new HashMap<>();
+
+            // 聚合价格
+            for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
+                final ProductLocation productLoc = entry.getKey();
+                final Shop shop = productLoc.shop().orElse(null);
+                if (productLoc.product() == null || shop == null)
+                    continue;
+
+                final Map<String, Double> price = getBilledPrice(productLoc);
+                totalPrice.merge(price);
+                shopPrices.computeIfAbsent(shop, k -> new PriceInstanceImpl()).merge(price);
+            }
+
+            // 商家扣款
+            shopPrices.forEach((shop, price) -> {
+                final ShopCashier cashier = shop.getShopCashier();
+                if (cashier.isMerchant()) {
+                    if (!cashier.canBeWithdrew(price)) {
+                        throw new RuntimeException("""
+                                Cashier can not handle this price. This is a bug. Please report it.
+                                """);
+                    }
+                    cashier.handleWithdraw(price);
+                }
+            });
+
+            // 玩家收款
+            if (!totalPrice.deposit(customer)) {
+                throw new RuntimeException("""
+                        Customer can not handle this price. This is a bug. Please report it.
+                        """);
+            }
+
+            // 处理库存与收货
             for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
                 final ProductLocation productLoc = entry.getKey();
                 final Product product = productLoc.product();
                 final Shop shop = productLoc.shop().orElse(null);
                 final int stack = entry.getValue();
 
-                if (product == null || shop == null) continue;
+                if (product == null || shop == null)
+                    continue;
 
-                final CurrencyProvider currencyProvider = product.getSellPrice().getCurrencyProvider();
-                final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+                final ProductStock stock = product.getProductStock();
+                if (stock.isGlobalStock() && stock.isGlobalReplenish())
+                    stock.modifyGlobal(this);
+                if (stock.isPlayerStock() && stock.isGlobalReplenish())
+                    stock.modifyPlayer(this);
 
-                // 处理商人模式
-                if (merchant != null && shop.getShopCashier().isMerchant())
-                    merchant.modifyBalance(-1 * getTotalPrice(currencyProvider.getId()));
-
-                // 处理库存
-                ProductStock stock = product.getProductStock();
-                if (stock.isGlobalStock() && stock.isGlobalReplenish()) stock.modifyGlobal(this);
-                if (stock.isPlayerStock() && stock.isGlobalReplenish()) stock.modifyPlayer(this);
-
-                // 处理余额
-                product.getSellPrice().getCurrencyProvider().deposit(customer, getBilledPrice(productLoc));
-
-                // 收取商品
                 product.take(shop, customer, stack);
             }
 
@@ -158,6 +203,10 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         return result;
     }
 
+    /**
+     * 检查是否可以将此订单中的商品出售给玩家
+     *
+     */
     @Override
     public @NotNull SettlementResultType canSellTo() {
         final Player customer = Bukkit.getPlayer(customerUUID);
@@ -171,33 +220,45 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             return SettlementResultType.EMPTY;
         }
 
+        // 检查单个商品的非金额条件
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
             final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
-            if (product == null || shop == null) continue;
+            if (product == null || shop == null)
+                continue;
 
             // 当前未上架（购物车暂存）
             if (!shop.getShopStocker().isListedProduct(product.getId())) {
                 return SettlementResultType.NOT_LISTED;
             }
             // 商品未开放购买
-            else if (product.getBuyPrice().getPriceMode() == PriceMode.DISABLE || Double.isNaN(getBilledPrice(productLoc))) {
+            else if (product.getBuyPrice().isEmpty() || getBilledPrice(productLoc).isEmpty()) {
                 return SettlementResultType.TRANSITION_DISABLED;
             }
-            // 客户余额不足
-            else if (product.getBuyPrice().getCurrencyProvider().getBalance(customer) < getBilledPrice(productLoc)) {
-                return SettlementResultType.NOT_ENOUGH_MONEY;
-            }
             // 商品个人库存不足
-            else if (product.getProductStock().isPlayerStock() && product.getProductStock().isReachPlayerLimit(customerUUID, stack)) {
+            else if (product.getProductStock().isPlayerStock()
+                    && product.getProductStock().isReachPlayerLimit(customerUUID, stack)) {
                 return SettlementResultType.NOT_ENOUGH_PLAYER_STOCK;
             }
             // 商品总库存不足
             else if (product.getProductStock().isGlobalStock() && product.getProductStock().isReachGlobalLimit(stack)) {
                 return SettlementResultType.NOT_ENOUGH_GLOBAL_STOCK;
+            }
+        }
+
+        // 检查客户总余额
+        final Map<String, Double> totalPrices = getTotalPrices();
+        for (Map.Entry<String, Double> entry : totalPrices.entrySet()) {
+            final String currencyId = entry.getKey();
+            final double amount = entry.getValue();
+
+            final CurrencyProvider currency = HyphaShop.CURRENCY_MANAGER.getCurrency(currencyId).orElse(null);
+
+            if (currency == null || currency.getBalance(customer) < amount) {
+                return SettlementResultType.NOT_ENOUGH_MONEY;
             }
         }
 
@@ -211,6 +272,10 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
         return SettlementResultType.SUCCESS;
     }
 
+    /**
+     * 检查是否可以从玩家手中收购订单中的商品
+     *
+     */
     @Override
     public @NotNull SettlementResultType canBuyFrom() {
         final Player customer = Bukkit.getPlayer(customerUUID);
@@ -224,32 +289,46 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             return SettlementResultType.EMPTY;
         }
 
+        // 用于聚合每个商店的总价
+        final Map<Shop, Map<String, Double>> shopTotalPrices = new HashMap<>();
+
+        // 检查单个商品的非金额条件
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final Product product = productLoc.product();
             final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
-            if (product == null || shop == null) continue;
+            if (product == null || shop == null)
+                continue;
 
-            final CurrencyProvider currencyProvider = product.getSellPrice().getCurrencyProvider();
-            final MerchantCurrency merchant = shop.getShopCashier().getCurrency(currencyProvider.getId()).orElse(null);
+            // 聚合价格
+            final Map<String, Double> itemPrice = getBilledPrice(productLoc);
+            final Map<String, Double> shopMap = shopTotalPrices.computeIfAbsent(shop, k -> new HashMap<>());
+            itemPrice.forEach((currency, amount) -> shopMap.merge(currency, amount, Double::sum));
 
             // 当前未上架（购物车暂存）
             if (!shop.getShopStocker().isListedProduct(product.getId())) {
                 return SettlementResultType.NOT_LISTED;
             }
             // 商品未开放收购
-            else if (product.getSellPrice().getPriceMode() == PriceMode.DISABLE || Double.isNaN(getBilledPrice(productLoc))) {
+            else if (product.getSellPrice().isEmpty() || getBilledPrice(productLoc).isEmpty()) {
                 return SettlementResultType.TRANSITION_DISABLED;
-            }
-            // 商人模式余额不足
-            else if (merchant != null && shop.getShopCashier().isMerchant() && merchant.getBalance() < getTotalPrice(currencyProvider.getId())) {
-                return SettlementResultType.NOT_ENOUGH_MERCHANT_BALANCE;
             }
             // 客户没有足够的商品
             else if (product.has(shop, customer, stack) == 0) {
                 return SettlementResultType.NOT_ENOUGH_PRODUCT;
+            }
+        }
+
+        // 检查每个商店的余额 (商人模式)
+        for (Map.Entry<Shop, Map<String, Double>> entry : shopTotalPrices.entrySet()) {
+            final Shop shop = entry.getKey();
+            final Map<String, Double> prices = entry.getValue();
+            final ShopCashier cashier = shop.getShopCashier();
+
+            if (cashier.isMerchant() && !cashier.canBeWithdrew(new PriceInstanceImpl(prices))) {
+                return SettlementResultType.NOT_ENOUGH_MERCHANT_BALANCE;
             }
         }
         return SettlementResultType.SUCCESS;
@@ -258,7 +337,8 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     @Override
     public boolean canHold() {
         final Player customer = Bukkit.getPlayer(customerUUID);
-        if (customer == null) return false;
+        if (customer == null)
+            return false;
 
         for (Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
@@ -266,9 +346,11 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
-            if (product == null || shop == null) continue;
+            if (product == null || shop == null)
+                continue;
 
-            if (!product.canHold(shop, customer, stack)) return false;
+            if (!product.canHold(shop, customer, stack))
+                return false;
         }
 
         return true;
@@ -279,21 +361,24 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
      */
     @Override
     public void bill() {
-        if (isBilled()) return;
+        if (isBilled())
+            return;
 
-        final Map<ProductLocation, Double> prices = new HashMap<>();
+        final Map<ProductLocation, PriceInstance> prices = new HashMap<>();
         for (final Map.Entry<ProductLocation, Integer> entry : orderedProducts.entrySet()) {
             final ProductLocation productLoc = entry.getKey();
             final String productId = productLoc.productId();
             final Shop shop = productLoc.shop().orElse(null);
 
-            if (shop == null) continue;
+            if (shop == null)
+                continue;
 
-            final double price = type == OrderType.SELL_TO ?
-                    shop.getShopPricer().getBuyPrice(productId)
+            final PriceInstance price = type == OrderType.SELL_TO ? shop.getShopPricer().getBuyPrice(productId)
                     : shop.getShopPricer().getSellPrice(productId);
 
-            if (Double.isNaN(price)) continue;
+            // 空价格没有记录的意义
+            if (price.isEmpty())
+                continue;
 
             prices.put(productLoc, price);
         }
@@ -312,7 +397,8 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             final Shop shop = productLoc.shop().orElse(null);
             final int stack = entry.getValue();
 
-            if (product == null || shop == null) continue;
+            if (product == null || shop == null)
+                continue;
 
             final int amount = shop.getShopCounter().getAmount(productLoc.productId());
 
@@ -321,8 +407,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
         Scheduler.runAsyncTask((task) -> HyphaShop.DATABASE_FACTORY.getSettlementLogDao().insertLog(log
                 .setOrderedProducts(orderResult)
-                .setPricePerStack(prices)
-        ));
+                .setPricePerStack(pricePerStack)));
     }
 
     @Override
@@ -365,18 +450,33 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
     }
 
     /**
-     * 获取商品被 bill 时固定下的价格
+     * 获取商品被 bill 时固定下的总价格
      */
     @Override
-    public double getBilledPrice(@NotNull ProductLocation productLoc) {
-        if (!isBilled()) bill();
-        return prices.getOrDefault(productLoc, Double.NaN) * orderedProducts.get(productLoc);
+    public @NotNull Map<@NotNull String, @NotNull Double> getBilledPrice(@NotNull ProductLocation productLoc) {
+        if (!isBilled)
+            bill();
+
+        final PriceInstance perStack = pricePerStack.get(productLoc);
+        final Integer stack = orderedProducts.get(productLoc);
+
+        if (perStack == null || stack == null) {
+            HyphaShopImpl.LOGGER.warn("""
+                    Try to get billed price for product id %s in shop %s, which does exists in this order. This is likely a bug.
+                    """.formatted(productLoc.productId(), productLoc.shopId()));
+            HyphaShopImpl.LOGGER.debug("""
+                    Related order: %s
+                    """.formatted(this));
+            return Collections.emptyMap();
+        }
+
+        return perStack.mul(stack);
     }
 
     @Override
-    public @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, Double> prices) {
-        this.prices.clear();
-        this.prices.putAll(prices);
+    public @NotNull ShopOrder setPrices(@NotNull @Unmodifiable Map<ProductLocation, PriceInstance> prices) {
+        this.pricePerStack.clear();
+        this.pricePerStack.putAll(prices);
         setBilled(false);
         return this;
     }
@@ -386,7 +486,8 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
      */
     @Override
     public double getTotalPrice(@NotNull String currencyId) {
-        if (!isBilled()) bill();
+        if (!isBilled())
+            bill();
         return getTotalPrices().getOrDefault(currencyId, Double.NaN);
     }
 
@@ -395,22 +496,23 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
      */
     @Override
     public @NotNull Map<String, @NotNull Double> getTotalPrices() {
-        if (!isBilled()) bill();
+        if (!isBilled())
+            bill();
 
-        return prices.entrySet().stream()
-                .filter(entry -> !Double.isNaN(entry.getValue() * orderedProducts.get(entry.getKey())))
-                .collect(Collectors.toMap(
-                        entry -> {
-                            final Product product = entry.getKey().product();
-                            if (product == null) throw new RuntimeException("Product is null");
+        final Map<@NotNull String, @NotNull Double> result = new HashMap<>();
 
-                            return type == OrderType.SELL_TO ?
-                                    product.getBuyPrice().getCurrencyProvider().getId()
-                                    : product.getSellPrice().getCurrencyProvider().getId();
-                        },
-                        entry -> entry.getValue() * orderedProducts.get(entry.getKey()),
-                        Double::sum
-                ));
+        for (Map.Entry<ProductLocation, Integer> orderedProduct : orderedProducts.entrySet()) {
+            final PriceInstance priceInstance = pricePerStack.get(orderedProduct.getKey());
+            if (priceInstance == null)
+                continue;
+
+            priceInstance.getPrices().forEach((currencyId, price) -> result.merge(
+                    currencyId,
+                    price,
+                    Double::sum));
+        }
+
+        return result;
     }
 
     @Override
@@ -463,11 +565,11 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
                 }
             }
             // 不允许购买
-            else if (product.getBuyPrice().getPriceMode() == PriceMode.DISABLE && type == OrderType.SELL_TO) {
+            else if (product.getBuyPrice().isEmpty() && type == OrderType.SELL_TO) {
                 iterator.remove();
             }
             // 不允许收购
-            else if (product.getSellPrice().getPriceMode() == PriceMode.DISABLE && type != OrderType.SELL_TO) {
+            else if (product.getSellPrice().isEmpty() && type != OrderType.SELL_TO) {
                 iterator.remove();
             }
         }
@@ -492,11 +594,22 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             return ((ShopOrder) super.clone())
                     .setCustomerUUID(customerUUID)
                     .setType(type)
-                    .setPrices(prices)
+                    .setPrices(pricePerStack)
                     .setBilled(isBilled)
                     .setOrderedProducts(orderedProducts);
         } catch (CloneNotSupportedException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "ShopOrderImpl{" +
+                "orderedProducts=" + orderedProducts +
+                ", pricePerStack=" + pricePerStack +
+                ", isBilled=" + isBilled +
+                ", customerUUID=" + customerUUID +
+                ", type=" + type +
+                '}';
     }
 }

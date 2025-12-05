@@ -94,6 +94,7 @@ public record ConfigurationSectionAccessor(@NotNull ConfigurationSection config)
 
     @Override
     public @NotNull Optional<List<? extends ConfigAccessor>> getConfigList(@NotNull String path) {
+        if (!isList(path)) return Optional.empty();
         final List<ConfigAccessor> childConfigs = config.getMapList(path).stream()
                 .map(map -> {
                     ConfigurationSection childConfig = new YamlConfiguration();
@@ -127,6 +128,11 @@ public record ConfigurationSectionAccessor(@NotNull ConfigurationSection config)
 
     @Override
     public boolean contains(@NotNull String path) {
+        return config.contains(path);
+    }
+
+    @Override
+    public boolean selfContains(@NotNull String path) {
         return config.contains(path);
     }
 }

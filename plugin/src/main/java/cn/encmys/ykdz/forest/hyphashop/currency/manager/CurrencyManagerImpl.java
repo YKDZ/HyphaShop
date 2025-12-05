@@ -19,15 +19,7 @@ public class CurrencyManagerImpl implements CurrencyManager {
     public static final @NotNull CurrencyProvider VAULT_CURRENCY = new VaultCurrency();
 
     private final @NotNull Map<@NotNull String, @NotNull CurrencyProvider> providers = new HashMap<>();
-
-    static {
-        try {
-            VAULT_CURRENCY.init(HyphaShop.INSTANCE);
-        } catch (CurrencyInitException e) {
-            HyphaShopImpl.LOGGER.warn("Error when init Vault currency provider. Vault will not available in HyphaShop, which means every product should have currency type provided");
-        }
-    }
-
+    
     public CurrencyManagerImpl() {
         load();
     }
@@ -35,6 +27,7 @@ public class CurrencyManagerImpl implements CurrencyManager {
     @Override
     public void load() {
         register(new ExpCurrency());
+        register(new VaultCurrency());
     }
 
     @Override

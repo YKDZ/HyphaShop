@@ -7,7 +7,7 @@ default-configs:
     on-before-list:
       # This product can only be listed between 8pm and 6am on World Day
       - |
-        const timeStr = papi("%world_time_world%").split(":")
+        const timeStr = PlaceholderAPI.papi("%world_time_world%").split(":")
         const hours = timeStr[0]
         Number.number(hours) >= 20 || Number.number(hours) < 6
       # This product can only be listed when the historical purchase quantity does not exceed 64

@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.pricer;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import org.jetbrains.annotations.NotNull;
@@ -7,9 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Map;
 
 public interface ShopPricer {
-    double getBuyPrice(@NotNull String productId);
+    @NotNull PriceInstance getBuyPrice(@NotNull String productId);
 
-    double getSellPrice(@NotNull String productId);
+    @NotNull PriceInstance getSellPrice(@NotNull String productId);
 
     boolean cachePrice(@NotNull String productId);
 

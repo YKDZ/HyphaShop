@@ -15,11 +15,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.*;
 
 public class ShopConfig {
     private static final @NotNull String path = HyphaShop.INSTANCE.getDataFolder() + "/shop";
@@ -75,19 +71,32 @@ public class ShopConfig {
     }
 
     public static @NotNull Map<String, MerchantRecord> getMerchantRecord(@NotNull String shopId) {
-        final ConfigAccessor config = getShopSettingsConfig(shopId).getConfig("merchant").orElse(new ConfigurationSectionAccessor(new YamlConfiguration()));
-        return config.getLocalMembers().map(map -> map.entrySet()
-                .stream()
-                .collect(Collectors.toMap(
-                                Map.Entry::getKey,
-                                (entry) -> new MerchantRecord(
-                                        entry.getValue().getDouble("balance").orElse(0d),
-                                        entry.getValue().getBoolean("replenish").orElse(false),
-                                        entry.getValue().getBoolean("overflow").orElse(false),
-                                        entry.getValue().getBoolean("inherit").orElse(false)
-                                )
-                        )
-                )).orElse(Map.of());
+        final Map<String, MerchantRecord> result = new HashMap<>();
+        final ConfigAccessor shopConfig = getShopSettingsConfig(shopId);
+
+        final List<? extends ConfigAccessor> merchantConfigs = shopConfig.getConfigList("merchant")
+                .orElseGet(() -> shopConfig.getConfig("merchant")
+                        .map(Collections::singletonList)
+                        .orElse(Collections.emptyList())
+                );
+
+        for (ConfigAccessor config : merchantConfigs) {
+            final String currencyId = config.getString("currency").orElse("VAULT");
+            final MerchantRecord record = createMerchantRecord(config);
+
+            result.put(currencyId, record);
+        }
+
+        return result;
+    }
+
+    private static @NotNull MerchantRecord createMerchantRecord(@NotNull ConfigAccessor config) {
+        return new MerchantRecord(
+                config.getDouble("balance").orElse(0d),
+                config.getBoolean("replenish").orElse(false),
+                config.getBoolean("overflow").orElse(false),
+                config.getBoolean("inherit").orElse(false)
+        );
     }
 
     public static @NotNull ConfigAccessor getShopSettingsConfig(@NotNull String shopId) {

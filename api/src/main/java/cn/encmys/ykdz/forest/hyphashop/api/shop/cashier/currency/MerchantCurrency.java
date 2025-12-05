@@ -20,6 +20,9 @@ public class MerchantCurrency {
 
     public void modifyBalance(double value) {
         final double newValue = balance + value;
+        if (newValue < 0) throw new RuntimeException("""
+                Shop merchant currency can not handle this price. This is a bug. Please report it.
+                """);
         this.balance = (newValue > initBalance) && !overflow ? initBalance : newValue;
     }
 

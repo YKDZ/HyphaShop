@@ -22,6 +22,7 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BundleProduct extends Product {
@@ -29,8 +30,8 @@ public class BundleProduct extends Product {
 
     public BundleProduct(
             @NotNull String id,
-            @NotNull Price buyPrice,
-            @NotNull Price sellPrice,
+            @NotNull List<Price> buyPrice,
+            @NotNull List<Price> sellPrice,
             @NotNull Rarity rarity,
             @NotNull BaseItemDecorator iconBuilder,
             @NotNull ProductStock productStock,

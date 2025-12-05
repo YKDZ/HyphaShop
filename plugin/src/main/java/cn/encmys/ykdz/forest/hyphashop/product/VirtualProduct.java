@@ -16,6 +16,7 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,8 +25,8 @@ import java.util.Map;
 public class VirtualProduct extends Product {
     public VirtualProduct(
             @NotNull String id,
-            @NotNull Price buyPrice,
-            @NotNull Price sellPrice,
+            @NotNull List<Price> buyPrice,
+            @NotNull List<Price> sellPrice,
             @NotNull Rarity rarity,
             @NotNull BaseItemDecorator iconBuilder,
             @NotNull ProductStock productStock,

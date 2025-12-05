@@ -8,40 +8,37 @@ import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
-import cn.encmys.ykdz.forest.hyphashop.currency.manager.CurrencyManagerImpl;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Optional;
 
 public class PriceImpl extends Price {
-    public PriceImpl(@NotNull ConfigAccessor defaultConfig, @NotNull ConfigAccessor config) {
-        super(HyphaShop.CURRENCY_MANAGER.getCurrency(
-                                config.getString("currency")
-                                        .orElse(defaultConfig.getString("currency")
-                                                .orElse("VAULT")
-                                        )
-                        )
-                        .orElse(CurrencyManagerImpl.VAULT_CURRENCY)
-        );
+    public PriceImpl(@NotNull ConfigAccessor config) {
+        super(HyphaShop.CURRENCY_MANAGER.getCurrency(config.getString("currency")
+                        .orElse("VAULT"))
+                .orElseThrow(() -> new IllegalArgumentException("""
+                        Currency %s not exists. This price will be skipped.
+                        """.formatted(config.getString("currency")
+                        .orElse("VAULT")))));
 
-        if (config.contains("fixed")) {
+        if (config.selfContains("fixed")) {
             priceMode = PriceMode.FIXED;
             this.setProperty(PriceProperty.FIXED, config.getDouble("fixed").orElse(Double.NaN));
-        } else if (config.contains("mean") || config.contains("dev")) {
+        } else if (config.selfContains("mean") || config.selfContains("dev")) {
             priceMode = PriceMode.GAUSSIAN;
-            this.setProperty(PriceProperty.MEAN, config.getDouble("mean").orElse(defaultConfig.getDouble("mean").orElse(Double.NaN)))
-                    .setProperty(PriceProperty.DEV, config.getDouble("dev").orElse(defaultConfig.getDouble("dev").orElse(Double.NaN)))
-                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(defaultConfig.getBoolean("round").orElse(false)));
-        } else if (config.contains("min") || config.contains("max")) {
+            this.setProperty(PriceProperty.MEAN, config.getDouble("mean").orElse(Double.NaN))
+                    .setProperty(PriceProperty.DEV, config.getDouble("dev").orElse(Double.NaN))
+                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(false));
+        } else if (config.selfContains("min") || config.selfContains("max")) {
             priceMode = PriceMode.MINMAX;
-            this.setProperty(PriceProperty.MIN, config.getDouble("min").orElse(defaultConfig.getDouble("min").orElse(Double.NaN)))
-                    .setProperty(PriceProperty.MAX, config.getDouble("max").orElse(defaultConfig.getDouble("max").orElse(Double.NaN)))
-                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(defaultConfig.getBoolean("round").orElse(false)));
-        } else if (config.contains("formula") || config.contains("context")) {
+            this.setProperty(PriceProperty.MIN, config.getDouble("min"))
+                    .setProperty(PriceProperty.MAX, config.getDouble("max"))
+                    .setProperty(PriceProperty.ROUND, config.getBoolean("round"));
+        } else if (config.selfContains("formula") || config.selfContains("context")) {
             priceMode = PriceMode.FORMULA;
-            final String formula = config.getString("formula").orElse(defaultConfig.getString("formula").orElse(null));
-            final String context = config.getString("context").orElse(defaultConfig.getString("context").orElse(null));
+            final String formula = config.getString("formula").orElse(null);
+            final String context = config.getString("context").orElse(null);
 
             if (formula == null) {
                 priceMode = PriceMode.DISABLE;
@@ -55,7 +52,7 @@ public class PriceImpl extends Price {
             priceMode = PriceMode.DISABLE;
         } else {
             priceMode = PriceMode.DISABLE;
-            throw new IllegalArgumentException("Invalid price setting: " + config + " and default configs: " + defaultConfig + ". The price will be disabled.");
+            throw new IllegalArgumentException("Invalid price setting: " + config + ". The price will be disabled.");
         }
     }
 

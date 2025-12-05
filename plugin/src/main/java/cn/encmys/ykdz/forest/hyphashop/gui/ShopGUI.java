@@ -119,9 +119,11 @@ public class ShopGUI extends NormalGUI {
 
     @Override
     public void updateContentsForAllViewers() {
-        windows.get(shop.getId()).values().stream()
-                .map(Window::getViewer)
-                .forEach(this::updateContents);
+        Optional.ofNullable(windows.get(shop.getId()))
+                .ifPresent(map -> map.values().stream()
+                        .map(Window::getViewer)
+                        .forEach(this::updateContents)
+                );
     }
 
     @Override

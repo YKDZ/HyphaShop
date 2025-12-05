@@ -1,11 +1,14 @@
 package cn.encmys.ykdz.forest.hyphashop.api.price;
 
+import org.jetbrains.annotations.NotNull;
+
 public interface PricePair {
-    double getBuy();
+    @NotNull PriceInstance getBuy();
 
-    void setBuy(double buy);
+    void setBuy(@NotNull PriceInstance buy);
+    
+    @NotNull PriceInstance getSell();
 
-    double getSell();
+    void setSell(@NotNull PriceInstance sell);
 
-    void setSell(double sell);
 }

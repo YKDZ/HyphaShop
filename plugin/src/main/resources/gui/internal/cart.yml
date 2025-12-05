@@ -1,7 +1,7 @@
 cart:
   title: "${player_name}'s Cart"
   # Available option is HORIZONTAL and VERTICAL
-  page-mode: HORIZONTAL
+  page-mode: VERTICAL
   # The x character is the placeholder
   # for the history slot.
   structure:
@@ -39,14 +39,15 @@ cart:
             base: black_stained_glass_pane
     "@":
       base: paper
-      name: "<gray>Total Price: <white>${format_decimal(cart_total_price)}"
+      name: "<gray>Total Prices:"
       lore:
+        - "s:prices_list(cart_total_prices)"
         - " "
         - "<dark_gray>✖ <aqua><key:key.mouse.left>"
         - "   <gray>Settle Cart"
         - "<dark_gray>✖ <aqua>Shift + <key:key.mouse.right>"
         - "   <gray>Switch Cart Mode"
-        - "   <gray>Current Mode: <white>${term(cart_shopping_mode)}"
+        - '   <gray>Current Mode: <white>${lang("terms.order-type." + cart_shopping_mode)}'
         - "<dark_gray>✖ <aqua><key:key.mouse.right>"
         - "   <gray>Clean Cart"
         - "<dark_gray>✖ <white><key:key.drop>"
@@ -98,7 +99,7 @@ cart:
     lore:
       - " "
       - "<gray>Stack: <white>${stack}"
-      - "<gray>Total Price: <white>${format_decimal(total_price)}"
+      - '<gray>Total Price: <white>${prices_str(total_prices)}'
       - " "
       - "<dark_gray>✖ <aqua><key:key.mouse.left>"
       - "   <gray>Add 1 stack"

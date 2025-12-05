@@ -144,6 +144,11 @@ public class ConfigInheritor implements ConfigAccessor {
     }
 
     @Override
+    public boolean selfContains(@NotNull String path) {
+        return config.contains(path);
+    }
+
+    @Override
     public String toString() {
         return "ConfigInheritor{" +
                 "parent=" + parent +

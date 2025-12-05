@@ -134,10 +134,10 @@ public class ShopStockerImpl implements ShopStocker {
 
     @Override
     public void listProduct(@NotNull Product product) {
-        String productId = product.getId();
+        final String productId = product.getId();
 
         // 所有商品数量都提前被缓存过了
-        // 此处不再缓存
+
         if (!shop.getShopPricer().cachePrice(productId)) {
             HyphaShopImpl.LOGGER.warn("Fail to list product: " + productId + " cause the price is incorrect.");
             return;

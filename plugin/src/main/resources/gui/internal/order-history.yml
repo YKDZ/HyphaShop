@@ -1,7 +1,7 @@
 order-history:
   title: "${player_name}'s Settlement Log"
   # The Available option is HORIZONTAL and VERTICAL
-  page-mode: HORIZONTAL
+  page-mode: VERTICAL
   # The x character is the placeholder
   # for the history slot.
   structure:
@@ -53,11 +53,13 @@ order-history:
         - "<gray>Product:"
         - " <dark_gray>- Name x Amount x Stack"
         - |
-          order_contents;
+          order_contents
         - ""
-        - "<gray>Type: ${term(log_type_id)}"
+        - '<gray>Type: ${lang("terms.order-type." + log_type_id)}'
         - ""
-        - "<gray>Total Price: ${format_decimal(log_total_price)}"
+        - "<gray>Total Prices:"
+        - |
+          prices_list(log_total_prices)
         - " "
       item-flags:
         - HIDE_ADDITIONAL_TOOLTIP
@@ -80,11 +82,12 @@ order-history:
       - "<gray>Product:"
       - " <dark_gray>- Name x Amount x Stack"
       - |
-        order_contents;
+        order_contents
       - ""
-      - "<gray>Type: ${term(log_type_id)}"
+      - '<gray>Type: ${lang("terms.order-type." + log_type_id)}'
       - ""
-      - "<gray>Total Price: ${format_decimal(log_total_price)}"
+      - "<gray>Total Prices:"
+      - "s:prices_list(log_total_prices)"
       - " "
     item-flags:
       - HIDE_ADDITIONAL_TOOLTIP

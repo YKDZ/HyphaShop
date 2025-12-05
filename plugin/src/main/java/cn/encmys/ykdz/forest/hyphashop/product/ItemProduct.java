@@ -29,8 +29,8 @@ import java.util.stream.IntStream;
 public class ItemProduct extends Product {
     public ItemProduct(
             @NotNull String id,
-            @NotNull Price buyPrice,
-            @NotNull Price sellPrice,
+            @NotNull List<Price> buyPrice,
+            @NotNull List<Price> sellPrice,
             @NotNull Rarity rarity,
             @NotNull BaseItemDecorator iconBuilder,
             @NotNull BaseItemDecorator productItemBuilder,

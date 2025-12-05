@@ -37,15 +37,14 @@ shop-gui:
       base: brown_stained_glass_pane
       name: " "
       lore:
-        - "<dark_gray>Wall"
-        - " "
+        - 's:lang_list("gui.icon.lore.wall")'
     "@":
       base: clock
-      name: "<gray>Restock in：<white>${restock_timer}"
+      name: "<gray>Restock in：<white>${format_duration(restock_time)}"
       update-period: 1s
     "p":
       base: red_stained_glass_pane
-      name: "<gray>Previous Line"
+      name: s:lang("gui.icon.name.previous-line")
       actions:
         left:
           - scroll{amount=-1}
@@ -55,7 +54,7 @@ shop-gui:
             base: black_stained_glass_pane
     "n":
       base: green_stained_glass_pane
-      name: "<gray>Next Line"
+      name: s:lang("gui.icon.name.next-line")
       actions:
         left:
           - scroll{amount=1}
@@ -71,7 +70,7 @@ shop-gui:
         - "   <gray>Open Cart"
         - "<dark_gray>✖ <aqua><key:key.mouse.right>"
         - "   <gray>Switch Shopping mode"
-        - "   <gray>Current Mode: <white>${term(shopping_mode_id)}"
+        - '   <gray>Current Mode: <white>${lang("terms.shopping-mode." + shopping_mode_id)}'
         - " "
       actions:
         left:
@@ -93,7 +92,7 @@ shop-gui:
         - "   <gray>Sell all the product in your inventory to the shop"
         - " "
       icons:
-        - condition: shopping_mode_id == "CART"
+        - condition: shopping_mode_id == "cart"
           icon:
             base: book
             lore:
@@ -106,7 +105,7 @@ shop-gui:
               - " "
     "m":
       base: chest
-      name: "<gray>Shop List"
+      name: s:lang("gui.icon.name.shop-list")
       lore:
         - " "
         - "<dark_gray>✖ <white>Go to shop list menu"
@@ -119,8 +118,8 @@ shop-gui:
       name: "<dark_gray>Name: <reset>${product_name} <dark_gray>x <white>${product_amount}"
       lore:
         - " "
-        - "?`<dark_gray>- <gray>Buy price: <white>${format_decimal(buy_price)}`"
-        - "?`<dark_gray>- <gray>Sell price: <white>${format_decimal(sell_price)}`"
+        - '?`<dark_gray>- <gray>Buy price: <white>${prices_str(buy_price)}`'
+        - '?`<dark_gray>- <gray>Sell price: <white>${prices_str(sell_price)}`'
         - |
           product_is_stock ? " " : null
         - "?`<dark_gray>Global stock: <white>${current_global_stock}/${initial_global_stock}`"
@@ -141,17 +140,17 @@ shop-gui:
       actions:
         left:
           - |
-            shopping_mode_id == "CART" ? add_to_cart{amount=1} : sell_to{amount=1}
+            shopping_mode_id == "cart" ? add_to_cart{amount=1} : sell_to{amount=1}
           - update_icon()
         right:
           - |
-            shopping_mode_id == "CART" ? remove_from_cart{amount=1} : buy_from{amount=1}
+            shopping_mode_id == "cart" ? remove_from_cart{amount=1} : buy_from{amount=1}
           - update_icon()
         shift-right:
-          - if (shopping_mode_id == "DIRECT") buy_all_from()
+          - if (shopping_mode_id == "direct") buy_all_from()
           - update_icon()
         drop:
-          - if (shopping_mode_id == "CART") remove_all_from_cart()
+          - if (shopping_mode_id == "cart") remove_all_from_cart()
           - update_icon()
     format:
       bundle-content-line: " <dark_gray>- <reset>${product_name} <gray>x <white>${total_amount}"

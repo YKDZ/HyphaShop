@@ -48,4 +48,6 @@ public interface ConfigAccessor {
     @NotNull Set<String> getKeys();
 
     boolean contains(@NotNull String path);
+
+    boolean selfContains(@NotNull String path);
 }

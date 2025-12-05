@@ -21,13 +21,13 @@ main-1:
       name: "<#A0522D>Block Shop"
       actions:
         left:
-          - open_shop{shop="blocks"}
+          - open_shop{id="blocks"}
     "b":
       base: ender_eye
       name: "<gray>Black Market"
       actions:
         left:
-          - open_shop{shop="black_market"}
+          - open_shop{id="black_market"}
     ">":
       base: lime_stained_glass_pane
       name: "<green>Next Page"

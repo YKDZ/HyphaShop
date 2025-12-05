@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.cashier;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
 import org.jetbrains.annotations.NotNull;
@@ -24,4 +25,10 @@ public interface ShopCashier {
     void restockMerchant();
 
     @NotNull Shop getShop();
+
+    boolean canBeWithdrew(@NotNull PriceInstance price);
+
+    void handleWithdraw(@NotNull PriceInstance price);
+
+    void handleDeposit(@NotNull PriceInstance price);
 }

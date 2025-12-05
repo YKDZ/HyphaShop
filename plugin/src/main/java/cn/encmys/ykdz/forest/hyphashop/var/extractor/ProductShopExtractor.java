@@ -22,8 +22,8 @@ public class ProductShopExtractor implements VarExtractor {
         }
 
         if (shop.getShopPricer().hasCachedPrice(product.getId())) {
-            ctx.putVar("buy_price", () -> Double.isNaN(shop.getShopPricer().getBuyPrice(product.getId())) ? null : shop.getShopPricer().getBuyPrice(product.getId()));
-            ctx.putVar("sell_price", () -> Double.isNaN(shop.getShopPricer().getSellPrice(product.getId())) ? null : shop.getShopPricer().getSellPrice(product.getId()));
+            ctx.putVar("buy_price", () -> shop.getShopPricer().getBuyPrice(product.getId()).isEmpty() ? null : shop.getShopPricer().getBuyPrice(product.getId()).getPrices());
+            ctx.putVar("sell_price", () -> shop.getShopPricer().getSellPrice(product.getId()).isEmpty() ? null : shop.getShopPricer().getSellPrice(product.getId()).getPrices());
         }
 
         if (shop.isProductItemCached(product.getId())) {

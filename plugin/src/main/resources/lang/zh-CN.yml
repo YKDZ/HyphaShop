@@ -85,7 +85,7 @@ messages:
       sell-to:
         success:
           <gray>成功在商店 <reset>${shop_name}<gray> 购买了 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
-          共花费 <white>${format_decimal(cost)}.
+          共花费 <white>${prices_str(cost)}.
         failure:
           money: <gray>你的余额不足以购买 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
           disabled:
@@ -102,7 +102,7 @@ messages:
       buy-from:
         success:
           <gray>成功向商店 <reset>${shop_name}<gray> 出售了 <reset>${product_name} <gray>x <white>${product_amount}<gray>.
-          你赚得了 <white>${format_decimal(earned)}.
+          你赚得了 <white>${prices_str(earned)}.
         failure:
           disabled:
             <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name} <gray>x
@@ -115,7 +115,7 @@ messages:
       buy-all-from:
         success:
           <gray>成功向商店 <reset>${shop_name}<gray> 出售了背包中全部 <white>${stack} <gray>份的
-          <reset>${product_name} <gray>x <white>${product_amount}<gray>. 你赚得了 <white>${format_decimal(earned)}.
+          <reset>${product_name} <gray>x <white>${product_amount}<gray>. 你赚得了 <white>${prices_str(earned)}.
         failure:
           disabled:
             <gray>你不能向商店 <reset>${shop_name}<gray> 出售 <reset>${product_name} <gray>x
@@ -126,27 +126,37 @@ messages:
             <gray>x <white>${product_amount}<gray>. 商店已经没有足够的余额从你手中购买商品了.
     cart:
       sell-to:
-        success: <gray>成功花费 <white>${format_decimal(cost)}<gray> 购入了购物车中的所有商品.
+        success: <gray>成功花费 <white>${prices_str(cost)}<gray> 购入了购物车中的所有商品.
         failure:
           empty: ""
           not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
           money: <gray>你的余额不足以购买购物车中的所有商品.
           inventory-space: <gray>你的背包无法装下购物车中的所有商品.
-          player-stock:
-            <gray>你已经耗尽了购物车中某件商品分配给你的个人库存, 尝试清理购物车.
+          player-stock: <gray>你已经耗尽了购物车中某件商品分配给你的个人库存, 尝试清理购物车.
           global-stock: <gray>你的购物车中的某件商品的库存不足, 尝试清理购物车.
       buy-from:
-        success: <gray>成功出售了购物车中的全部商品. 共赚得 <white>${format_decimal(earned)}<gray>.
+        success: <gray>成功出售了购物车中的全部商品. 共赚得 <white>${prices_str(earned)}<gray>.
         failure:
           empty: ""
           not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
           product: <gray>你的背包中没有足够的商品物品可供出售.
       buy-all-from:
-        success: <gray>成功出售了背包中有的全部购物车中的商品. 共赚得 <white>${format_decimal(earned)}<gray>.
+        success: <gray>成功出售了背包中有的全部购物车中的商品. 共赚得 <white>${prices_str(earned)}<gray>.
         failure:
           empty: ""
           not-listed: <gray>你的购物车中有当前未上架的商品, 尝试清理购物车.
           product: <gray>你的背包中没有足够的商品物品可供出售.
+
+gui:
+  icon:
+    name:
+      next-line: <gray>下一行
+      previous-line: <gray>上一行
+      shop-list: <gray>商店列表
+    lore:
+      wall:
+        - " <dark_gray>墙 "
+        - " "
 
 # 不要更改此处
 version: 1

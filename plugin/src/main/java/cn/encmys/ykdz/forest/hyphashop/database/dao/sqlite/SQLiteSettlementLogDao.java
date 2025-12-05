@@ -1,12 +1,16 @@
 package cn.encmys.ykdz.forest.hyphashop.database.dao.sqlite;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.database.dao.SettlementLogDao;
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
+import cn.encmys.ykdz.forest.hyphashop.price.PriceInstanceImpl;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
+import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,6 +19,7 @@ import java.util.*;
 import java.util.Date;
 
 public class SQLiteSettlementLogDao implements SettlementLogDao {
+    // 日志和交易记录分别储存在两个表里，需要组合为完整的日志信息
     private static @NotNull List<SettlementLog> parseSettlementLog(@NotNull ResultSet rs) throws SQLException {
         // 需要保持查询出的顺序
         final Map<Integer, SettlementLog> logs = new LinkedHashMap<>();
@@ -24,25 +29,27 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
             SettlementLog log = logs.get(logId);
 
             if (log == null) {
-                log = new SettlementLogImpl(UUID.fromString(rs.getString("customer_uuid")), OrderType.valueOf(rs.getString("type")))
+                log = new SettlementLogImpl(UUID.fromString(rs.getString("customer_uuid")),
+                        OrderType.valueOf(rs.getString("type")))
                         .setTransitionTime(new Date(rs.getTimestamp("transition_time").getTime()));
                 logs.put(logId, log);
             }
 
             final Map<ProductLocation, AmountPair> orderedProducts = new HashMap<>(log.getOrderedProducts());
-            final Map<ProductLocation, Double> pricePerStack = new HashMap<>(log.getPricePerStack());
+            final Map<ProductLocation, PriceInstance> pricePerStack = new HashMap<>(log.getPricePerStack());
 
             if (rs.getString("product_id") != null) {
                 final ProductLocation loc = new ProductLocation(
                         rs.getString("shop_id"),
-                        rs.getString("product_id")
-                );
+                        rs.getString("product_id"));
                 final AmountPair pair = new AmountPair(
                         rs.getInt("product_amount"),
-                        rs.getInt("ordered_stack")
-                );
+                        rs.getInt("ordered_stack"));
                 orderedProducts.put(loc, pair);
-                pricePerStack.put(loc, rs.getDouble("price_per_stack"));
+
+                final Map<String, Double> perStack = HyphaShopImpl.GSON.fromJson(rs.getString("price_per_stack"), new TypeToken<Map<String, Double>>() {
+                }.getType());
+                pricePerStack.put(loc, new PriceInstanceImpl(perStack));
             }
 
             log.setOrderedProducts(orderedProducts);
@@ -74,7 +81,8 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
     }
 
     @Override
-    public @NotNull List<SettlementLog> queryLogs(@NotNull UUID playerUUID, int offset, int limit, @NotNull OrderType @NotNull ... types) {
+    public @NotNull List<SettlementLog> queryLogs(@NotNull UUID playerUUID, int offset, int limit,
+                                                  @NotNull OrderType @NotNull ... types) {
         final String sql = "SELECT l.id, l.customer_uuid, l.type, l.transition_time, " +
                 "lp.shop_id, lp.product_id, lp.product_amount, lp.ordered_stack, lp.price_per_stack " +
                 "FROM hyphashop_settlement_log l " +
@@ -156,7 +164,8 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                 logId = rs.next() ? rs.getInt(1) : -1;
             }
 
-            final String productSql = "INSERT INTO hyphashop_log_product (log_id, shop_id, product_id, product_amount, ordered_stack, price_per_stack) " +
+            final String productSql = "INSERT INTO hyphashop_log_product (log_id, shop_id, product_id, product_amount, ordered_stack, price_per_stack) "
+                    +
                     "VALUES (?, ?, ?, ?, ?, ?)";
             try (final PreparedStatement stmt = connection.prepareStatement(productSql)) {
                 for (final Map.Entry<ProductLocation, AmountPair> entry : log.getOrderedProducts().entrySet()) {
@@ -167,7 +176,7 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
                     stmt.setString(3, loc.productId());
                     stmt.setInt(4, pair.amount());
                     stmt.setInt(5, pair.stack());
-                    stmt.setDouble(6, log.getPricePerStack().get(loc));
+                    stmt.setString(6, HyphaShopImpl.GSON.toJson(log.getPricePerStack().get(loc).getPrices()));
                     stmt.addBatch();
                 }
                 stmt.executeBatch();

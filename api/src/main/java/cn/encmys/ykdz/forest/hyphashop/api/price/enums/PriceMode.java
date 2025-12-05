@@ -5,5 +5,5 @@ public enum PriceMode {
     GAUSSIAN,
     MINMAX,
     FORMULA,
-    DISABLE
+    DISABLE,
 }

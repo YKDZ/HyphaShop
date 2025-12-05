@@ -27,7 +27,7 @@ products:
       name: "<white>Warm toned wool bundle"
       lore:
         - "<gray>A bundle that contains all"
-        - "<gold>warm toned<gray>wool."
+        - "<gold>warm toned<gray> wool."
     buy-price:
       formula: bundle_total_new * 0.8
     sell-price:
@@ -48,7 +48,7 @@ products:
       name: "<white>Cold toned wool bundle"
       lore:
         - "<gray>A bundle that contains all"
-        - "<blue>cold toned<gray>wool."
+        - "<blue>cold toned<gray> wool."
     bundle-contents:
       - MAGENTA_WOOL
       - LIGHT_BLUE_WOOL

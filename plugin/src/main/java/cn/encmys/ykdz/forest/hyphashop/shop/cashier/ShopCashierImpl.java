@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.shop.cashier;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.ShopCashier;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.currency.MerchantCurrency;
@@ -63,5 +64,59 @@ public class ShopCashierImpl implements ShopCashier {
     @Override
     public @NotNull Optional<MerchantCurrency> getCurrency(@NotNull String currency) {
         return Optional.ofNullable(currencies.get(currency));
+    }
+
+    /**
+     * 商人模式下余额是否足以处理此价格<br/>
+     * 若不为商人模式则恒为 true
+     *
+     */
+    @Override
+    public boolean canBeWithdrew(@NotNull PriceInstance price) {
+        if (!isMerchant()) return true;
+
+        for (Map.Entry<@NotNull String, @NotNull Double> entry : price.getPrices().entrySet()) {
+            // 不包含即为此种货币不做限制
+            if (!currencies.containsKey(entry.getKey())) continue;
+
+            // 余额充足则继续检查下一种货币
+            double balance = currencies.get(entry.getKey()).getBalance();
+            if (balance >= entry.getValue()) continue;
+
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * 在商店余额扣除指定金额
+     *
+     */
+    @Override
+    public void handleWithdraw(@NotNull PriceInstance price) {
+        if (!isMerchant()) return;
+
+        for (Map.Entry<@NotNull String, @NotNull Double> entry : price.getPrices().entrySet()) {
+            // 不包含即为此种货币不做限制
+            if (!currencies.containsKey(entry.getKey())) continue;
+
+            currencies.get(entry.getKey()).modifyBalance(-entry.getValue());
+        }
+    }
+
+    /**
+     * 向商店余额扣除补充指定金额
+     *
+     */
+    @Override
+    public void handleDeposit(@NotNull PriceInstance price) {
+        if (!isMerchant()) return;
+
+        for (Map.Entry<@NotNull String, @NotNull Double> entry : price.getPrices().entrySet()) {
+            if (!currencies.containsKey(entry.getKey())) continue;
+
+            currencies.get(entry.getKey()).modifyBalance(entry.getValue());
+        }
     }
 }

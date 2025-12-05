@@ -301,14 +301,14 @@ public class HyphaShopActionObject extends InternalObject {
 
     @Static
     @Function("open_shop")
-    @FunctionParas({"shopId", "__player"})
+    @FunctionParas({"id", "__player"})
     public static void openShop(@NotNull Context ctx) {
         Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        String shopId = ContextUtils.getStringParam(ctx, "shopId").orElse(null);
+        String shopId = ContextUtils.getStringParam(ctx, "id").orElse(null);
 
         if (shopId == null || player == null) {
             HyphaShopImpl.LOGGER.warn("""
-                    open_shop(shopId, __player) should have all parameters non-null.
+                    open_shop(id, __player) should have all parameters non-null.
                     Related context: %s
                     """.formatted(ctx));
             return;
@@ -318,7 +318,7 @@ public class HyphaShopActionObject extends InternalObject {
 
         if (shop == null) {
             HyphaShopImpl.LOGGER.warn("""
-                    Can not parse find shop with id "%s" in open_shop(shopId, __player).
+                    Can not parse find shop with id "%s" in open_shop(id, __player).
                     Related context: %s
                     """.formatted(shopId, ctx));
             return;
@@ -331,8 +331,8 @@ public class HyphaShopActionObject extends InternalObject {
     @Function("open_gui")
     @FunctionParas({"id", "__player"})
     public static void openGUI(@NotNull Context ctx) {
-        Player player = ContextUtils.getPlayer(ctx).orElse(null);
-        String id = ContextUtils.getStringParam(ctx, "id").orElse(null);
+        final Player player = ContextUtils.getPlayer(ctx).orElse(null);
+        final String id = ContextUtils.getStringParam(ctx, "id").orElse(null);
 
         if (id == null || player == null) {
             HyphaShopImpl.LOGGER.warn("""
@@ -340,7 +340,7 @@ public class HyphaShopActionObject extends InternalObject {
                     Related context: %s
                     """.formatted(ctx));
             return;
-        } else if (HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id)) {
+        } else if (!HyphaShop.NORMAL_GUI_FACTORY.hasGUI(id)) {
             HyphaShopImpl.LOGGER.warn("""
                     Can not find gui with id "%s" in open_gui(id, __player).
                     Related context: %s

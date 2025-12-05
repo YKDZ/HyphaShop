@@ -11,7 +11,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.Profile;
 import cn.encmys.ykdz.forest.hyphashop.api.profile.cart.Cart;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
-import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
@@ -107,13 +106,7 @@ public class CartGUI extends NormalGUI {
 
                     final Map<String, Object> vars = Map.of(
                             "stack", stack,
-                            "total_price", cart.getOrder().getBilledPrice(productLoc),
-                            "price_mode", cart.getOrder().getType() == OrderType.SELL_TO ?
-                                    product.getBuyPrice().getPriceMode().name().toLowerCase().replace("_", "-")
-                                    : product.getSellPrice().getPriceMode().name().toLowerCase().replace("_", "-"),
-                            "currency_id", cart.getOrder().getType() == OrderType.SELL_TO ?
-                                    product.getBuyPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
-                                    : product.getSellPrice().getCurrencyProvider().getId().toLowerCase().replace("_", "-")
+                            "total_prices", cart.getOrder().getBilledPrice(productLoc)
                     );
 
                     final BaseItemDecorator iconDecorator = DecoratorUtils.selectDecoratorByCondition(productIcon, ContextUtils.linkContext(

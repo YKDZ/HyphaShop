@@ -1,0 +1,31 @@
+export const Config = {
+    namespace: "price",
+    isUnpack: true,
+};
+
+const format_prices = (prices) => {
+    if (!prices || prices.keys().length() == 0) return null;
+
+    const lines = [];
+
+    for (const [i, key] of prices.keys().entries()) {
+        const price = prices[key];
+        if (price == null) continue;
+
+        lines[i] =
+            "<white>" +
+            format_decimal(price) +
+            " " +
+            lang("currency." + key.lower().replace("_", "-"));
+    }
+
+    return lines;
+};
+
+export const prices_list = (prices) => {
+    return format_prices(prices).map((price) => " <dark_gray>- " + price);
+};
+
+export const prices_str = (prices) => {
+    return format_prices(prices).join(", ");
+};

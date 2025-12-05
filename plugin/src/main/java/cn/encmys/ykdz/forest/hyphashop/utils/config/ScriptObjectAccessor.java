@@ -126,4 +126,9 @@ public record ScriptObjectAccessor(@NotNull ScriptObject config) implements Conf
     public boolean contains(@NotNull String path) {
         return config.hasLocalMember(path);
     }
+
+    @Override
+    public boolean selfContains(@NotNull String path) {
+        return config.hasLocalMember(path);
+    }
 }

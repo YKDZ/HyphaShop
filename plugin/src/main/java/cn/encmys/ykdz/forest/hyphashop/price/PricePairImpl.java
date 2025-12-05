@@ -1,36 +1,38 @@
 package cn.encmys.ykdz.forest.hyphashop.price;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
 import com.google.gson.annotations.Expose;
+import org.jetbrains.annotations.NotNull;
 
 public class PricePairImpl implements PricePair {
     @Expose
-    private double buy;
+    private PriceInstance buy;
     @Expose
-    private double sell;
+    private PriceInstance sell;
 
-    public PricePairImpl(double buy, double sell) {
+    public PricePairImpl(@NotNull PriceInstance buy, @NotNull PriceInstance sell) {
         this.buy = buy;
         this.sell = sell;
     }
 
     @Override
-    public double getBuy() {
+    public @NotNull PriceInstance getBuy() {
         return buy;
     }
 
     @Override
-    public void setBuy(double buy) {
+    public void setBuy(@NotNull PriceInstance buy) {
         this.buy = buy;
     }
 
     @Override
-    public double getSell() {
+    public @NotNull PriceInstance getSell() {
         return sell;
     }
 
     @Override
-    public void setSell(double sell) {
+    public void setSell(@NotNull PriceInstance sell) {
         this.sell = sell;
     }
 }

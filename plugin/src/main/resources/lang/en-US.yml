@@ -74,7 +74,7 @@ messages:
   settle-result:
     direct:
       sell-to:
-        success: "<gray>Successfully bought <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. Total cost: <white>${format_decimal(cost)}."
+        success: "<gray>Successfully bought <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>. Total cost: <white>${prices_str(cost)}."
         failure:
           money: <gray>You don’t have enough balance to buy <reset>${product_name} <gray>x <white>${product_amount}<gray>.
           disabled: <gray>You cannot buy <reset>${product_name} <gray>x <white>${product_amount}<gray> from shop <reset>${shop_name}<gray>.
@@ -84,20 +84,20 @@ messages:
       buy-from:
         success:
           <gray>Successfully sold <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
-          You earned <white>${format_decimal(earned)}.
+          You earned <white>${prices_str(earned)}.
         failure:
           disabled: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
           product: <gray>You don’t have enough <reset>${product_name} <gray>x <white>${product_amount} <gray>in your inventory to sell.
           merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance.
       buy-all-from:
-        success: <gray>Successfully sold all <white>${stack} <gray>stacks of <reset>${product_name} <gray>x <white>${product_amount}<gray> from your inventory to shop <reset>${shop_name}<gray>. You earned <white>${format_decimal(earned)}.
+        success: <gray>Successfully sold all <white>${stack} <gray>stacks of <reset>${product_name} <gray>x <white>${product_amount}<gray> from your inventory to shop <reset>${shop_name}<gray>. You earned <white>${prices_str(earned)}.
         failure:
           disabled: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>.
           product: <gray>You have no <reset>${product_name} <gray>x <white>${product_amount} <gray>in your inventory to sell.
           merchant-balance: <gray>You cannot sell <reset>${product_name} <gray>x <white>${product_amount}<gray> to shop <reset>${shop_name}<gray>. The shop does not have enough balance.
     cart:
       sell-to:
-        success: <gray>Successfully bought all items in the cart for <white>${format_decimal(cost)}<gray>.
+        success: <gray>Successfully bought all items in the cart for <white>${prices_str(cost)}<gray>.
         failure:
           empty: ""
           not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
@@ -106,17 +106,28 @@ messages:
           player-stock: <gray>Your personal stock quota for some items in the cart is exhausted. Please clean your cart.
           global-stock: <gray>Some items in your cart are out of stock. Please clean your cart.
       buy-from:
-        success: "<gray>Successfully sold all items in the cart. Total earned: <white>${format_decimal(earned)}<gray>."
+        success: "<gray>Successfully sold all items in the cart. Total earned: <white>${prices_str(earned)}<gray>."
         failure:
           empty: ""
           not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
           product: <gray>You don’t have enough items in your inventory to sell.
       buy-all-from:
-        success: "<gray>Successfully sold all cart items that you had in your inventory. Total earned: <white>${format_decimal(earned)}<gray>."
+        success: "<gray>Successfully sold all cart items that you had in your inventory. Total earned: <white>${prices_str(earned)}<gray>."
         failure:
           empty: ""
           not-listed: <gray>Your cart contains unlisted items. Please clean your cart.
           product: <gray>You don’t have enough items in your inventory to sell.
+
+gui:
+  icon:
+    name:
+      next-line: <gray>Next Line
+      previous-line: <gray>Next Line
+      shop-list: <gray>Shop List
+    lore:
+      wall:
+        - " <dark_gray>Wall "
+        - " "
 
 # Do not change this
 version: 1

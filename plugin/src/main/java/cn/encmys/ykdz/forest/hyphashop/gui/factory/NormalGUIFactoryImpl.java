@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.gui.factory;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.GUI;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.factory.NormalGUIFactory;
 import cn.encmys.ykdz.forest.hyphashop.config.NormalGUIConfig;
@@ -38,6 +39,9 @@ public class NormalGUIFactoryImpl implements NormalGUIFactory {
     @Override
     public void register(@NotNull String id, @NotNull GUI gui) {
         normalGUIs.put(id, gui);
+        HyphaShopImpl.LOGGER.info("""
+                Successfully register normal gui "%s"
+                """.formatted(id));
     }
 
     @Override

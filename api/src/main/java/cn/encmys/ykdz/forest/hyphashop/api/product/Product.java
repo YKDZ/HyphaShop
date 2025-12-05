@@ -14,11 +14,13 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 public abstract class Product {
     protected final boolean isCacheable;
     private final @NotNull String id;
-    private final @NotNull Price buyPrice;
-    private final @NotNull Price sellPrice;
+    private final @NotNull List<@NotNull Price> buyPrice;
+    private final @NotNull List<@NotNull Price> sellPrice;
     private final @NotNull Rarity rarity;
     private final @NotNull BaseItemDecorator iconDecorator;
     private final @Nullable BaseItemDecorator itemDecorator;
@@ -28,8 +30,8 @@ public abstract class Product {
 
     public Product(
             @NotNull String id,
-            @NotNull Price buyPrice,
-            @NotNull Price sellPrice,
+            @NotNull List<Price> buyPrice,
+            @NotNull List<Price> sellPrice,
             @NotNull Rarity rarity,
             @NotNull BaseItemDecorator iconDecorator,
             @Nullable BaseItemDecorator itemDecorator,
@@ -57,11 +59,11 @@ public abstract class Product {
         return rarity;
     }
 
-    public @NotNull Price getBuyPrice() {
+    public @NotNull List<Price> getBuyPrice() {
         return buyPrice;
     }
 
-    public @NotNull Price getSellPrice() {
+    public @NotNull List<Price> getSellPrice() {
         return sellPrice;
     }
 

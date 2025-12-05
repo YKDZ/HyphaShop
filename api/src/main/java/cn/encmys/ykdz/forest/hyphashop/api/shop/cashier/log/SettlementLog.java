@@ -1,5 +1,6 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log;
 
+import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
@@ -31,9 +32,9 @@ public interface SettlementLog {
 
     @NotNull SettlementLog setOrderedProducts(@NotNull Map<ProductLocation, AmountPair> orderedProducts);
 
-    @NotNull SettlementLog setPricePerStack(@NotNull Map<ProductLocation, Double> pricePerStack);
+    @NotNull SettlementLog setPricePerStack(@NotNull Map<ProductLocation, PriceInstance> pricePerStack);
 
     @NotNull
     @Unmodifiable
-    Map<ProductLocation, Double> getPricePerStack();
+    Map<ProductLocation, PriceInstance> getPricePerStack();
 }
