@@ -6,4 +6,6 @@ public enum PriceMode {
     MINMAX,
     FORMULA,
     DISABLE,
+    BUNDLE_AUTO_NEW,
+    BUNDLE_AUTO_REUSE
 }

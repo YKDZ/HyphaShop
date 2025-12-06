@@ -49,11 +49,31 @@ public class PriceInstance {
      *
      * @return 合并后的原对象
      */
+    public @NotNull PriceInstance merge(@NotNull PriceInstance instance) {
+        return merge(instance.getPrices());
+    }
+
+    /**
+     * 将给定价格合并到此价格实例中<br/>
+     * 冲突则值相加
+     *
+     * @return 合并后的原对象
+     */
     public @NotNull PriceInstance merge(@NotNull Map<String, Double> target) {
         for (Map.Entry<String, Double> entry : target.entrySet()) {
-            prices.merge(entry.getKey(), entry.getValue(), Double::sum);
+            merge(entry.getKey(), entry.getValue());
         }
         return this;
+    }
+
+    public @NotNull PriceInstance merge(@NotNull String currencyId, double amount) {
+        if (!Double.isNaN(amount))
+            prices.merge(currencyId, amount, Double::sum);
+        return this;
+    }
+
+    public void clear() {
+        prices.clear();
     }
 
     public boolean withdraw(@NotNull OfflinePlayer customer) {

@@ -4,14 +4,11 @@ import cn.encmys.ykdz.forest.hyphascript.context.Context;
 import cn.encmys.ykdz.forest.hyphascript.oop.internal.InternalObjectManager;
 import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphascript.utils.ContextUtils;
-import cn.encmys.ykdz.forest.hyphascript.value.Reference;
-import cn.encmys.ykdz.forest.hyphascript.value.Value;
 import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.price.Price;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PriceInstance;
 import cn.encmys.ykdz.forest.hyphashop.api.price.PricePair;
-import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
@@ -71,8 +68,8 @@ public class ShopPricerImpl implements ShopPricer {
             return false;
         }
 
-        final Map<String, Double> buyPrice = calculatePrice(product.getBuyPrice(), product, true);
-        final Map<String, Double> sellPrice = calculatePrice(product.getSellPrice(), product, false);
+        final PriceInstance buyPrice = calculatePrice(product.getBuyPrice(), product, true);
+        final PriceInstance sellPrice = calculatePrice(product.getSellPrice(), product, false);
 
         if (!checkPrice(buyPrice, sellPrice)) {
             HyphaShopImpl.LOGGER.warn("""
@@ -94,7 +91,7 @@ public class ShopPricerImpl implements ShopPricer {
         }
 
         cachedPrices.put(productId, getModifiedPricePair(productId,
-                new PricePairImpl(new PriceInstance(buyPrice), new PriceInstance(sellPrice))));
+                new PricePairImpl(buyPrice, sellPrice)));
         return true;
     }
 
@@ -107,34 +104,35 @@ public class ShopPricerImpl implements ShopPricer {
      * @return 此价格对是否合法
      */
     private boolean checkPrice(
-            @NotNull Map<String, Double> buyPrice,
-            @NotNull Map<String, Double> sellPrice) {
+            @NotNull PriceInstance buyPrice,
+            @NotNull PriceInstance sellPrice) {
         if (buyPrice.isEmpty() || sellPrice.isEmpty()) return true;
 
-        final double buy = CurrencyConfig.exchange(buyPrice, CurrencyConfig.getBaseCurrency());
-        final double sell = CurrencyConfig.exchange(sellPrice, CurrencyConfig.getBaseCurrency());
+        final double buy = CurrencyConfig.exchange(buyPrice.getPrices(), CurrencyConfig.getBaseCurrency());
+        final double sell = CurrencyConfig.exchange(sellPrice.getPrices(), CurrencyConfig.getBaseCurrency());
 
         return buy > sell;
     }
 
-    private @NotNull Map<@NotNull String, @NotNull Double> calculatePrice(@NotNull List<Price> prices,
-                                                                          @NotNull Product product, boolean isBuy) {
-        final Map<String, Double> result = new HashMap<>();
+    private @NotNull PriceInstance calculatePrice(@NotNull List<Price> prices,
+                                                  @NotNull Product product, boolean isBuy) {
+        final PriceInstance instance = new PriceInstance();
 
         for (Price price : prices) {
-            final double priceValue = price.getPriceMode() == PriceMode.FORMULA
-                    ? evaluateFormulaPrice(price, product, isBuy)
-                    : price.getNewPrice().orElse(Double.NaN);
-            if (Double.isNaN(priceValue))
-                continue;
+            final String currencyId = price.getCurrencyProvider().getId();
 
-            result.put(price.getCurrencyProvider().getId(), priceValue);
+            switch (price.getPriceMode()) {
+                case FORMULA -> instance.merge(currencyId, evaluateFormulaPrice(price, product));
+                case BUNDLE_AUTO_NEW -> instance.merge(calculateBundleAutoNewPrice(product, isBuy));
+                case BUNDLE_AUTO_REUSE -> instance.merge(calculateBundleAutoReusePrice(product, isBuy));
+                default -> instance.merge(currencyId, price.getNewPrice().orElse(Double.NaN));
+            }
         }
 
-        return result;
+        return instance;
     }
 
-    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product, boolean isBuy) {
+    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product) {
         final Context priceContext = price.getProperty(PriceProperty.CONTEXT);
         final Context context = new Context(ContextUtils.linkContext(
                 priceContext != null ? priceContext.clone() : InternalObjectManager.GLOBAL_OBJECT,
@@ -145,15 +143,6 @@ public class ShopPricerImpl implements ShopPricer {
         if (formula == null) {
             HyphaShopImpl.LOGGER.warn("Formula for " + product.getId() + " is null");
             return Double.NaN;
-        }
-
-        if (formula.getLexicalScope() != null && formula.getLexicalScope().contains("bundle_total_reuse")) {
-            context.declareMember("bundle_total_reuse",
-                    new Reference(new Value(calculateBundleAutoReusePrice(product, isBuy)), true));
-        }
-        if (formula.getLexicalScope() != null && formula.getLexicalScope().contains("bundle_total_new")) {
-            context.declareMember("bundle_total_new",
-                    new Reference(new Value(calculateBundleAutoNewPrice(product, isBuy)), true));
         }
 
         final Context ctx = new VarInjector()
@@ -184,7 +173,7 @@ public class ShopPricerImpl implements ShopPricer {
                 continue;
             }
             final List<Price> contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
-            final PriceInstance pricePerStack = new PriceInstance(calculatePrice(contentPrice, product, isBuy));
+            final PriceInstance pricePerStack = calculatePrice(contentPrice, product, isBuy);
 
             result.merge(pricePerStack.mul(entry.getValue()));
         }

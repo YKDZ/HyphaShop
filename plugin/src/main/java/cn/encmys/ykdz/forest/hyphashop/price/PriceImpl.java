@@ -51,6 +51,9 @@ public class PriceImpl extends Price {
 
             this.setProperty(PriceProperty.FORMULA, StringUtils.wrapToScript(formula))
                     .setProperty(PriceProperty.CONTEXT, context == null ? InternalObjectManager.GLOBAL_OBJECT : ScriptUtils.extractContext(context));
+        } else if (config.selfContains("bundle-auto")) {
+            final String c = config.getString("bundle-auto").orElse("new");
+            this.priceMode = c.equals("reuse") ? PriceMode.BUNDLE_AUTO_REUSE : PriceMode.BUNDLE_AUTO_NEW;
         } else if (config.getBoolean("disable").orElse(false)) {
             priceMode = PriceMode.DISABLE;
         } else {
@@ -71,6 +74,15 @@ public class PriceImpl extends Price {
         final @Nullable Integer round = getProperty(PriceProperty.ROUND);
 
         return switch (priceMode) {
+            case FIXED -> {
+                Double fixed = getProperty(PriceProperty.FIXED);
+
+                if (isInvalidProperty(fixed)) {
+                    yield disablePrice("Invalid price property for FIXED mode: " + properties + ".");
+                }
+
+                yield processResult(fixed, round);
+            }
             case GAUSSIAN -> {
                 Double mean = getProperty(PriceProperty.MEAN);
                 Double dev = getProperty(PriceProperty.DEV);
@@ -82,15 +94,6 @@ public class PriceImpl extends Price {
                 double result = mean + dev * random.nextGaussian();
 
                 yield processResult(result, round);
-            }
-            case FIXED -> {
-                Double fixed = getProperty(PriceProperty.FIXED);
-
-                if (isInvalidProperty(fixed)) {
-                    yield disablePrice("Invalid price property for FIXED mode: " + properties + ".");
-                }
-
-                yield processResult(fixed, round);
             }
             case MINMAX -> {
                 Double min = getProperty(PriceProperty.MIN);
@@ -104,7 +107,6 @@ public class PriceImpl extends Price {
 
                 yield processResult(result, round);
             }
-            case DISABLE -> Optional.empty(); // 显式处理 DISABLE 模式
             default -> Optional.empty();
         };
     }
