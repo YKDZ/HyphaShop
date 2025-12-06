@@ -6,6 +6,10 @@
 
 一个受 [DailyShop](https://github.com/divios/DailyShop) 启发的 SpigotMC 插件。追求超级可自定性和效率。
 
+## 文档
+
+文档位于 <https://ykdz.github.io/HyphaDocs/>。
+
 ## 代办事项
 
 - [x] 基于市场需求的动态定价
@@ -63,11 +67,6 @@ public class MyPlugin extends JavaPlugin implements Listener {
         Shop shop = DailyShop.SHOP_FACTORY.getShop("black_market");
         // 为商店补货
         shop.getShopStocker().stock();
-        // 为商人模式的商店补充余额
-        if (shop.getShopCashier().isMerchant()) {
-            // 补充 100 余额
-            shop.getShopCashier().modifyBalance(100);
-        }
 
         // 通过 product id 获取商品实例
         Product product = DailyShop.PRODUCT_FACTORY.getProduct("DIAMOND_ORE");

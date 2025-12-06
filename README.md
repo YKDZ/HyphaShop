@@ -2,10 +2,14 @@
 
 English | [简体中文](README_ZH_CN.md)
 
-# Intro
+## Intro
 
 A SpigotMC plugin inspired by [DailyShop](https://github.com/divios/DailyShop). Pursuing ultra customizability and
 efficiency.
+
+## Document
+
+You can find document in: <https://ykdz.github.io/HyphaDocs/>.
 
 ## Todo
 
@@ -64,11 +68,6 @@ public class MyPlugin extends JavaPlugin implements Listener {
         Shop shop = DailyShop.SHOP_FACTORY.getShop("black_market");
         // Restock a shop
         shop.getShopStocker().stock();
-        // Modify balance of shop in merchant mode
-        if (shop.getShopCashier().isMerchant()) {
-            // Increase balance by 100
-            shop.getShopCashier().modifyBalance(100);
-        }
 
         // Get a product by product id
         Product product = DailyShop.PRODUCT_FACTORY.getProduct("DIAMOND_ORE");
