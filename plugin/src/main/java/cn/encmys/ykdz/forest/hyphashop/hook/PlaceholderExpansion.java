@@ -54,19 +54,14 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
                 .format(shop.getShopCashier().getCurrency(currency).map(MerchantCurrency::getBalance).orElse(0d));
     }
 
-    private static @NotNull String shopHistoryBoughtAmount(@NotNull String params) {
+    private static @NotNull String historyBoughtAmount(@NotNull String params) {
         // %hyphashop_shop_black_market_history_bought_amount_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_bought_amount_")).filter(s -> !s.isEmpty())
+        final String[] data = Arrays.stream(params.split("_history_bought_amount_")).filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
-        if (data.length != 2)
+        if (data.length != 1)
             return "Invalid params.";
 
-        final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
-        if (shop == null)
-            return "Shop " + shopId + " do not exist.";
-
-        final String productId = data[1];
+        final String productId = data[0];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null)
             return "Product " + productId + " do not exist.";
@@ -75,19 +70,14 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         return String.valueOf(historyBuy);
     }
 
-    private static @NotNull String shopHistoryBoughtStack(@NotNull String params) {
-        // %hyphashop_shop_black_market_history_bought_stack_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_bought_stack_")).filter(s -> !s.isEmpty())
+    private static @NotNull String historyBoughtStack(@NotNull String params) {
+        // %hyphashop_history_bought_stack_COAL_ORE%
+        final String[] data = Arrays.stream(params.split("_history_bought_stack_")).filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
-        if (data.length != 2)
+        if (data.length != 1)
             return "Invalid params.";
 
-        final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
-        if (shop == null)
-            return "Shop " + shopId + " do not exist.";
-
-        final String productId = data[1];
+        final String productId = data[0];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null)
             return "Product " + productId + " do not exist.";
@@ -96,19 +86,14 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         return String.valueOf(historyBuy);
     }
 
-    private static @NotNull String shopHistorySoldAmount(@NotNull String params) {
+    private static @NotNull String historySoldAmount(@NotNull String params) {
         // %hyphashop_shop_black_market_history_sold_amount_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_sold_amount_")).filter(s -> !s.isEmpty())
+        final String[] data = Arrays.stream(params.split("_history_sold_amount_")).filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
-        if (data.length != 2)
+        if (data.length != 1)
             return "Invalid params.";
 
-        final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
-        if (shop == null)
-            return "Shop " + shopId + " do not exist.";
-
-        final String productId = data[1];
+        final String productId = data[0];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null)
             return "Product " + productId + " do not exist.";
@@ -118,19 +103,14 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
         return String.valueOf(historySell);
     }
 
-    private static @NotNull String shopHistorySoldStack(@NotNull String params) {
+    private static @NotNull String historySoldStack(@NotNull String params) {
         // %hyphashop_shop_black_market_history_sold_stack_COAL_ORE%
-        final String[] data = Arrays.stream(params.split("shop_|_history_sold_stack_")).filter(s -> !s.isEmpty())
+        final String[] data = Arrays.stream(params.split("_history_sold_stack_")).filter(s -> !s.isEmpty())
                 .toArray(String[]::new);
-        if (data.length != 2)
+        if (data.length != 1)
             return "Invalid params.";
 
-        final String shopId = data[0];
-        final Shop shop = HyphaShop.SHOP_FACTORY.getShop(shopId).orElse(null);
-        if (shop == null)
-            return "Shop " + shopId + " do not exist.";
-
-        final String productId = data[1];
+        final String productId = data[0];
         final Product product = HyphaShop.PRODUCT_FACTORY.getProduct(productId);
         if (product == null)
             return "Product " + productId + " do not exist.";
@@ -166,14 +146,14 @@ public class PlaceholderExpansion extends me.clip.placeholderapi.expansion.Place
             return restockTime(player, params);
         } else if (params.contains("merchant_balance_")) {
             return merchantBalance(player, params);
-        } else if (params.contains("shop_") && params.contains("_history_bought_amount_")) {
-            return shopHistoryBoughtAmount(params);
-        } else if (params.contains("shop_") && params.contains("_history_sold_amount_")) {
-            return shopHistorySoldAmount(params);
-        } else if (params.contains("shop_") && params.contains("_history_bought_stack_")) {
-            return shopHistoryBoughtStack(params);
-        } else if (params.contains("shop_") && params.contains("_history_sold_stack_")) {
-            return shopHistorySoldStack(params);
+        } else if (params.contains("history_bought_amount_")) {
+            return historyBoughtAmount(params);
+        } else if (params.contains("history_sold_amount_")) {
+            return historySoldAmount(params);
+        } else if (params.contains("history_bought_stack_")) {
+            return historyBoughtStack(params);
+        } else if (params.contains("history_sold_stack_")) {
+            return historySoldStack(params);
         }
         return null;
     }

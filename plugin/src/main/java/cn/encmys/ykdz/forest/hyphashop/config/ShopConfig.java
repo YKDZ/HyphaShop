@@ -81,7 +81,7 @@ public class ShopConfig {
                 );
 
         for (ConfigAccessor config : merchantConfigs) {
-            final String currencyId = config.getString("currency").orElse("VAULT");
+            final String currencyId = config.getString("currency").orElse(CurrencyConfig.getBaseCurrency());
             final MerchantRecord record = createMerchantRecord(config);
 
             result.put(currencyId, record);

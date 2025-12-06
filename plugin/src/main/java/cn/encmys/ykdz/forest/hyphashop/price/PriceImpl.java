@@ -8,6 +8,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.config.CurrencyConfig;
 import cn.encmys.ykdz.forest.hyphashop.utils.MathUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
@@ -18,11 +19,11 @@ import java.util.Optional;
 public class PriceImpl extends Price {
     public PriceImpl(@NotNull ConfigAccessor config) {
         super(HyphaShop.CURRENCY_MANAGER.getCurrency(config.getString("currency")
-                        .orElse("VAULT"))
+                        .orElse(CurrencyConfig.getBaseCurrency()))
                 .orElseThrow(() -> new IllegalArgumentException("""
                         Currency %s not exists. This price will be skipped.
                         """.formatted(config.getString("currency")
-                        .orElse("VAULT")))));
+                        .orElse(CurrencyConfig.getBaseCurrency())))));
 
         this.setProperty(PriceProperty.ROUND, config.getInt("round").orElse(null));
 

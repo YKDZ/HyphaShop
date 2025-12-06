@@ -13,6 +13,7 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.factory.ProductFactory;
 import cn.encmys.ykdz.forest.hyphashop.api.product.stock.ProductStock;
 import cn.encmys.ykdz.forest.hyphashop.api.rarity.Rarity;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.config.CurrencyConfig;
 import cn.encmys.ykdz.forest.hyphashop.config.ProductConfig;
 import cn.encmys.ykdz.forest.hyphashop.config.RarityConfig;
 import cn.encmys.ykdz.forest.hyphashop.price.PriceImpl;
@@ -234,7 +235,7 @@ public class ProductFactoryImpl implements ProductFactory {
             @NotNull ConfigAccessor productConfig,
             @NotNull String priceKey) {
 
-        final Function<ConfigAccessor, String> currencyOf = c -> c.getString("currency").orElse("VAULT");
+        final Function<ConfigAccessor, String> currencyOf = c -> c.getString("currency").orElse(CurrencyConfig.getBaseCurrency());
 
         final Function<ConfigAccessor, List<? extends ConfigAccessor>> toList = c -> {
             if (c.isList(priceKey))
@@ -251,7 +252,7 @@ public class ProductFactoryImpl implements ProductFactory {
         // 配置不存在，使用默认配置
         if (!productConfig.isList(priceKey) && productConfig.getConfig(priceKey).isEmpty()) {
             try {
-                ConfigAccessor defaultCfg = defaultByCurrency.getOrDefault("VAULT",
+                ConfigAccessor defaultCfg = defaultByCurrency.getOrDefault(CurrencyConfig.getBaseCurrency(),
                         new ConfigurationSectionAccessor(new YamlConfiguration()));
                 prices.add(new PriceImpl(defaultCfg));
             } catch (Exception e) {

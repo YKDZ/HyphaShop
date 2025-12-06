@@ -89,7 +89,7 @@ public class CurrencyConfig {
     }
 
     private static @NotNull Map<String, Double> parseExchangeRates() {
-        final ConfigurationSection section = config.getConfigurationSection("exchange-rates.rates");
+        final ConfigurationSection section = config.getConfigurationSection("exchange-rates");
         if (section == null) return Map.of();
 
         return section.getKeys(false).stream()
