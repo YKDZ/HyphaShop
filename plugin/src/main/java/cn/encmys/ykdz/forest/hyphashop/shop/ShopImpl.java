@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.shop;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
@@ -27,7 +28,7 @@ import java.util.*;
 
 public class ShopImpl implements Shop {
     private final @NotNull String id;
-    private final @NotNull String name;
+    private final @NotNull Script name;
     private final @NotNull ShopGUI shopGUI;
     private final @NotNull ShopPricer shopPricer;
     private final @NotNull ShopCashier shopCashier;
@@ -50,7 +51,7 @@ public class ShopImpl implements Shop {
     }
 
     @Override
-    public @NotNull String getName() {
+    public @NotNull Script getName() {
         return name;
     }
 

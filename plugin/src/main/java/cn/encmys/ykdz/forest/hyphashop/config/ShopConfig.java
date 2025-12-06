@@ -1,9 +1,11 @@
 package cn.encmys.ykdz.forest.hyphashop.config;
 
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
 import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.record.MerchantRecord;
+import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
 import cn.encmys.ykdz.forest.hyphashop.config.record.shop.ShopSettingsRecord;
 import cn.encmys.ykdz.forest.hyphashop.utils.TextUtils;
@@ -57,7 +59,7 @@ public class ShopConfig {
         final ConfigAccessor config = getShopSettingsConfig(shopId);
         return new ShopSettingsRecord(
                 config.getInt("size").orElse(Integer.MIN_VALUE),
-                config.getString("name").orElse("<red>Shop name not found!"),
+                StringUtils.wrapToScriptWithOmit(config.getString("name").orElse("<red>Shop name not found!")).orElse(new Script("<red>Shop name not found!")),
                 config.getBoolean("auto-restock.enabled").orElse(false),
                 TextUtils.parseTimeStringToTicks(config.getString("auto-restock.period").orElse("0s")),
                 getMerchantRecord(shopId),

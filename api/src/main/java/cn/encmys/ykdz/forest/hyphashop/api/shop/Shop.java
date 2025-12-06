@@ -1,6 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.api.shop;
 
 import cn.encmys.ykdz.forest.hyphascript.context.Context;
+import cn.encmys.ykdz.forest.hyphascript.script.Script;
 import cn.encmys.ykdz.forest.hyphashop.api.config.action.ActionsConfig;
 import cn.encmys.ykdz.forest.hyphashop.api.gui.GUI;
 import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
@@ -17,9 +18,9 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.util.Map;
 
 public interface Shop {
-    @NotNull String getName();
-
     @NotNull String getId();
+
+    @NotNull Script getName();
 
     @NotNull GUI getShopGUI();
 
@@ -46,6 +47,6 @@ public interface Shop {
     @NotNull Context getScriptContext();
 
     @NotNull ActionsConfig getActions();
-    
+
     long getMillisUntilRestock(long currentTime);
 }

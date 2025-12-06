@@ -3,6 +3,7 @@ package cn.encmys.ykdz.forest.hyphashop.var.extractor;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarExtractor;
 import cn.encmys.ykdz.forest.hyphashop.api.var.extractor.VarInjectorContext;
+import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
 
 public class ShopExtractor implements VarExtractor {
@@ -12,7 +13,7 @@ public class ShopExtractor implements VarExtractor {
         if (shop == null) return;
 
         ctx.putVar("__shop", () -> shop);
-        ctx.putVar("shop_name", shop::getName);
+        ctx.putVar("shop_name", () -> ScriptUtils.evaluateString(ctx.getTarget(), shop.getName()));
         ctx.putVar("shop_id", shop::getId);
 
         final boolean isMerchant = shop.getShopCashier().isMerchant();
