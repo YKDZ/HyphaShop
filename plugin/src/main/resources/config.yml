@@ -1,6 +1,6 @@
 language:
   # Name of a language file under lang/ directory
-  default-message: en_US
+  default-message: en-US
 period:
   # Cycle for saving plugin data
   # The allowed formats are similar to:
