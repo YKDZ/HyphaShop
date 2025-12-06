@@ -27,5 +27,5 @@ export const prices_list = (prices) => {
 };
 
 export const prices_str = (prices) => {
-    return format_prices(prices).join(", ");
+    return format_prices(prices).join("<dark_gray>, ");
 };

@@ -1,0 +1,5 @@
+base: VAULT
+
+exchange-rates:
+  # 1 VAULT = 10 EXP
+  EXP: 10

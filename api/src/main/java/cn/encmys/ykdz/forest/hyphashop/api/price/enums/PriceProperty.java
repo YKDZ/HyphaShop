@@ -16,7 +16,7 @@ public enum PriceProperty {
     }),
     MAX(new TypeToken<Double>() {
     }),
-    ROUND(new TypeToken<Boolean>() {
+    ROUND(new TypeToken<Integer>() {
     }),
     CONTEXT(new TypeToken<Context>() {
     }),

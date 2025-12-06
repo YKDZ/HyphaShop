@@ -35,7 +35,9 @@ public abstract class Price {
         else if (type.getToken().getRawType().isInstance(value)) {
             return (T) type.getToken().getRawType().cast(value);
         }
-        throw new IllegalArgumentException("Invalid type for config key: " + type);
+        throw new IllegalArgumentException("""
+                Invalid type for config key: %s. Expect %s but given %s.
+                """.formatted(type, type.getToken().getRawType(), value.getClass()));
     }
 
     public @NotNull CurrencyProvider getCurrencyProvider() {

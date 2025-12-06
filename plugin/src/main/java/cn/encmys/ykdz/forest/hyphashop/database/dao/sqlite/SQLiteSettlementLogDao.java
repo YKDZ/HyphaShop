@@ -8,7 +8,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.SettlementLog;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.cashier.log.amount.AmountPair;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
-import cn.encmys.ykdz.forest.hyphashop.price.PriceInstanceImpl;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
 import com.google.gson.reflect.TypeToken;
 import org.jetbrains.annotations.Contract;
@@ -49,7 +48,8 @@ public class SQLiteSettlementLogDao implements SettlementLogDao {
 
                 final Map<String, Double> perStack = HyphaShopImpl.GSON.fromJson(rs.getString("price_per_stack"), new TypeToken<Map<String, Double>>() {
                 }.getType());
-                pricePerStack.put(loc, new PriceInstanceImpl(perStack));
+                pricePerStack.put(loc, new PriceInstance(perStack) {
+                });
             }
 
             log.setOrderedProducts(orderedProducts);

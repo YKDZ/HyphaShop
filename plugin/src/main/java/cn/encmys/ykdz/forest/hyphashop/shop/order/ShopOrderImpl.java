@@ -15,7 +15,6 @@ import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.OrderType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.enums.SettlementResultType;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.ProductLocation;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.order.record.SettlementResult;
-import cn.encmys.ykdz.forest.hyphashop.price.PriceInstanceImpl;
 import cn.encmys.ykdz.forest.hyphashop.scheduler.Scheduler;
 import cn.encmys.ykdz.forest.hyphashop.shop.cashier.log.SettlementLogImpl;
 import org.bukkit.Bukkit;
@@ -82,7 +81,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
         final SettlementResult result = new SettlementResult(canSellTo(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
-            final PriceInstance totalPrice = new PriceInstanceImpl();
+            final PriceInstance totalPrice = new PriceInstance();
             final Map<Shop, PriceInstance> shopPrices = new HashMap<>();
 
             // 聚合价格
@@ -94,7 +93,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
                 final Map<String, Double> price = getBilledPrice(productLoc);
                 totalPrice.merge(price);
-                shopPrices.computeIfAbsent(shop, k -> new PriceInstanceImpl()).merge(price);
+                shopPrices.computeIfAbsent(shop, k -> new PriceInstance()).merge(price);
             }
 
             // 扣除玩家余额
@@ -143,7 +142,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
         final SettlementResult result = new SettlementResult(canBuyFrom(), getTotalPrices());
         if (result.type() == SettlementResultType.SUCCESS) {
-            final PriceInstance totalPrice = new PriceInstanceImpl();
+            final PriceInstance totalPrice = new PriceInstance();
             final Map<Shop, PriceInstance> shopPrices = new HashMap<>();
 
             // 聚合价格
@@ -155,7 +154,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
 
                 final Map<String, Double> price = getBilledPrice(productLoc);
                 totalPrice.merge(price);
-                shopPrices.computeIfAbsent(shop, k -> new PriceInstanceImpl()).merge(price);
+                shopPrices.computeIfAbsent(shop, k -> new PriceInstance()).merge(price);
             }
 
             // 商家扣款
@@ -327,7 +326,7 @@ public class ShopOrderImpl implements ShopOrder, Cloneable {
             final Map<String, Double> prices = entry.getValue();
             final ShopCashier cashier = shop.getShopCashier();
 
-            if (cashier.isMerchant() && !cashier.canBeWithdrew(new PriceInstanceImpl(prices))) {
+            if (cashier.isMerchant() && !cashier.canBeWithdrew(new PriceInstance(prices))) {
                 return SettlementResultType.NOT_ENOUGH_MERCHANT_BALANCE;
             }
         }

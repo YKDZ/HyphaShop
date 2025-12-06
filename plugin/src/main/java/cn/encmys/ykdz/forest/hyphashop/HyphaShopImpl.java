@@ -82,6 +82,7 @@ public final class HyphaShopImpl extends HyphaShop {
             return;
         }
 
+        CurrencyConfig.load();
         MessageConfig.load();
         RarityConfig.load();
         ProductConfig.load();

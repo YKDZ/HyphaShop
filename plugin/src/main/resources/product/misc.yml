@@ -4,7 +4,7 @@ default-configs:
   buy-price:
     mean: 200
     dev: 20
-    round: true
+    round: 0
   sell-price:
     mean: 20
     dev: 5

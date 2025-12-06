@@ -11,9 +11,11 @@ import net.kyori.adventure.text.Component;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ScriptUtils {
@@ -47,38 +49,30 @@ public class ScriptUtils {
         return result.value().getAsBoolean();
     }
 
-    public static double evaluateDouble(@NotNull Context context, @NotNull Script script) {
+    public static Optional<BigDecimal> evaluateBigDecimal(@NotNull Context context, @NotNull Script script) {
         final EvaluateResult result = script.evaluate(context);
 
         if (result.type() != EvaluateResult.Type.SUCCESS) {
             HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use NaN as fallback value.");
             HyphaShopImpl.LOGGER.warn(result.toString());
-            return Double.NaN;
+            return Optional.empty();
         }
 
         if (!result.value().isType(Value.Type.NUMBER)) {
             HyphaShopImpl.LOGGER.warn("Result of script: " + script.getScript() + " is not double but " + result.value().type() + ". Use -1 as fallback value.");
-            return Double.NaN;
+            return Optional.empty();
         }
 
-        return result.value().getAsBigDecimal().doubleValue();
+        return Optional.of(result.value().getAsBigDecimal());
+    }
+
+    public static double evaluateDouble(@NotNull Context context, @NotNull Script script) {
+        return evaluateBigDecimal(context, script).map(BigDecimal::doubleValue).orElse(Double.NaN);
     }
 
     public static int evaluateInt(@NotNull Context context, @NotNull Script script) {
-        final EvaluateResult result = script.evaluate(context);
+        return evaluateBigDecimal(context, script).map(BigDecimal::intValue).orElse(Integer.MIN_VALUE);
 
-        if (result.type() != EvaluateResult.Type.SUCCESS) {
-            HyphaShopImpl.LOGGER.warn("Error when evaluating script. Use Integer.MIN_VALUE as fallback value.");
-            HyphaShopImpl.LOGGER.warn(result.toString());
-            return Integer.MIN_VALUE;
-        }
-
-        if (!result.value().isType(Value.Type.NUMBER)) {
-            HyphaShopImpl.LOGGER.warn("Result of script: " + script.getScript() + " is not int but " + result.value().type() + ". Use -1 as fallback value.");
-            return Integer.MIN_VALUE;
-        }
-
-        return result.value().getAsBigDecimal().intValue();
     }
 
     public static @NotNull String evaluateString(@NotNull Context context, @NotNull Script script) {

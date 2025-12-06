@@ -17,15 +17,17 @@ import cn.encmys.ykdz.forest.hyphashop.api.product.Product;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.Shop;
 import cn.encmys.ykdz.forest.hyphashop.api.shop.pricer.ShopPricer;
 import cn.encmys.ykdz.forest.hyphashop.config.Config;
-import cn.encmys.ykdz.forest.hyphashop.price.PriceInstanceImpl;
+import cn.encmys.ykdz.forest.hyphashop.config.CurrencyConfig;
 import cn.encmys.ykdz.forest.hyphashop.price.PricePairImpl;
 import cn.encmys.ykdz.forest.hyphashop.product.BundleProduct;
 import cn.encmys.ykdz.forest.hyphashop.shop.ShopImpl;
+import cn.encmys.ykdz.forest.hyphashop.utils.MathUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import cn.encmys.ykdz.forest.hyphashop.var.VarInjector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -92,13 +94,13 @@ public class ShopPricerImpl implements ShopPricer {
         }
 
         cachedPrices.put(productId, getModifiedPricePair(productId,
-                new PricePairImpl(new PriceInstanceImpl(buyPrice), new PriceInstanceImpl(sellPrice))));
+                new PricePairImpl(new PriceInstance(buyPrice), new PriceInstance(sellPrice))));
         return true;
     }
 
     /**
-     * 仅当购买价和收购价全部存在、且收购价的货币种类是出售价的子集、且对应的值全部大于收购价格时返回 false<br/>
-     * 用于尽力避免高买低卖问题，因为货币间的汇率是不可知的
+     * 将所有价格按照汇率转换为基本货币并比较大小<br/>
+     * 用于确保出售价大于收购价，防止高买低卖问题
      *
      * @param buyPrice  出售价
      * @param sellPrice 收购价
@@ -107,27 +109,12 @@ public class ShopPricerImpl implements ShopPricer {
     private boolean checkPrice(
             @NotNull Map<String, Double> buyPrice,
             @NotNull Map<String, Double> sellPrice) {
-        if (buyPrice.isEmpty() || sellPrice.isEmpty()) {
-            return true;
-        }
+        if (buyPrice.isEmpty() || sellPrice.isEmpty()) return true;
 
-        for (String currencyId : sellPrice.keySet()) {
-            if (!buyPrice.containsKey(currencyId)) {
-                return true;
-            }
-        }
+        final double buy = CurrencyConfig.exchange(buyPrice, CurrencyConfig.getBaseCurrency());
+        final double sell = CurrencyConfig.exchange(sellPrice, CurrencyConfig.getBaseCurrency());
 
-        for (Map.Entry<String, Double> entry : sellPrice.entrySet()) {
-            String currencyId = entry.getKey();
-            Double sell = entry.getValue();
-            Double buy = buyPrice.get(currencyId);
-
-            if (sell < buy) {
-                return true;
-            }
-        }
-
-        return false;
+        return buy > sell;
     }
 
     private @NotNull Map<@NotNull String, @NotNull Double> calculatePrice(@NotNull List<Price> prices,
@@ -175,11 +162,16 @@ public class ShopPricerImpl implements ShopPricer {
                 .withArgs(shop, product)
                 .inject();
 
-        return ScriptUtils.evaluateDouble(ctx, formula);
+        final Integer round = price.getProperty(PriceProperty.ROUND);
+
+        return ScriptUtils.evaluateBigDecimal(ctx, formula)
+                .map(value -> round != null ? MathUtils.round(value, round) : value)
+                .map(BigDecimal::doubleValue)
+                .orElse(Double.NaN);
     }
 
     private @NotNull PriceInstance calculateBundleAutoNewPrice(@NotNull Product product, boolean isBuy) {
-        final PriceInstance result = new PriceInstanceImpl();
+        final PriceInstance result = new PriceInstance();
         final BundleProduct bundle = (BundleProduct) product;
 
         for (final Map.Entry<String, Integer> entry : bundle.getBundleContents().entrySet()) {
@@ -187,12 +179,12 @@ public class ShopPricerImpl implements ShopPricer {
             final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
             if (content == null) {
                 if (isBuy)
-                    return new PriceInstanceImpl();
+                    return new PriceInstance();
                 HyphaShopImpl.LOGGER.warn("Bundle product " + product.getId() + " has invalid content " + contentId);
                 continue;
             }
             final List<Price> contentPrice = isBuy ? content.getBuyPrice() : content.getSellPrice();
-            final PriceInstance pricePerStack = new PriceInstanceImpl(calculatePrice(contentPrice, product, isBuy));
+            final PriceInstance pricePerStack = new PriceInstance(calculatePrice(contentPrice, product, isBuy));
 
             result.merge(pricePerStack.mul(entry.getValue()));
         }
@@ -201,7 +193,7 @@ public class ShopPricerImpl implements ShopPricer {
     }
 
     private @NotNull PriceInstance calculateBundleAutoReusePrice(@NotNull Product product, boolean isBuy) {
-        final PriceInstance result = new PriceInstanceImpl();
+        final PriceInstance result = new PriceInstance();
         ((BundleProduct) product).getBundleContents().forEach((productId, stack) -> {
             final PriceInstance pricePerStack = isBuy ? getBuyPrice(productId) : getSellPrice(productId);
             result.merge(pricePerStack.mul(stack));

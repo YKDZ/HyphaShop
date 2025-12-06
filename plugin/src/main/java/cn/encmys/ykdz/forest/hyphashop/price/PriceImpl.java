@@ -8,8 +8,10 @@ import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceMode;
 import cn.encmys.ykdz.forest.hyphashop.api.price.enums.PriceProperty;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.StringUtils;
 import cn.encmys.ykdz.forest.hyphashop.api.utils.config.ConfigAccessor;
+import cn.encmys.ykdz.forest.hyphashop.utils.MathUtils;
 import cn.encmys.ykdz.forest.hyphashop.utils.ScriptUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
@@ -22,19 +24,19 @@ public class PriceImpl extends Price {
                         """.formatted(config.getString("currency")
                         .orElse("VAULT")))));
 
+        this.setProperty(PriceProperty.ROUND, config.getInt("round").orElse(null));
+
         if (config.selfContains("fixed")) {
             priceMode = PriceMode.FIXED;
             this.setProperty(PriceProperty.FIXED, config.getDouble("fixed").orElse(Double.NaN));
         } else if (config.selfContains("mean") || config.selfContains("dev")) {
             priceMode = PriceMode.GAUSSIAN;
             this.setProperty(PriceProperty.MEAN, config.getDouble("mean").orElse(Double.NaN))
-                    .setProperty(PriceProperty.DEV, config.getDouble("dev").orElse(Double.NaN))
-                    .setProperty(PriceProperty.ROUND, config.getBoolean("round").orElse(false));
+                    .setProperty(PriceProperty.DEV, config.getDouble("dev").orElse(Double.NaN));
         } else if (config.selfContains("min") || config.selfContains("max")) {
             priceMode = PriceMode.MINMAX;
             this.setProperty(PriceProperty.MIN, config.getDouble("min"))
-                    .setProperty(PriceProperty.MAX, config.getDouble("max"))
-                    .setProperty(PriceProperty.ROUND, config.getBoolean("round"));
+                    .setProperty(PriceProperty.MAX, config.getDouble("max"));
         } else if (config.selfContains("formula") || config.selfContains("context")) {
             priceMode = PriceMode.FORMULA;
             final String formula = config.getString("formula").orElse(null);
@@ -64,57 +66,69 @@ public class PriceImpl extends Price {
      */
     @Override
     public @NotNull Optional<Double> getNewPrice() {
+        // 提前获取 round 属性，确保所有分支都能使用
+        final @Nullable Integer round = getProperty(PriceProperty.ROUND);
+
         return switch (priceMode) {
             case GAUSSIAN -> {
-                Boolean round = getProperty(PriceProperty.ROUND);
                 Double mean = getProperty(PriceProperty.MEAN);
                 Double dev = getProperty(PriceProperty.DEV);
-                if (round == null || mean == null || dev == null || Double.isNaN(mean) || Double.isNaN(dev)) {
-                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
+
+                if (isInvalidProperty(mean) || isInvalidProperty(dev)) {
+                    yield disablePrice("Invalid price property: " + properties + ".");
                 }
+
                 double result = mean + dev * random.nextGaussian();
-                if (result < 0) {
-                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
-                }
-                yield Optional.of(round ? Math.floor(result) : result);
+
+                yield processResult(result, round);
             }
             case FIXED -> {
                 Double fixed = getProperty(PriceProperty.FIXED);
-                if (fixed == null) {
-                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ".");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
+
+                if (isInvalidProperty(fixed)) {
+                    yield disablePrice("Invalid price property for FIXED mode: " + properties + ".");
                 }
-                if (fixed < 0) {
-                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
-                }
-                yield Optional.of(fixed);
+
+                yield processResult(fixed, round);
             }
             case MINMAX -> {
                 Double min = getProperty(PriceProperty.MIN);
                 Double max = getProperty(PriceProperty.MAX);
-                Boolean round = getProperty(PriceProperty.ROUND);
-                if (round == null || min == null || max == null || Double.isNaN(min) || Double.isNaN(max)) {
-                    HyphaShopImpl.LOGGER.warn("Invalid price property: " + properties + ". Price will be disabled.");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
+
+                if (isInvalidProperty(min) || isInvalidProperty(max)) {
+                    yield disablePrice("Invalid price property: " + properties + ".");
                 }
+
                 double result = min + (max - min) * random.nextDouble();
-                if (result < 0) {
-                    HyphaShopImpl.LOGGER.warn("A negative price was generated: " + properties + ". Price will be disabled for safety.");
-                    this.priceMode = PriceMode.DISABLE;
-                    yield Optional.empty();
-                }
-                yield Optional.of(round ? Math.floor(result) : result);
+
+                yield processResult(result, round);
             }
+            case DISABLE -> Optional.empty(); // 显式处理 DISABLE 模式
             default -> Optional.empty();
         };
+    }
+
+    private boolean isInvalidProperty(@Nullable Double value) {
+        return value == null || value.isNaN() || value.isInfinite();
+    }
+
+    private @NotNull Optional<Double> processResult(double result, @Nullable Integer round) {
+        if (result < 0) {
+            return disablePrice("A negative price (" + result + ") was generated: " + properties + ". Price will be disabled for safety.");
+        }
+
+        // 四舍五入
+        double finalPrice = round != null
+                ? MathUtils.round(result, round).doubleValue()
+                : result;
+
+        return Optional.of(finalPrice);
+    }
+
+    private @NotNull Optional<Double> disablePrice(String reason) {
+        HyphaShopImpl.LOGGER.warn(reason);
+        this.priceMode = PriceMode.DISABLE;
+        return Optional.empty();
     }
 
     @Override
