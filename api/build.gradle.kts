@@ -20,7 +20,7 @@ dependencies {
 
     compileOnly("com.google.code.gson:gson:2.13.2")
 
-    compileOnly("cn.encmys.ykdz.forest:hyphascript:0.1.3-beta")
+    compileOnly("cn.encmys.ykdz.forest:hyphascript:0.2.0-beta")
 
     compileOnly("org.flywaydb:flyway-core:11.17.1")
 }
