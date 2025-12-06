@@ -25,7 +25,7 @@ dependencies {
 
     implementation("cn.encmys.ykdz.forest:hyphautils:0.1.0-beta")
 
-    implementation("cn.encmys.ykdz.forest:hyphascript:0.2.0-beta")
+    implementation("cn.encmys.ykdz.forest:hyphascript:0.2.1-beta")
 
     compileOnly("io.lumine:Mythic-Dist:5.10.1") {
         exclude(group = "com.mojang")
