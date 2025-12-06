@@ -6,6 +6,7 @@ default-configs:
     # are true can they be listed
     on-before-list:
       # This product can only be listed between 8pm and 6am on World Day
+      # Need PlaceholderAPI extension "world" to work: https://api.extendedclip.com/expansions/world/
       - |
         const timeStr = papi("%world_time_world%").split(":")
         const hours = timeStr[0]
