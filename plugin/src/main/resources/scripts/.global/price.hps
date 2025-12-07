@@ -23,9 +23,13 @@ const format_prices = (prices) => {
 };
 
 export const prices_list = (prices) => {
-    return format_prices(prices).map((price) => " <dark_gray>- " + price);
+    const result = format_prices(prices);
+    if (!result) return null;
+    return result.map((price) => " <dark_gray>- " + price);
 };
 
 export const prices_str = (prices) => {
-    return format_prices(prices).join("<dark_gray>, ");
+    const result = format_prices(prices);
+    if (!result) return null;
+    return result.join("<dark_gray>, ");
 };

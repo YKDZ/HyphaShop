@@ -122,7 +122,7 @@ public class ShopPricerImpl implements ShopPricer {
             final String currencyId = price.getCurrencyProvider().getId();
 
             switch (price.getPriceMode()) {
-                case FORMULA -> instance.merge(currencyId, evaluateFormulaPrice(price, product));
+                case FORMULA -> instance.merge(currencyId, calculateFormulaPrice(price, product));
                 case BUNDLE_AUTO_NEW -> instance.merge(calculateBundleAutoNewPrice(product, isBuy));
                 case BUNDLE_AUTO_REUSE -> instance.merge(calculateBundleAutoReusePrice(product, isBuy));
                 default -> instance.merge(currencyId, price.getNewPrice().orElse(Double.NaN));
@@ -132,7 +132,7 @@ public class ShopPricerImpl implements ShopPricer {
         return instance;
     }
 
-    private double evaluateFormulaPrice(@NotNull Price price, @NotNull Product product) {
+    private double calculateFormulaPrice(@NotNull Price price, @NotNull Product product) {
         final Context priceContext = price.getProperty(PriceProperty.CONTEXT);
         final Context context = new Context(ContextUtils.linkContext(
                 priceContext != null ? priceContext.clone() : InternalObjectManager.GLOBAL_OBJECT,

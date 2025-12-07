@@ -136,21 +136,15 @@ public class ShopStockerImpl implements ShopStocker {
     public void listProduct(@NotNull Product product) {
         final String productId = product.getId();
 
-        // 所有商品数量都提前被缓存过了
-
-        if (!shop.getShopPricer().cachePrice(productId)) {
-            HyphaShopImpl.LOGGER.warn("Fail to list product: " + productId + " cause the price is incorrect.");
-            return;
-        }
-        if (product.isProductItemCacheable() && !shop.isProductItemCached(productId)) {
-            shop.cacheProductItem(product);
-        }
-
         // 确保每个捆绑包内容都有价格和数量缓存
         // 同时尝试缓存内容的商品物品
         if (product.getType() == ProductType.BUNDLE) {
             for (String contentId : ((BundleProduct) product).getBundleContents().keySet()) {
-                Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
+                HyphaShopImpl.LOGGER.debug("""
+                        About to cache content %s for bundle product %s in shop %s
+                        """.formatted(contentId, productId, shop.getId()));
+
+                final Product content = HyphaShop.PRODUCT_FACTORY.getProduct(contentId);
                 if (content != null) {
                     shop.getShopCounter().cacheAmount(contentId);
                     if (!shop.getShopPricer().cachePrice(contentId)) {
@@ -162,6 +156,16 @@ public class ShopStockerImpl implements ShopStocker {
                     }
                 }
             }
+        }
+
+        // 所有商品数量都提前被缓存过了
+
+        if (!shop.getShopPricer().cachePrice(productId)) {
+            HyphaShopImpl.LOGGER.warn("Fail to list product: " + productId + " cause the price is incorrect.");
+            return;
+        }
+        if (product.isProductItemCacheable() && !shop.isProductItemCached(productId)) {
+            shop.cacheProductItem(product);
         }
 
         // 若商品上架则补充其库存
