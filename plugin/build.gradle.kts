@@ -31,8 +31,8 @@ dependencies {
         exclude(group = "com.mojang")
     }
 
-    compileOnly("net.kyori:adventure-api:4.25.0")
-    compileOnly("net.kyori:adventure-text-minimessage:4.25.0")
+    compileOnly("net.kyori:adventure-api:4.26.1")
+    compileOnly("net.kyori:adventure-text-minimessage:4.26.1")
 
     compileOnly("org.flywaydb:flyway-core:11.17.1")
 
