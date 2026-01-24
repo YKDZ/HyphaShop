@@ -1,5 +1,5 @@
 plugins {
-    id("com.vanniktech.maven.publish") version "0.35.0"
+    id("com.vanniktech.maven.publish") version "0.36.0"
 }
 
 dependencies {
@@ -11,7 +11,7 @@ dependencies {
 
     compileOnly("dev.lone:api-itemsadder:4.0.10")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.21")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.23")
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
@@ -22,7 +22,7 @@ dependencies {
 
     compileOnly("cn.encmys.ykdz.forest:hyphascript:0.2.1-beta")
 
-    compileOnly("org.flywaydb:flyway-core:11.17.1")
+    compileOnly("org.flywaydb:flyway-core:11.20.2")
 }
 
 tasks.withType<Jar>().configureEach {

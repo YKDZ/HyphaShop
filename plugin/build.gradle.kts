@@ -9,7 +9,7 @@ dependencies {
     compileOnly("org.jetbrains:annotations:26.0.2-1")
     annotationProcessor("org.jetbrains:annotations:26.0.2-1")
 
-    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.21")
+    compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.23")
 
     implementation("org.bstats:bstats-bukkit:3.1.0")
 
@@ -17,7 +17,7 @@ dependencies {
 
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
 
-    compileOnly("org.xerial:sqlite-jdbc:3.51.0.0")
+    compileOnly("org.xerial:sqlite-jdbc:3.51.1.0")
 
     compileOnly("com.google.code.gson:gson:2.13.2")
 
@@ -27,14 +27,14 @@ dependencies {
 
     implementation("cn.encmys.ykdz.forest:hyphascript:0.2.1-beta")
 
-    compileOnly("io.lumine:Mythic-Dist:5.10.1") {
+    compileOnly("io.lumine:Mythic-Dist:5.11.1") {
         exclude(group = "com.mojang")
     }
 
-    compileOnly("net.kyori:adventure-api:4.25.0")
-    compileOnly("net.kyori:adventure-text-minimessage:4.25.0")
+    compileOnly("net.kyori:adventure-api:4.26.1")
+    compileOnly("net.kyori:adventure-text-minimessage:4.26.1")
 
-    compileOnly("org.flywaydb:flyway-core:11.17.1")
+    compileOnly("org.flywaydb:flyway-core:11.20.2")
 
     compileOnly("com.github.Zrips:CMI-API:9.7.14.3")
 
