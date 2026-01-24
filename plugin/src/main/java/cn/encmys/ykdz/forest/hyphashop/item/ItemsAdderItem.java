@@ -1,5 +1,7 @@
 package cn.encmys.ykdz.forest.hyphashop.item;
 
+import cn.encmys.ykdz.forest.hyphashop.HyphaShopImpl;
+import cn.encmys.ykdz.forest.hyphashop.api.HyphaShop;
 import cn.encmys.ykdz.forest.hyphashop.api.item.BaseItem;
 import cn.encmys.ykdz.forest.hyphashop.api.item.decorator.BaseItemDecorator;
 import cn.encmys.ykdz.forest.hyphashop.api.item.enums.BaseItemType;
@@ -42,10 +44,22 @@ public record ItemsAdderItem(@NotNull String namespacedId) implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
+        HyphaShopImpl.LOGGER.info("ia " + namespacedId());
+
         final CustomStack stack = CustomStack.getInstance(namespacedId());
+
         if (stack != null) {
-            return stack.getItemStack().clone();
+            var item = stack.getItemStack();
+            if (item.getType().equals(Material.AIR)) {
+                HyphaShopImpl.LOGGER.warn("""
+                    ItemsAdder namespacedId %s returns an air stack. This may lead to a miss config of ItemsAdder .
+                    """.formatted(namespacedId));
+            }
+            return item;
         } else {
+            HyphaShopImpl.LOGGER.warn("""
+                    ItemsAdder namespacedId %s returns a null stack. Item will fallback to AIR for safety.
+                    """.formatted(namespacedId));
             return new ItemStack(Material.AIR);
         }
     }
