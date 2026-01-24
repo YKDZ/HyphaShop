@@ -254,6 +254,8 @@ public class ItemBuilder {
     }
 
     public @NotNull ItemBuilder setCustomModelData(@Nullable List<Boolean> flags, @Nullable List<Color> colors, @Nullable List<Float> floats, @Nullable List<String> strings) {
+        if (flags == null && colors == null && floats == null && strings == null) return this;
+
         final CustomModelData.Builder builder = CustomModelData.customModelData();
 
         if (flags != null) {
