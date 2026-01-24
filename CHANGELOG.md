@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.5.1-Beta 2026.01.24
+
+### Added
+
+- 
+
+### Changed
+
+- Bump deps
+
+### Fixed
+
+- Fix ItemsAdder integration
+
 ## 0.5.0-Beta 2025.12.07
 
 ### Added
