@@ -44,8 +44,6 @@ public record ItemsAdderItem(@NotNull String namespacedId) implements BaseItem {
 
     @Override
     public @NotNull ItemStack build(@Nullable Player player) {
-        HyphaShopImpl.LOGGER.info("ia " + namespacedId());
-
         final CustomStack stack = CustomStack.getInstance(namespacedId());
 
         if (stack != null) {
