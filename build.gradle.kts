@@ -2,7 +2,7 @@ plugins {
     `java-library`
     id("java")
     id("com.vanniktech.maven.publish") version "0.35.0"
-    id("com.gradleup.shadow") version "9.2.2"
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
 allprojects {
