@@ -11,7 +11,7 @@ dependencies {
 
     compileOnly("xyz.xenondevs.invui:invui:2.0.0-alpha.23")
 
-    implementation("org.bstats:bstats-bukkit:3.1.0")
+    implementation("org.bstats:bstats-bukkit:3.2.1")
 
     compileOnly("me.clip:placeholderapi:2.11.7")
 
