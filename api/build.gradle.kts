@@ -22,7 +22,7 @@ dependencies {
 
     compileOnly("cn.encmys.ykdz.forest:hyphascript:0.2.2-beta")
 
-    compileOnly("org.flywaydb:flyway-core:11.20.2")
+    compileOnly("org.flywaydb:flyway-core:12.2.0")
 }
 
 tasks.withType<Jar>().configureEach {
