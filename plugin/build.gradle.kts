@@ -34,7 +34,7 @@ dependencies {
     compileOnly("net.kyori:adventure-api:4.26.1")
     compileOnly("net.kyori:adventure-text-minimessage:4.26.1")
 
-    compileOnly("org.flywaydb:flyway-core:11.20.2")
+    compileOnly("org.flywaydb:flyway-core:12.4.0")
 
     compileOnly("com.github.Zrips:CMI-API:9.7.14.3")
 
